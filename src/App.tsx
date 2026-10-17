@@ -76,7 +76,7 @@ function AppContent() {
           </main>
 
           {/* Right Copilot Panel */}
-          {copilotOpen && <CopilotPanel />}
+          <CopilotPanel />
         </div>
       </div>
 

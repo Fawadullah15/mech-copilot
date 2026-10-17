@@ -77,3 +77,34 @@ function mapProjectFromDb(row: any) {
     tags: JSON.parse(row.tags)
   };
 }
+
+export const DEFAULT_DEMO_PROJECT = {
+  id: 'proj-gearbox',
+  name: 'Gearbox Assembly',
+  description: 'Two-stage spur gearbox for industrial conveyor drive system. Includes input shaft, intermediate shaft, output shaft, and housing design.',
+  type: 'Power Transmission',
+  status: 'In Progress',
+  progress: 72,
+  lastModified: '2026-09-17T06:30:00Z',
+  created: '2026-08-15T09:00:00Z',
+  parameters: {
+    materialId: 'aisi-4140',
+    diameter: 45,
+    length: 320,
+    torque: 500,
+    force: 12000,
+    rpm: 1450,
+    safetyFactor: 2.0,
+    temperature: 60,
+  },
+  tags: ['gearbox', 'power-transmission', 'industrial'],
+};
+
+export function ensureDefaultProjectSeeded() {
+  const existing = getAllProjects();
+  if (existing.length === 0) {
+    createProject(DEFAULT_DEMO_PROJECT);
+    return DEFAULT_DEMO_PROJECT;
+  }
+  return null;
+}

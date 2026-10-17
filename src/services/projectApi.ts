@@ -28,3 +28,14 @@ export async function fetchConversations(projectId: string): Promise<Conversatio
   if (!res.ok) throw new Error('Failed to fetch conversations');
   return res.json();
 }
+
+export async function initSampleProject(): Promise<Project[]> {
+  const res = await fetch(`${API_BASE_URL}/api/projects/init-sample`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('Failed to initialize sample project');
+  const data = await res.json();
+  return data.projects || [];
+}
+

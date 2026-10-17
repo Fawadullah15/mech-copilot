@@ -24,14 +24,14 @@ export default function SettingsPage() {
                 <input type="radio" name="units" className="accent-accent" defaultChecked />
                 <span className="text-gray-300">Metric (SI)</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer opacity-70">
-                <input type="radio" name="units" className="accent-accent" />
-                <span className="text-gray-300">Imperial (US)</span>
+              <label className="flex items-center gap-2 cursor-not-allowed opacity-50" title="Imperial unit system is in development. SI Metric is the active standard.">
+                <input type="radio" name="units" className="accent-accent" disabled />
+                <span className="text-gray-400">Imperial (US) <span className="text-[10px] text-amber-400 font-mono">(Coming Soon)</span></span>
               </label>
             </div>
-            <div className="bg-navy-900 border border-navy-700 p-3 rounded text-sm text-gray-400 flex items-start gap-2">
+            <div className="bg-navy-900 border border-navy-700 p-3 rounded text-xs text-gray-400 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-accent" />
-              <span>All values will be converted automatically when switching unit systems.</span>
+              <span>SI Metric (N·m, mm, MPa, kW) is the primary engineering standard enforced by the calculation kernel.</span>
             </div>
           </div>
         </div>

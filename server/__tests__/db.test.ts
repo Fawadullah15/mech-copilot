@@ -1,6 +1,6 @@
 import test, { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { db, initDatabase } from '../db/client.ts';
+import { db, initDatabase, resetDatabase, isTestMode, activeDbPath } from '../db/client.ts';
 import {
   createProject,
   getAllProjects,
@@ -17,25 +17,18 @@ import {
 } from '../services/conversationService.ts';
 
 // Use an in-memory database for testing to ensure isolation and prevent polluting local db.
-// We redirect the underlying db handle directly for tests.
-
 describe('Database Persistence Layer', () => {
   before(() => {
-    // Clear and initialize schema
-    db.exec(`
-      DROP TABLE IF EXISTS messages;
-      DROP TABLE IF EXISTS conversations;
-      DROP TABLE IF EXISTS projects;
-    `);
-    initDatabase();
+    assert.ok(isTestMode(), 'db.test.ts must be running in test mode');
+    assert.ok(
+      activeDbPath === ':memory:' || activeDbPath.includes('test'),
+      `db.test.ts must use an isolated test database, but got: ${activeDbPath}`
+    );
+    resetDatabase();
   });
 
   after(() => {
-    db.exec(`
-      DROP TABLE IF EXISTS messages;
-      DROP TABLE IF EXISTS conversations;
-      DROP TABLE IF EXISTS projects;
-    `);
+    resetDatabase();
   });
 
   const testProject = {

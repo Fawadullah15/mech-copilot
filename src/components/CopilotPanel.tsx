@@ -122,21 +122,36 @@ export default function CopilotPanel() {
 
   if (!copilotOpen) {
     return (
-      <div className="h-full bg-navy-950 border-l border-navy-700/50 flex flex-col items-center py-4 w-12 font-sans shrink-0">
+      <>
+        <div className="hidden sm:flex h-full bg-navy-950 border-l border-navy-700/50 flex-col items-center py-4 w-12 font-sans shrink-0">
+          <button
+            onClick={() => setCopilotOpen(true)}
+            className="p-2 text-gray-400 hover:text-white hover:bg-navy-700/50 rounded-lg transition-colors"
+            title="Expand Engineering Copilot"
+          >
+            <Bot size={20} className="text-accent" />
+          </button>
+        </div>
         <button
           onClick={() => setCopilotOpen(true)}
-          className="p-2 text-gray-400 hover:text-white hover:bg-navy-700/50 rounded-lg transition-colors"
-          title="Expand Engineering Copilot"
+          className="sm:hidden fixed bottom-4 right-4 z-30 p-3 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-500 transition-transform active:scale-95"
+          title="Open Engineering Copilot"
         >
-          <Bot size={20} className="text-accent" />
+          <Bot size={20} />
         </button>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="w-[410px] h-full bg-navy-950 border-l border-navy-700/60 flex flex-col font-sans shrink-0 shadow-2xl relative">
-      {/* Top Header */}
+    <>
+      {/* Mobile / Tablet Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 lg:hidden animate-fade-in"
+        onClick={() => setCopilotOpen(false)}
+      />
+      <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[380px] lg:static lg:z-auto lg:w-[320px] xl:w-[360px] 2xl:w-[400px] h-full bg-navy-950 border-l border-navy-700/60 flex flex-col font-sans shrink-0 shadow-2xl relative transition-all duration-200">
+        {/* Top Header */}
       <div className="h-14 px-4 border-b border-navy-700/60 flex items-center justify-between shrink-0 bg-navy-900">
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -489,5 +504,6 @@ export default function CopilotPanel() {
         </form>
       </div>
     </div>
+  </>
   );
 }

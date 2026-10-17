@@ -11,6 +11,7 @@ import {
   GitCompare,
   HelpCircle,
   ChevronRight,
+  Menu,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import EngineeringStatusSymbol from './brand/EngineeringStatusSymbol';
@@ -18,8 +19,13 @@ import EngineeringStatusSymbol from './brand/EngineeringStatusSymbol';
 export default function TopBar() {
   const {
     activeProject,
+    designParams,
+    selectedMaterial,
+    analysisResults,
     engineeringWarnings,
     designVersions,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
     setIsProblemModalOpen,
     setIsFileUploadModalOpen,
     setIsWarningsDrawerOpen,
@@ -45,32 +51,78 @@ export default function TopBar() {
   };
 
   const handleExport = () => {
-    setExportNotice(true);
-    setTimeout(() => setExportNotice(false), 2500);
+    try {
+      const exportBundle = {
+        application: "QUANTUM // Mechanical Engineering Design Copilot",
+        version: "2.4",
+        exportedAt: new Date().toISOString(),
+        project: activeProject,
+        parameters: designParams,
+        material: {
+          id: selectedMaterial.id,
+          name: selectedMaterial.name,
+          category: selectedMaterial.category,
+          yieldStrengthMPa: selectedMaterial.yieldStrength,
+          tensileStrengthMPa: selectedMaterial.tensileStrength,
+          elasticModulusGPa: selectedMaterial.elasticModulus,
+          densityKgM3: selectedMaterial.density
+        },
+        analysis: analysisResults ? {
+          vonMisesStressMPa: analysisResults.vonMisesStress,
+          yieldStrengthMPa: analysisResults.yieldStrength,
+          factorOfSafety: analysisResults.factorOfSafety,
+          maxDeflectionMm: analysisResults.maxDeflection,
+          torqueCapacityNm: analysisResults.torqueCapacity,
+          status: analysisResults.status
+        } : null,
+        activeWarnings: engineeringWarnings.map(w => ({ id: w.id, title: w.title, severity: w.severity }))
+      };
+      const blob = new Blob([JSON.stringify(exportBundle, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `quantum_spec_${activeProject.id}_${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setExportNotice(true);
+      setTimeout(() => setExportNotice(false), 2500);
+    } catch (e) {
+      console.error("Export failed", e);
+    }
   };
 
   return (
-    <header className="h-14 w-full bg-navy-900/90 backdrop-blur-md border-b border-navy-800 flex items-center justify-between px-5 font-sans shrink-0 relative z-30 transition-colors">
+    <header className="h-14 w-full bg-navy-900/90 backdrop-blur-md border-b border-navy-800 flex items-center justify-between px-3 sm:px-5 font-sans shrink-0 relative z-30 transition-colors">
       {/* Left: Workspace & Project Breadcrumbs */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 transition-colors"
+          title="Toggle Navigation Menu"
+        >
+          <Menu size={18} />
+        </button>
+
         <nav className="flex items-center text-xs text-gray-400 font-mono tracking-tight" aria-label="Breadcrumb">
-          <span className="text-gray-400 hover:text-gray-200 transition-colors font-medium">Apex Powertrain</span>
-          <ChevronRight size={13} className="text-navy-600 mx-1" />
-          <span className="text-gray-400 hover:text-gray-200 transition-colors">Shaft Assemblies</span>
-          <ChevronRight size={13} className="text-navy-600 mx-1" />
-          <span className="text-gray-100 font-semibold text-sm tracking-normal truncate max-w-[200px]">
+          <span className="hidden sm:inline text-gray-400 hover:text-gray-200 transition-colors font-medium">Apex Powertrain</span>
+          <ChevronRight size={13} className="hidden sm:inline text-navy-600 mx-1" />
+          <span className="hidden md:inline text-gray-400 hover:text-gray-200 transition-colors">Shaft Assemblies</span>
+          <ChevronRight size={13} className="hidden md:inline text-navy-600 mx-1" />
+          <span className="text-gray-100 font-semibold text-xs sm:text-sm tracking-normal truncate max-w-[140px] sm:max-w-[200px]">
             {activeProject.name}
           </span>
         </nav>
 
         {/* Project Status Badge */}
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-navy-700 bg-navy-800/80 text-[11px] font-medium text-gray-300">
+        <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-navy-700 bg-navy-800/80 text-[11px] font-medium text-gray-300">
           <EngineeringStatusSymbol type={getStatusSymbolType(activeProject.status)} size={11} />
           <span>{activeProject.status}</span>
         </div>
 
         {/* Autosave Heartbeat */}
-        <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-gray-400 font-mono pl-1">
+        <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-gray-400 font-mono pl-1">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <span>Sync v{designVersions.length}</span>
         </div>
@@ -205,7 +257,7 @@ export default function TopBar() {
       {exportNotice && (
         <div className="absolute top-16 right-6 bg-navy-900 border border-status-pass/40 text-status-pass px-4 py-2.5 rounded-xl text-xs flex items-center gap-2.5 shadow-2xl animate-fade-in z-50">
           <FileCheck size={16} className="text-emerald-400" />
-          <span>Generating export bundle: STEP geometry, mesh telemetry & calculation sheets...</span>
+          <span>Export bundle downloaded: {activeProject.name} parameters & calculation specification.</span>
         </div>
       )}
     </header>

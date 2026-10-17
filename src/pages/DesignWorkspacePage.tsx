@@ -69,7 +69,8 @@ export default function DesignWorkspacePage() {
   const [showLabels, setShowLabels] = useState(true);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
-  const [isTreeCollapsed, setIsTreeCollapsed] = useState(false);
+  const [isTreeCollapsed, setIsTreeCollapsed] = useState(true);
+  const [mobileTab, setMobileTab] = useState<'cad' | 'params'>('cad');
 
   // Inline Dimension Editing modal
   const [editingDim, setEditingDim] = useState<'diameter' | 'length' | null>(null);
@@ -286,7 +287,7 @@ export default function DesignWorkspacePage() {
   ];
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden bg-navy-950 font-sans relative">
+    <div className="flex flex-col flex-1 h-full overflow-hidden bg-navy-950 font-sans relative">
       {/* Dimension Quick Edit Popover */}
       {editingDim && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs">
@@ -323,12 +324,33 @@ export default function DesignWorkspacePage() {
         </div>
       )}
 
-      {/* Left Collapsible Component Tree */}
-      <aside
-        className={`border-r border-navy-800 bg-navy-900/60 backdrop-blur-sm transition-all duration-200 flex flex-col shrink-0 z-10 ${
-          isTreeCollapsed ? 'w-11' : 'w-64'
-        }`}
-      >
+      {/* Mobile Segmented View Selector */}
+      <div className="md:hidden flex border-b border-navy-800 bg-navy-900 px-3 py-1.5 gap-2 shrink-0 z-20">
+        <button
+          onClick={() => setMobileTab('cad')}
+          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold text-center transition-colors ${
+            mobileTab === 'cad' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white bg-navy-950'
+          }`}
+        >
+          CAD Visualization
+        </button>
+        <button
+          onClick={() => setMobileTab('params')}
+          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold text-center transition-colors ${
+            mobileTab === 'params' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white bg-navy-950'
+          }`}
+        >
+          Parameters (⌀{designParams.diameter}mm)
+        </button>
+      </div>
+
+      <div className="flex flex-1 h-full overflow-hidden relative">
+        {/* Left Collapsible Component Tree */}
+        <aside
+          className={`hidden sm:flex border-r border-navy-800 bg-navy-900/60 backdrop-blur-sm transition-all duration-200 flex-col shrink-0 z-10 ${
+            isTreeCollapsed ? 'w-11' : 'w-64'
+          }`}
+        >
         <div className="h-12 border-b border-navy-800 px-3 flex items-center justify-between">
           {!isTreeCollapsed && (
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-300">
@@ -419,7 +441,7 @@ export default function DesignWorkspacePage() {
       </aside>
 
       {/* Main CAD Viewport Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
+      <div className={`flex-1 flex flex-col relative overflow-hidden ${mobileTab === 'cad' ? 'flex' : 'hidden md:flex'}`}>
         {/* Top Control Overlay inside workspace */}
         <div className="absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
           {/* Material & Part Info Chip */}
@@ -1200,7 +1222,7 @@ export default function DesignWorkspacePage() {
       </div>
 
       {/* Right Panel: Design Parameters */}
-      <aside className="w-80 bg-navy-900 border-l border-navy-800 flex flex-col h-full overflow-hidden shrink-0 z-20 shadow-2xl">
+      <aside className={`w-full md:w-80 bg-navy-900 border-l border-navy-800 flex-col h-full overflow-hidden shrink-0 z-20 shadow-2xl ${mobileTab === 'params' ? 'flex' : 'hidden md:flex'}`}>
         <div className="p-4 border-b border-navy-800 bg-navy-950 flex justify-between items-center">
           <div>
             <h2 className="text-sm font-bold text-gray-100 uppercase tracking-wider font-mono">Parameters</h2>
@@ -1379,6 +1401,7 @@ export default function DesignWorkspacePage() {
           </div>
         </div>
       </aside>
+    </div>
 
       {/* Transparent Calculation Inspection Modal */}
       {isCalcModalOpen && (

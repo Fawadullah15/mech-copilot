@@ -8,7 +8,29 @@ import { explanationResponse, nextId, now } from '../data/aiResponses';
 import { computeAnalysis } from '../data/analysisResults';
 import { evaluateEngineeringWarnings } from '../data/engineeringRules';
 import { sendChatMessage } from '../services/chatApi';
-import { fetchProjects, fetchConversations, updateProjectParameters } from '../services/projectApi';
+import { fetchProjects, fetchConversations, updateProjectParameters, initSampleProject } from '../services/projectApi';
+
+export const DEFAULT_FALLBACK_PROJECT: Project = {
+  id: 'proj-gearbox',
+  name: 'Gearbox Assembly',
+  description: 'Two-stage spur gearbox for industrial conveyor drive system. Includes input shaft, intermediate shaft, output shaft, and housing design.',
+  type: 'Power Transmission',
+  status: 'In Progress',
+  progress: 72,
+  lastModified: '2026-09-17T06:30:00Z',
+  created: '2026-08-15T09:00:00Z',
+  parameters: {
+    materialId: 'aisi-4140',
+    diameter: 45,
+    length: 320,
+    torque: 500,
+    force: 12000,
+    rpm: 1450,
+    safetyFactor: 2.0,
+    temperature: 60,
+  },
+  tags: ['gearbox', 'power-transmission', 'industrial'],
+};
 
 interface ProjectMemory {
   parameters: DesignParameters;
@@ -48,6 +70,7 @@ interface AppContextType {
   designVersions: DesignVersion[]; saveDesignVersion: (label: string, notes?: string) => void;
   restoreDesignVersion: (versionId: string) => void;
   copilotOpen: boolean; setCopilotOpen: (open: boolean) => void;
+  isMobileMenuOpen: boolean; setIsMobileMenuOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -63,31 +86,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function loadData() {
       try {
-        const projects = await fetchProjects();
-        setAllProjects(projects);
-        if (projects.length > 0) {
-          const map: Record<string, ProjectMemory> = {};
-          for (const p of projects) {
-            const conversations = await fetchConversations(p.id);
-            const defaultThreadId = `thread-${p.id}-default`;
-            map[p.id] = {
-              parameters: { ...p.parameters },
-              materialId: p.parameters.materialId,
-              analysisResults: null,
-              threads: conversations.length > 0 ? conversations : [
-                {
-                  id: defaultThreadId,
-                  title: 'Shaft Sizing & Verification',
-                  createdAt: p.lastModified,
-                  messages: [],
-                }
-              ],
-              activeThreadId: conversations.length > 0 ? conversations[0].id : defaultThreadId,
-            };
+        let projects: Project[] = [];
+        try {
+          projects = await fetchProjects();
+          if (projects.length === 0) {
+            projects = await initSampleProject();
           }
-          setProjectMemory(map);
-          setActiveProjectState(projects[0]);
+        } catch (fetchErr) {
+          console.warn("Backend unavailable or failed to fetch projects, using fallback", fetchErr);
         }
+
+        if (projects.length === 0) {
+          projects = [DEFAULT_FALLBACK_PROJECT];
+        }
+
+        setAllProjects(projects);
+        const map: Record<string, ProjectMemory> = {};
+        for (const p of projects) {
+          let conversations: ConversationThread[] = [];
+          try {
+            conversations = await fetchConversations(p.id);
+          } catch {
+            conversations = [];
+          }
+          const defaultThreadId = `thread-${p.id}-default`;
+          map[p.id] = {
+            parameters: { ...p.parameters },
+            materialId: p.parameters.materialId,
+            analysisResults: null,
+            threads: conversations.length > 0 ? conversations : [
+              {
+                id: defaultThreadId,
+                title: 'Shaft Sizing & Verification',
+                createdAt: p.lastModified,
+                messages: [],
+              }
+            ],
+            activeThreadId: conversations.length > 0 ? conversations[0].id : defaultThreadId,
+          };
+        }
+        setProjectMemory(map);
+        setActiveProjectState(projects[0]);
       } catch (err) {
         console.error("Failed to load projects", err);
       } finally {
@@ -183,6 +222,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [savedMessageIds, setSavedMessageIds] = useState<Set<string>>(new Set());
 
   const [copilotOpen, setCopilotOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProblemModalOpen, setIsProblemModalOpen] = useState(false);
   const [isOptimizationModalOpen, setIsOptimizationModalOpen] = useState(false);
   const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
@@ -308,20 +348,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   if (!activeProject) {
     return (
       <div className="flex flex-col h-screen w-screen items-center justify-center bg-navy-950 text-white p-8">
-        <h1 className="text-2xl font-bold mb-4">No Projects Found</h1>
-        <p className="text-slate-400 mb-6">The database contains no projects.</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-500"
-        >
-          Reload
-        </button>
+        <div className="max-w-md w-full bg-navy-900 border border-navy-700 rounded-xl p-6 text-center space-y-4 shadow-2xl">
+          <div className="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400 text-xl font-bold font-mono">
+            Q
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight text-white">Quantum Workspace Ready</h1>
+          <p className="text-sm text-slate-400">
+            No active project is currently loaded. Initialize the standard mechanical shaft engineering workspace now.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+            <button
+              onClick={async () => {
+                setIsLoadingProjects(true);
+                try {
+                  const seeded = await initSampleProject();
+                  if (seeded && seeded.length > 0) {
+                    setAllProjects(seeded);
+                    setActiveProjectState(seeded[0]);
+                  } else {
+                    setAllProjects([DEFAULT_FALLBACK_PROJECT]);
+                    setActiveProjectState(DEFAULT_FALLBACK_PROJECT);
+                  }
+                } catch {
+                  setAllProjects([DEFAULT_FALLBACK_PROJECT]);
+                  setActiveProjectState(DEFAULT_FALLBACK_PROJECT);
+                } finally {
+                  setIsLoadingProjects(false);
+                }
+              }}
+              className="px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-accent text-navy-950 hover:bg-accent/90 rounded-md transition-colors"
+            >
+              Initialize Sample Workspace
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-navy-800 hover:bg-navy-700 text-slate-200 border border-navy-700 rounded-md transition-colors"
+            >
+              Reload
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <AppContext.Provider value={{ activePage, setActivePage, activeProject, setActiveProject, allProjects, designParams, updateDesignParam, setDesignParams, selectedMaterial, selectMaterial, allMaterials: materials, analysisResults, isAnalysisRunning, runAnalysis, selectedComponent, setSelectedComponent, copilotMessages, sendCopilotMessage, applyRecommendation, explainCalculation, isStreaming, conversationThreads, activeThreadId, createNewConversation, switchConversation, savedMessageIds, toggleSaveMessage, engineeringWarnings, applyWarningFix, isProblemModalOpen, setIsProblemModalOpen, isOptimizationModalOpen, setIsOptimizationModalOpen, isFileUploadModalOpen, setIsFileUploadModalOpen, isWarningsDrawerOpen, setIsWarningsDrawerOpen, isCommandPaletteOpen, setIsCommandPaletteOpen, isVersionHistoryOpen, setIsVersionHistoryOpen, isCompareModalOpen, setIsCompareModalOpen, isOnboardingModalOpen, setIsOnboardingModalOpen, designVersions, saveDesignVersion, restoreDesignVersion, copilotOpen, setCopilotOpen }}>
+    <AppContext.Provider value={{ activePage, setActivePage, activeProject, setActiveProject, allProjects, designParams, updateDesignParam, setDesignParams, selectedMaterial, selectMaterial, allMaterials: materials, analysisResults, isAnalysisRunning, runAnalysis, selectedComponent, setSelectedComponent, copilotMessages, sendCopilotMessage, applyRecommendation, explainCalculation, isStreaming, conversationThreads, activeThreadId, createNewConversation, switchConversation, savedMessageIds, toggleSaveMessage, engineeringWarnings, applyWarningFix, isProblemModalOpen, setIsProblemModalOpen, isOptimizationModalOpen, setIsOptimizationModalOpen, isFileUploadModalOpen, setIsFileUploadModalOpen, isWarningsDrawerOpen, setIsWarningsDrawerOpen, isCommandPaletteOpen, setIsCommandPaletteOpen, isVersionHistoryOpen, setIsVersionHistoryOpen, isCompareModalOpen, setIsCompareModalOpen, isOnboardingModalOpen, setIsOnboardingModalOpen, designVersions, saveDesignVersion, restoreDesignVersion, copilotOpen, setCopilotOpen, isMobileMenuOpen, setIsMobileMenuOpen }}>
       {children}
     </AppContext.Provider>
   );

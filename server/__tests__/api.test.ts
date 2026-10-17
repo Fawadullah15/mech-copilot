@@ -45,7 +45,7 @@ describe('Backend API Tests', () => {
     assert.ok(data.error.includes('Invalid request structure'));
   });
 
-  it('POST /api/chat with missing API key should return 503', async () => {
+  it('POST /api/chat with missing API key should gracefully fall back to deterministic engineering calculation (HTTP 200)', async () => {
     // Ensure OPENAI_API_KEY is undefined for this test
     const originalKey = env.OPENAI_API_KEY;
     env.OPENAI_API_KEY = undefined;
@@ -54,15 +54,22 @@ describe('Backend API Tests', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [{ role: 'user', content: 'Hello' }]
+        messages: [{ role: 'user', content: 'Calculate the required shaft diameter for 500 Nm torque' }]
       })
     });
     
     env.OPENAI_API_KEY = originalKey;
 
-    assert.strictEqual(res.status, 503);
+    assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.strictEqual(data.error, 'LLM service is not configured (missing API key).');
+    assert.strictEqual(data.message.role, 'assistant');
+    assert.ok(typeof data.message.content === 'string');
+    assert.ok(data.message.content.includes('Diameter') || data.message.content.includes('diameter'));
+    assert.ok(Array.isArray(data.toolsUsed));
+    assert.ok(data.toolsUsed.includes('calculate_required_shaft_diameter'));
+    assert.ok(data.engineeringResult !== null && typeof data.engineeringResult === 'object');
+    assert.strictEqual(data.engineeringResult.tool, 'calculate_required_shaft_diameter');
+    assert.ok(data.engineeringResult.outputs.requiredDiameterMm > 0);
   });
 
   it('GET /api/unknown should return 404', async () => {

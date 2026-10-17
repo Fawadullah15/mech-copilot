@@ -147,3 +147,53 @@
     @apply bg-slate-100 text-slate-600 border-slate-200;
   }
 }
+
+@media print {
+  /* Hide application chrome, sidebars, topbars, buttons and modals */
+  aside,
+  header,
+  nav,
+  .no-print,
+  button,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost,
+  #copilot-panel,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  body, html, #root {
+    background: #ffffff !important;
+    color: #111827 !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    user-select: text !important;
+  }
+
+  main {
+    overflow: visible !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .print-document {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .print-document section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+

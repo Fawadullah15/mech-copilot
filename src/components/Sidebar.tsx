@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Sparkles,
   ShieldAlert,
+  X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../design-system/ThemeContext';
@@ -40,6 +41,8 @@ export default function Sidebar() {
     setIsCommandPaletteOpen,
     setIsVersionHistoryOpen,
     setIsCompareModalOpen,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
   } = useApp();
 
   const { theme, toggleTheme } = useTheme();
@@ -64,11 +67,27 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 h-full bg-navy-950 border-r border-navy-800 flex flex-col font-sans shrink-0 select-none relative z-20">
-      {/* Top Brand Header */}
-      <div className="h-16 px-5 border-b border-navy-800 flex items-center justify-between">
-        <BrandLogo size="md" />
-      </div>
+    <>
+      {/* Mobile Drawer Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-50 flex shadow-2xl' : 'hidden lg:flex'} w-64 h-full bg-navy-950 border-r border-navy-800 flex-col font-sans shrink-0 select-none relative z-20 transition-all duration-200`}>
+        {/* Top Brand Header */}
+        <div className="h-16 px-5 border-b border-navy-800 flex items-center justify-between">
+          <BrandLogo size="md" />
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden text-slate-400 hover:text-white p-1 rounded-md hover:bg-navy-800 transition-colors"
+            title="Close menu"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
       {/* Workspace Switcher */}
       <div className="px-3 pt-3 pb-2 border-b border-navy-850">
@@ -133,7 +152,10 @@ export default function Sidebar() {
           return (
             <button
               key={item.id}
-              onClick={() => setActivePage(item.id)}
+              onClick={() => {
+                setActivePage(item.id);
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                 isActive
                   ? 'bg-blue-600/15 text-white font-semibold border border-blue-500/30 shadow-sm'
@@ -171,7 +193,10 @@ export default function Sidebar() {
         </div>
 
         <button
-          onClick={() => setIsVersionHistoryOpen(true)}
+          onClick={() => {
+            setIsVersionHistoryOpen(true);
+            setIsMobileMenuOpen(false);
+          }}
           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-navy-900/70 transition-colors"
         >
           <History size={15} className="text-amber-400/80" />
@@ -179,7 +204,10 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => setIsCompareModalOpen(true)}
+          onClick={() => {
+            setIsCompareModalOpen(true);
+            setIsMobileMenuOpen(false);
+          }}
           className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-navy-900/70 transition-colors"
         >
           <Scale size={15} className="text-cyan-400/80" />
@@ -213,5 +241,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+  </>
   );
 }

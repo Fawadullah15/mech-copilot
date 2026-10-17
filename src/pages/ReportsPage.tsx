@@ -56,11 +56,6 @@ export default function ReportsPage() {
     window.print();
   };
 
-  const handleExportPDF = () => {
-    setExportNotification('Engineering PDF Specification generated and saved to exports/QUANTUM_Report.pdf');
-    setTimeout(() => setExportNotification(null), 3500);
-  };
-
   return (
     <div className="p-6 md:p-8 h-full overflow-y-auto animate-fade-in max-w-5xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-2 border-b border-navy-800">
@@ -128,30 +123,29 @@ export default function ReportsPage() {
 
       {reportReady && (
         <div className="animate-slide-in">
-          <div className="flex gap-3 justify-end mb-4">
-            <button 
-              onClick={handleExportPDF}
-              className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3 rounded-lg"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export PDF Spec</span>
-            </button>
-            <button 
-              onClick={handlePrint}
-              className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3 rounded-lg"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Print Sheet</span>
-            </button>
-            <button 
-              onClick={() => setReportReady(false)}
-              className="btn-ghost text-xs"
-            >
-              Reset
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
+            <span className="text-xs text-slate-400">
+              Tip: Select <strong className="text-slate-200">"Save as PDF"</strong> in your browser's print dialog to archive this calculation report.
+            </span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handlePrint}
+                className="btn-primary text-xs flex items-center gap-1.5 py-1.5 px-3.5 rounded-lg shadow-sm font-semibold"
+                title="Open browser print dialog to print or save as PDF"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print / Save as PDF</span>
+              </button>
+              <button 
+                onClick={() => setReportReady(false)}
+                className="btn-secondary text-xs"
+              >
+                Reset
+              </button>
+            </div>
           </div>
 
-          <div className="bg-gray-100 rounded-lg shadow-2xl overflow-hidden text-gray-900 mx-auto border border-gray-300">
+          <div className="print-document bg-gray-100 rounded-lg shadow-2xl overflow-hidden text-gray-900 mx-auto border border-gray-300">
 
             {/* Document Header */}
             <div className="border-b-2 border-gray-300 p-12 pb-8 bg-white">

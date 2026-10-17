@@ -70,10 +70,11 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-100 flex items-center gap-2">
-                Engineering Document & CAD Ingestion
+                Preset Technical Specs & Ingestion
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-cyan-400 border border-blue-500/30">Preset Parser</span>
               </h2>
               <p className="text-xs text-gray-400">
-                Upload 2D drawings, 3D CAD files, or technical specs to extract engineering constraints
+                Select a preset engineering specification or drawing to extract and apply design constraints (Torque, RPM, Diameter, FoS).
               </p>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { getAllProjects, getProjectById, createProject, updateProject, deleteProject } from '../services/projectService.js';
+import { getAllProjects, getProjectById, createProject, updateProject, deleteProject, ensureDefaultProjectSeeded } from '../services/projectService.js';
 import { getConversationsByProjectId, createConversation, getMessagesByConversationId } from '../services/conversationService.js';
+import { isTestMode } from '../db/client.js';
 
 export const router = Router();
 
@@ -44,8 +45,19 @@ const updateProjectSchema = z.object({
 
 // Get all projects
 router.get('/', (req, res) => {
-  const projects = getAllProjects();
+  let projects = getAllProjects();
+  if (projects.length === 0 && !isTestMode()) {
+    ensureDefaultProjectSeeded();
+    projects = getAllProjects();
+  }
   res.json(projects);
+});
+
+// Explicit sample workspace initialization
+router.post('/init-sample', (req, res) => {
+  const seeded = ensureDefaultProjectSeeded();
+  const projects = getAllProjects();
+  res.status(200).json({ seeded, count: projects.length, projects });
 });
 
 // Get single project
