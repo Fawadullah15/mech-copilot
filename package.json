@@ -1,0 +1,46 @@
+{
+  "name": "mech-copilot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "vite",
+    "dev:server": "tsx --watch server/index.ts",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "db:seed": "tsx server/scripts/seed.ts",
+    "db:reset": "tsx server/scripts/seed.ts",
+    "test": "npm run test:engineering && npm run test:server && npm run test:frontend",
+    "test:engineering": "tsx src/engineering/__tests__/engineering.test.ts",
+    "test:server": "tsx --test server/__tests__/api.test.ts server/__tests__/ai.test.ts server/__tests__/llm.integration.test.ts server/__tests__/db.test.ts",
+    "test:frontend": "tsx --test src/services/__tests__/chatApi.test.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.1",
+    "express": "^5.2.1",
+    "lucide-react": "^0.468.0",
+    "openai": "^7.20.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.15.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.3",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.5",
+    "playwright": "^1.64.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}
