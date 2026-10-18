@@ -12,7 +12,7 @@
 
 ---
 
-## 1. Problem
+## Problem
 
 Mechanical engineers often need to do calculations, check design details, and work with different tools when designing machine parts. These tasks can take time and require careful checking.
 
@@ -20,7 +20,7 @@ When designing parts like rotating shafts, engineers must make sure the part is 
 
 ---
 
-## 2. Solution
+## Solution
 
 Mechanical Engineering Copilot is an AI-powered tool that helps users with supported mechanical design tasks.
 
@@ -37,7 +37,7 @@ flowchart LR
 
 ---
 
-## 3. Features
+## Features
 
 * **Ask questions:** Ask the AI about supported mechanical design tasks and get clear, everyday explanations.
 * **Enter design details:** Change values like part size, length, applied force, and speed to see how they affect the design.
@@ -52,7 +52,7 @@ flowchart LR
 
 ---
 
-## 4. Tech Stack
+## Tech Stack
 
 | Layer | Technology | Role in System |
 | :--- | :--- | :--- |
@@ -67,7 +67,7 @@ flowchart LR
 
 ---
 
-## 5. AI / API Usage
+## AI / API Usage
 
 The system architecture cleanly separates nondeterministic language orchestration from numerical evaluation:
 
@@ -82,7 +82,7 @@ The system architecture cleanly separates nondeterministic language orchestratio
 
 ---
 
-## 6. Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 * **Node.js:** v22.0.0 or higher (v22.20+ or v24.x recommended for native `node:sqlite`)
@@ -148,14 +148,37 @@ npm run build
 
 ---
 
-## 7. Screenshots
+## Screenshots
 
-| View | Screenshot | Description |
-| :--- | :---: | :--- |
-| **Interactive CAD Workspace** | ![CAD Workspace](docs/screenshots/stage5_01_workspace_desktop.png) | Reactive 2D/3D SVG visualizer with live dimension callouts, material overlay, and parameter controls. |
-| **Dynamic Analysis & S-N Curves** | ![Analysis Charts](docs/screenshots/stage5_04_analysis_charts.png) | Recharts stress distribution areas and logarithmic S-N fatigue endurance life curves. |
-| **Engineering Calculation Cards** | ![Calculation Cards](docs/screenshots/stage5_05_calculations.png) | Transparent mathematical derivation cards with substituted variables, formulas, and safety margins. |
-| **AI Copilot Tool Execution** | ![AI Copilot](docs/screenshots/stage5_09_copilot_result.png) | Docked Engineering Copilot executing deterministic tool calls and rendering structured recommendation cards. |
+### 1. Mechanical Engineering Command Center (Dashboard)
+The main dashboard displays active machine projects, design health metrics, recent finite analysis history, and AI recommendations.
+
+![Mechanical Engineering Command Center](docs/screenshots/dashboard.png)
+
+### 2. Interactive CAD Workspace & Copilot Assistant
+The central workspace features a reactive 2D/3D SVG shaft CAD visualizer with real-time dimension callouts, applied force and torque vectors, keyway details, and the docked AI Copilot assistant.
+
+![Interactive CAD Workspace](docs/screenshots/workspace-cad.png)
+
+### 3. Stress Distribution & Fatigue Life Charts
+Visual charts display multiaxial stress distributions along the shaft span alongside logarithmic high-cycle fatigue (S-N Wöhler) endurance curves.
+
+![Stress and Fatigue Charts](docs/screenshots/stress-fatigue-analysis.png)
+
+### 4. Engineering Calculations & Transparent Derivations
+Live calculation cards display closed-form formulas (torsion, bending, combined von Mises, deflection, power transmission) with substituted parameters and pass/fail safety evaluations.
+
+![Engineering Calculations and Derivations](docs/screenshots/calculations-derivations.png)
+
+### 5. Auditable Engineering Design Report
+One-click compilation of formal engineering design calculation sheets, including component specifications, material justifications, governing formulations, and print/PDF export.
+
+![Engineering Design Calculation Report](docs/screenshots/engineering-report.png)
+
+### 6. Materials Database & Mechanical Properties
+Searchable engineering alloy database featuring yield and tensile strengths, elastic modulus, density, and temperature-adjusted property limits.
+
+![Materials Database](docs/screenshots/materials-database.png)
 
 ---
 

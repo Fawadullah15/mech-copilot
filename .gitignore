@@ -10,3 +10,5 @@ data/
 *.backup*.db
 capture_*.cjs
 *.png
+!public/*.png
+!docs/screenshots/*.png
