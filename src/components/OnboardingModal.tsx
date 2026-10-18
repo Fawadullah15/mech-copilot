@@ -17,15 +17,15 @@ export default function OnboardingModal() {
       subtitle: 'Design with rigorous engineering intelligence and real-time mechanics calculation.',
       icon: <Sparkles size={24} className="text-accent-bright" />,
       content: (
-        <div className="space-y-4 text-sm text-gray-300">
+        <div className="space-y-4 text-xs text-[#C2C8D0]">
           <p>
-            QUANTUM is a professional mechanical design workspace combining rigorous analytical engineering calculations with an integrated AI Copilot and interactive 3D CAD visualization.
+            QUANTUM is a professional mechanical design workspace combining rigorous analytical engineering calculations with an integrated AI Copilot and interactive CAD visualization.
           </p>
-          <div className="p-3.5 rounded-xl bg-navy-950 border border-navy-800 text-slate-400 space-y-1.5 font-mono text-[11px]">
-            <div className="text-slate-200 font-sans font-semibold">Core Product Foundations:</div>
+          <div className="p-3 rounded-[3px] bg-[#14171A] border border-[#2A2E35] text-[#969DA5] space-y-1 font-mono text-[11px]">
+            <div className="text-[#F0F1F2] font-semibold">Core Product Foundations:</div>
             <div>• Real-time Multiaxial Stress Formulation (Von Mises & Tresca)</div>
             <div>• Precision Rotating Shaft Deflection & Power Transmission</div>
-            <div>• Context-Aware AI Design Suggestions & Automated Sizing</div>
+            <div>• Context-Aware AI Design Suggestions & Sizing Calculations</div>
           </div>
         </div>
       ),
@@ -33,15 +33,15 @@ export default function OnboardingModal() {
     {
       title: 'Step 1: Define Design Constraints',
       subtitle: 'Specify torque, radial force, speed, and project safety factor.',
-      icon: <PenTool size={24} className="text-blue-400" />,
+      icon: <PenTool size={20} className="text-[#64D6C5]" />,
       content: (
-        <div className="space-y-3 text-xs text-slate-300">
+        <div className="space-y-3 text-xs text-[#C2C8D0]">
           <p>
             Enter torque requirements in N·m, operating RPM, and load span. You can enter them manually, describe them in plain English to the Copilot, or upload technical drawings/CAD models.
           </p>
-          <div className="p-3.5 rounded-xl bg-navy-950 border border-navy-800 flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400">Sample Specification:</span>
-            <span className="text-accent-bright font-bold">500 N·m @ 1450 RPM • FoS 2.0</span>
+          <div className="p-3 rounded-[3px] bg-[#14171A] border border-[#2A2E35] flex items-center justify-between text-xs font-mono">
+            <span className="text-[#969DA5]">Sample Baseline:</span>
+            <span className="text-[#64D6C5] font-bold">500 N·m @ 1450 RPM • FoS 2.0x</span>
           </div>
         </div>
       ),
@@ -49,15 +49,15 @@ export default function OnboardingModal() {
     {
       title: 'Step 2: Material Alloy Selection',
       subtitle: 'Choose from certified steels, aluminums, titanium, or nickel superalloys.',
-      icon: <Layers size={24} className="text-purple-400" />,
+      icon: <Layers size={20} className="text-purple-400" />,
       content: (
-        <div className="space-y-3 text-xs text-slate-300">
+        <div className="space-y-3 text-xs text-[#C2C8D0]">
           <p>
             Select from our verified materials database with full mechanical properties (Yield Strength, Tensile Strength, Elastic Modulus, and Density). Compare alternatives with 1-click diff inspection.
           </p>
-          <div className="p-3.5 rounded-xl bg-navy-950 border border-navy-800 flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400">Default Baseline:</span>
-            <span className="text-slate-100 font-bold">AISI 4140 Alloy Steel (Sy = 655 MPa)</span>
+          <div className="p-3 rounded-[3px] bg-[#14171A] border border-[#2A2E35] flex items-center justify-between text-xs font-mono">
+            <span className="text-[#969DA5]">Default Baseline:</span>
+            <span className="text-[#F0F1F2] font-bold">AISI 4140 Alloy Steel (Sy = 655 MPa)</span>
           </div>
         </div>
       ),
@@ -65,15 +65,15 @@ export default function OnboardingModal() {
     {
       title: 'Step 3: Interactive CAD & AI Copilot',
       subtitle: 'Inspect geometry, view section cuts, and verify calculation derivations.',
-      icon: <ShieldCheck size={24} className="text-emerald-400" />,
+      icon: <ShieldCheck size={20} className="text-[#34D399]" />,
       content: (
-        <div className="space-y-3 text-xs text-slate-300">
+        <div className="space-y-3 text-xs text-[#C2C8D0]">
           <p>
-            Click any assembly component in the 3D canvas to inspect bearing loads, keyway shear, or ask the Copilot for optimization recommendations. Use <kbd className="kbd">⌘K</kbd> anytime to open the global Command Center.
+            Click any assembly component in the CAD canvas to inspect bearing loads, keyway shear, or ask the Copilot for optimization recommendations. Use <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-[#14171A] border border-[#34393F] text-[#969DA5]">⌘K</kbd> anytime to open the Command Center.
           </p>
-          <div className="p-3.5 rounded-xl bg-navy-950 border border-navy-800 text-emerald-400 font-mono text-xs flex items-center gap-2">
-            <Check size={16} />
-            <span>Workspace is ready for engineering analysis.</span>
+          <div className="p-3 rounded-[3px] bg-[#14171A] border border-[#2A2E35] text-[#34D399] font-mono text-xs flex items-center gap-2">
+            <Check size={14} />
+            <span>Workstation is calibrated and ready for engineering analysis.</span>
           </div>
         </div>
       ),

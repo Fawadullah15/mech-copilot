@@ -5,47 +5,66 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Deep engineering obsidian palette
+        // Quantum AI Stage 5 Precision Engineering Workstation Palette
+        workstation: {
+          bg: '#111315',
+          surface: '#191C1F',
+          raised: '#22262A',
+          border: '#34393F',
+          borderSubtle: '#25292E',
+          text: '#F0F1F2',
+          textMuted: '#969DA5',
+          textDim: '#636A73',
+          accent: '#64D6C5',
+          accentHover: '#52C4B3',
+          accentDark: '#38A898',
+          warning: '#E7B65C',
+          error: '#E16D72',
+          pass: '#34D399',
+        },
         navy: {
-          950: '#060911',
-          900: '#090d18',
-          850: '#0c111e',
-          800: '#111728',
-          750: '#151e33',
-          700: '#1a253e',
-          600: '#233152',
-          500: '#2f426d',
-          400: '#475d92',
+          950: '#111315', // Main canvas background
+          900: '#191C1F', // Workstation panel surface
+          850: '#1D2125',
+          800: '#22262A', // Raised card surface
+          750: '#2B3036',
+          700: '#34393F', // Fine technical borders
+          600: '#464C54',
+          500: '#5C646E',
+          400: '#969DA5', // Secondary technical text
+          300: '#B0B7C0',
+          200: '#D2D7DE',
+          100: '#F0F1F2', // Primary technical text
         },
         surface: {
-          0: '#060911',
-          1: '#090d18',
-          2: '#0f1627',
-          3: '#151e33',
-          4: '#1c2844',
+          0: '#111315',
+          1: '#191C1F',
+          2: '#22262A',
+          3: '#2B3036',
+          4: '#34393F',
         },
         accent: {
-          DEFAULT: '#3b82f6',
-          dark: '#1d4ed8',
-          light: '#60a5fa',
-          bright: '#38bdf8',
-          glow: 'rgba(59, 130, 246, 0.18)',
+          DEFAULT: '#64D6C5',
+          dark: '#38A898',
+          light: '#82E2D3',
+          bright: '#64D6C5',
+          glow: 'rgba(100, 214, 197, 0.15)',
         },
         cyan: {
-          DEFAULT: '#06b6d4',
-          light: '#22d3ee',
-          dark: '#0891b2',
+          DEFAULT: '#64D6C5',
+          light: '#82E2D3',
+          dark: '#38A898',
         },
         status: {
-          pass: '#10b981',
-          warning: '#f59e0b',
-          fail: '#ef4444',
-          info: '#3b82f6',
+          pass: '#34D399',
+          warning: '#E7B65C',
+          fail: '#E16D72',
+          info: '#64D6C5',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'monospace'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       letterSpacing: {
         tighter: '-0.035em',

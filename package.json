@@ -11,10 +11,11 @@
     "preview": "vite preview",
     "db:seed": "tsx server/scripts/seed.ts",
     "db:reset": "tsx server/scripts/seed.ts",
+    "demo:reset": "node scripts/reset-demo.mjs",
     "test": "npm run test:engineering && npm run test:server && npm run test:frontend",
-    "test:engineering": "tsx src/engineering/__tests__/engineering.test.ts",
-    "test:server": "tsx --test server/__tests__/api.test.ts server/__tests__/ai.test.ts server/__tests__/llm.integration.test.ts server/__tests__/db.test.ts",
-    "test:frontend": "tsx --test src/services/__tests__/chatApi.test.ts"
+    "test:engineering": "tsx --test src/engineering/__tests__/engineering.test.ts src/engineering/__tests__/verification.test.ts src/standards/__tests__/standards.test.ts src/engineering/__tests__/materials_constraints.test.ts src/engineering/__tests__/tolerances_fits.test.ts src/engineering/__tests__/gdt.test.ts src/engineering/__tests__/stress_concentration_fatigue.test.ts src/engineering/__tests__/bearings.test.ts src/engineering/__tests__/shaft_hub_connections.test.ts src/engineering/__tests__/gear_geometry.test.ts src/engineering/__tests__/vibration.test.ts",
+    "test:server": "tsx --test server/__tests__/api.test.ts server/__tests__/ai.test.ts server/__tests__/llm.integration.test.ts server/__tests__/db.test.ts server/__tests__/migrations.test.ts server/__tests__/versions.test.ts",
+    "test:frontend": "tsx --test src/services/__tests__/chatApi.test.ts src/services/__tests__/versionApi.test.ts"
   },
   "dependencies": {
     "cors": "^2.8.6",

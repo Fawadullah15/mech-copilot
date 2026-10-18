@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { env } from '../config/env.js';
 import fs from 'node:fs';
 import path from 'node:path';
+import { runMigrations } from './migrations.js';
 
 /**
  * Returns true if running in any automated test environment.
@@ -48,43 +49,7 @@ export const db = new DatabaseSync(activeDbPath);
 db.exec('PRAGMA foreign_keys = ON;');
 
 export function initDatabase() {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      description TEXT NOT NULL,
-      type TEXT NOT NULL,
-      status TEXT NOT NULL,
-      progress INTEGER NOT NULL,
-      lastModified TEXT NOT NULL,
-      created TEXT NOT NULL,
-      parameters TEXT NOT NULL,
-      tags TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS conversations (
-      id TEXT PRIMARY KEY,
-      projectId TEXT NOT NULL,
-      title TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS messages (
-      id TEXT PRIMARY KEY,
-      conversationId TEXT NOT NULL,
-      role TEXT NOT NULL,
-      content TEXT NOT NULL,
-      timestamp TEXT NOT NULL,
-      type TEXT,
-      structuredData TEXT,
-      actions TEXT,
-      reasoningChain TEXT,
-      saved INTEGER DEFAULT 0,
-      engineeringResult TEXT,
-      FOREIGN KEY (conversationId) REFERENCES conversations(id) ON DELETE CASCADE
-    );
-  `);
+  runMigrations(db);
 }
 
 export function resetDatabase() {
@@ -93,9 +58,12 @@ export function resetDatabase() {
     throw new Error(`CRITICAL SAFETY ERROR: Attempted to call resetDatabase() on development database: ${activeDbPath}`);
   }
   db.exec(`
+    DROP TABLE IF EXISTS design_versions;
     DROP TABLE IF EXISTS messages;
     DROP TABLE IF EXISTS conversations;
     DROP TABLE IF EXISTS projects;
+    DROP TABLE IF EXISTS schema_migrations;
   `);
   initDatabase();
 }
+

@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
 import {
   Download,
-  Bell,
   Sparkles,
-  UploadCloud,
-  ShieldAlert,
-  FileCheck,
   Search,
-  History,
-  GitCompare,
-  HelpCircle,
-  ChevronRight,
   Menu,
+  CheckCircle2,
+  FileCheck,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import EngineeringStatusSymbol from './brand/EngineeringStatusSymbol';
+import { PageId } from '../types';
 
 export default function TopBar() {
   const {
@@ -23,38 +17,22 @@ export default function TopBar() {
     selectedMaterial,
     analysisResults,
     engineeringWarnings,
-    designVersions,
+    activePage,
+    setActivePage,
     isMobileMenuOpen,
     setIsMobileMenuOpen,
-    setIsProblemModalOpen,
-    setIsFileUploadModalOpen,
-    setIsWarningsDrawerOpen,
     setIsCommandPaletteOpen,
-    setIsVersionHistoryOpen,
-    setIsCompareModalOpen,
-    setIsOnboardingModalOpen,
+    copilotOpen,
+    setCopilotOpen,
   } = useApp();
 
   const [exportNotice, setExportNotice] = useState(false);
 
-  const getStatusSymbolType = (status: string) => {
-    switch (status) {
-      case 'In Progress':
-        return 'info';
-      case 'Review':
-        return 'warning';
-      case 'Completed':
-        return 'pass';
-      default:
-        return 'nominal';
-    }
-  };
-
   const handleExport = () => {
     try {
       const exportBundle = {
-        application: "QUANTUM // Mechanical Engineering Design Copilot",
-        version: "2.4",
+        application: 'QUANTUM // Mechanical Engineering Design Copilot',
+        version: '2.4',
         exportedAt: new Date().toISOString(),
         project: activeProject,
         parameters: designParams,
@@ -65,17 +43,23 @@ export default function TopBar() {
           yieldStrengthMPa: selectedMaterial.yieldStrength,
           tensileStrengthMPa: selectedMaterial.tensileStrength,
           elasticModulusGPa: selectedMaterial.elasticModulus,
-          densityKgM3: selectedMaterial.density
+          densityKgM3: selectedMaterial.density,
         },
-        analysis: analysisResults ? {
-          vonMisesStressMPa: analysisResults.vonMisesStress,
-          yieldStrengthMPa: analysisResults.yieldStrength,
-          factorOfSafety: analysisResults.factorOfSafety,
-          maxDeflectionMm: analysisResults.maxDeflection,
-          torqueCapacityNm: analysisResults.torqueCapacity,
-          status: analysisResults.status
-        } : null,
-        activeWarnings: engineeringWarnings.map(w => ({ id: w.id, title: w.title, severity: w.severity }))
+        analysis: analysisResults
+          ? {
+              vonMisesStressMPa: analysisResults.vonMisesStress,
+              yieldStrengthMPa: analysisResults.yieldStrength,
+              factorOfSafety: analysisResults.factorOfSafety,
+              maxDeflectionMm: analysisResults.maxDeflection,
+              torqueCapacityNm: analysisResults.torqueCapacity,
+              status: analysisResults.status,
+            }
+          : null,
+        activeWarnings: engineeringWarnings.map((w) => ({
+          id: w.id,
+          title: w.title,
+          severity: w.severity,
+        })),
       };
       const blob = new Blob([JSON.stringify(exportBundle, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -89,175 +73,119 @@ export default function TopBar() {
       setExportNotice(true);
       setTimeout(() => setExportNotice(false), 2500);
     } catch (e) {
-      console.error("Export failed", e);
+      console.error('Export failed', e);
     }
   };
 
+  const navModes: { id: PageId; label: string }[] = [
+    { id: 'workspace', label: 'Workspace' },
+    { id: 'analysis', label: 'Analysis' },
+    { id: 'calculations', label: 'Calculations' },
+    { id: 'reports', label: 'Reports' },
+  ];
+
   return (
-    <header className="h-14 w-full bg-navy-900/90 backdrop-blur-md border-b border-navy-800 flex items-center justify-between px-3 sm:px-5 font-sans shrink-0 relative z-30 transition-colors">
-      {/* Left: Workspace & Project Breadcrumbs */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
+    <header className="h-11 w-full bg-[#191C1F] border-b border-[#34393F] flex items-center justify-between px-3 sm:px-4 font-sans shrink-0 relative z-30 select-none">
+      {/* Left: Brand Identity & Active Project */}
+      <div className="flex items-center gap-2.5">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 transition-colors"
+          className="lg:hidden p-1 rounded-[4px] text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A] transition-colors"
           title="Toggle Navigation Menu"
         >
-          <Menu size={18} />
+          <Menu size={16} />
         </button>
 
-        <nav className="flex items-center text-xs text-gray-400 font-mono tracking-tight" aria-label="Breadcrumb">
-          <span className="hidden sm:inline text-gray-400 hover:text-gray-200 transition-colors font-medium">Apex Powertrain</span>
-          <ChevronRight size={13} className="hidden sm:inline text-navy-600 mx-1" />
-          <span className="hidden md:inline text-gray-400 hover:text-gray-200 transition-colors">Shaft Assemblies</span>
-          <ChevronRight size={13} className="hidden md:inline text-navy-600 mx-1" />
-          <span className="text-gray-100 font-semibold text-xs sm:text-sm tracking-normal truncate max-w-[140px] sm:max-w-[200px]">
-            {activeProject.name}
-          </span>
-        </nav>
+        {/* Quantum AI Technical Title */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="text-xs font-bold tracking-wider text-[#F0F1F2]">QUANTUM AI</span>
+            <span className="text-[10px] font-medium text-[#64D6C5] tracking-tight">// ME COPILOT</span>
+          </div>
 
-        {/* Project Status Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-navy-700 bg-navy-800/80 text-[11px] font-medium text-gray-300">
-          <EngineeringStatusSymbol type={getStatusSymbolType(activeProject.status)} size={11} />
-          <span>{activeProject.status}</span>
+          <span className="text-[#34393F] hidden sm:inline">|</span>
+
+          {/* Project Name & Specs */}
+          <div className="hidden sm:flex items-center gap-2 font-mono text-xs">
+            <span className="text-[#F0F1F2] font-semibold">{activeProject.name}</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-[3px] bg-[#22262A] text-[#969DA5] border border-[#34393F]">
+              {selectedMaterial.name} · ⌀{designParams.diameter}mm
+            </span>
+          </div>
         </div>
 
-        {/* Autosave Heartbeat */}
-        <div className="hidden xl:flex items-center gap-1.5 text-[11px] text-gray-400 font-mono pl-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>Sync v{designVersions.length}</span>
+        {/* SQLite Persistence Pulse */}
+        <div className="hidden xl:flex items-center gap-1.5 text-[10px] font-mono text-[#969DA5] pl-2 border-l border-[#34393F]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />
+          <span>SQLite Synced</span>
         </div>
       </div>
 
-      {/* Center: Global Search & Quick Actions */}
-      <div className="hidden md:flex items-center gap-2">
+      {/* Center: Mode Switcher */}
+      <div className="hidden md:flex items-center bg-[#111315] border border-[#34393F] rounded-[4px] p-0.5">
+        {navModes.map((mode) => {
+          const isActive = activePage === mode.id;
+          return (
+            <button
+              key={mode.id}
+              onClick={() => setActivePage(mode.id)}
+              className={`px-3 py-1 text-xs font-medium rounded-[3px] transition-colors ${
+                isActive
+                  ? 'bg-[#22262A] text-[#64D6C5] shadow-xs'
+                  : 'text-[#969DA5] hover:text-[#F0F1F2]'
+              }`}
+            >
+              {mode.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Right Actions: Command Palette, Export, Copilot Toggle */}
+      <div className="flex items-center gap-2">
         {/* Command Palette Trigger */}
         <button
           onClick={() => setIsCommandPaletteOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-950/80 hover:bg-navy-950 border border-navy-800 hover:border-navy-700 text-xs text-gray-400 hover:text-gray-200 transition-all shadow-inner w-56 lg:w-64 group"
+          className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-[4px] bg-[#111315] border border-[#34393F] hover:border-[#464C54] text-xs text-[#969DA5] hover:text-[#F0F1F2] transition-colors font-mono"
           title="Open Command Palette (Cmd/Ctrl + K)"
         >
-          <Search size={13} className="text-gray-500 group-hover:text-accent transition-colors" />
-          <span className="flex-1 text-left truncate text-gray-400">Search actions, CAD, parts...</span>
-          <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-navy-850 text-gray-400 border border-navy-700/80 shadow-sm">
+          <Search size={12} className="text-[#64D6C5]" />
+          <span className="text-[11px]">Command Palette</span>
+          <kbd className="px-1 py-0.2 rounded text-[9px] bg-[#22262A] border border-[#34393F] text-[#969DA5]">
             ⌘K
           </kbd>
-
         </button>
 
-        {/* Version History Trigger */}
-        <button
-          onClick={() => setIsVersionHistoryOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-navy-800 hover:border-navy-700 bg-navy-850 hover:bg-navy-800 text-xs text-gray-300 hover:text-white transition-colors"
-          title="View checkpoint timeline"
-        >
-          <History size={13} className="text-accent" />
-          <span className="hidden xl:inline">Timeline</span>
-          <span className="px-1 py-0.2 rounded text-[10px] font-mono bg-navy-900 text-accent font-bold">
-            {designVersions.length}
-          </span>
-        </button>
-
-        {/* Design Compare Trigger */}
-        <button
-          onClick={() => setIsCompareModalOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-navy-800 hover:border-navy-700 bg-navy-850 hover:bg-navy-800 text-xs text-gray-300 hover:text-white transition-colors"
-          title="Compare Active vs Candidate Config"
-        >
-          <GitCompare size={13} className="text-cyan-400" />
-          <span className="hidden xl:inline">Compare</span>
-        </button>
-      </div>
-
-      {/* Right: Warnings, Copilot, Upload, Export, Profile */}
-      <div className="flex items-center gap-2">
-        {/* Warnings Badge */}
-        {engineeringWarnings.length > 0 ? (
-          <button
-            onClick={() => setIsWarningsDrawerOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 text-xs font-medium hover:bg-amber-500/20 transition-all animate-pulse"
-            title={`${engineeringWarnings.length} Active Engineering Warnings`}
-          >
-            <ShieldAlert size={14} />
-            <span className="font-mono">{engineeringWarnings.length}</span>
-            <span className="hidden sm:inline">Alerts</span>
-          </button>
-        ) : (
-          <div
-            className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-xs font-mono"
-            title="All parameters in safety envelope"
-          >
-            <EngineeringStatusSymbol type="pass" size={11} />
-            <span>Pass</span>
-          </div>
-        )}
-
-        {/* Ask Copilot Button */}
-        <button
-          onClick={() => setIsProblemModalOpen(true)}
-          className="btn-primary text-xs flex items-center gap-1.5 py-1.5 px-3 rounded-lg shadow-sm shadow-accent/20"
-          title="Describe a mechanical engineering problem"
-        >
-          <Sparkles size={13} />
-          <span>Ask Copilot</span>
-        </button>
-
-        {/* Upload CAD/Spec */}
-        <button
-          onClick={() => setIsFileUploadModalOpen(true)}
-          className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg"
-          title="Upload technical drawing (STEP, DXF, PDF)"
-        >
-          <UploadCloud size={13} />
-          <span className="hidden lg:inline">Specs</span>
-        </button>
-
-        {/* Export Action */}
+        {/* Export JSON Spec */}
         <button
           onClick={handleExport}
-          className="btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg"
-          title="Export STEP CAD model and calculations"
+          className="btn-secondary text-xs flex items-center gap-1.5 py-1 px-2.5 rounded-[4px]"
+          title="Export JSON technical specification"
         >
           <Download size={13} />
-          <span className="hidden lg:inline">Export</span>
+          <span className="hidden sm:inline">Export</span>
         </button>
 
-        {/* Onboarding Guide Trigger */}
+        {/* Copilot Toggle Button */}
         <button
-          onClick={() => setIsOnboardingModalOpen(true)}
-          className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-navy-800 transition-colors"
-          title="Guided Workspace Tour"
+          onClick={() => setCopilotOpen(!copilotOpen)}
+          className={`px-2.5 py-1 text-xs font-medium rounded-[4px] border transition-colors flex items-center gap-1.5 ${
+            copilotOpen
+              ? 'bg-[#64D6C5] text-[#111315] border-[#64D6C5] font-semibold'
+              : 'bg-[#22262A] text-[#64D6C5] border-[#34393F] hover:border-[#64D6C5]'
+          }`}
+          title="Toggle Copilot Assistant"
         >
-          <HelpCircle size={16} />
+          <Sparkles size={12} />
+          <span>Copilot</span>
         </button>
-
-        {/* Notification Bell */}
-        <button
-          onClick={() => setIsWarningsDrawerOpen(true)}
-          className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-navy-800 transition-colors relative"
-          title="Notifications & Alerts"
-        >
-          <Bell size={16} />
-          {engineeringWarnings.length > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full ring-2 ring-navy-900"></span>
-          )}
-        </button>
-
-        {/* User avatar */}
-        <div
-          className="w-7 h-7 rounded-full bg-linear-to-tr from-accent to-cyan-500 flex items-center justify-center text-white text-[11px] font-bold shadow-sm shadow-accent/20 ml-1 relative cursor-pointer"
-          title="User: Senior Powertrain Engineer"
-        >
-
-          <span>ME</span>
-          <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-400 rounded-full ring-1 ring-navy-900"></span>
-        </div>
       </div>
 
       {/* Export Toast Notification */}
       {exportNotice && (
-        <div className="absolute top-16 right-6 bg-navy-900 border border-status-pass/40 text-status-pass px-4 py-2.5 rounded-xl text-xs flex items-center gap-2.5 shadow-2xl animate-fade-in z-50">
-          <FileCheck size={16} className="text-emerald-400" />
-          <span>Export bundle downloaded: {activeProject.name} parameters & calculation specification.</span>
+        <div className="absolute top-12 right-4 bg-[#191C1F] border border-[#34D399]/40 text-[#34D399] px-3.5 py-2 rounded-[4px] text-xs flex items-center gap-2 shadow-xl animate-fade-in z-50 font-mono">
+          <FileCheck size={14} className="text-[#34D399]" />
+          <span>Exported: {activeProject.name} calculation specification.</span>
         </div>
       )}
     </header>

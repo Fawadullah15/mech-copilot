@@ -46,12 +46,38 @@ export function calculateShaftDeflection(
     lengthMm: lengthM * 1000,
     forceN
   });
-  if (!val.isValid) {
-    warnings.push(...val.errors);
-  }
 
-  if (elasticModulusPa <= 0) {
-    warnings.push('Elastic modulus must be strictly positive.');
+  if (!val.isValid || elasticModulusPa <= 0) {
+    const errors = [...(val.isValid ? [] : val.errors)];
+    if (elasticModulusPa <= 0) {
+      errors.push('Elastic modulus must be strictly positive.');
+    }
+    return {
+      calculationType: 'deflection',
+      name: 'Shaft Centerline Deflection',
+      model: 'Simply supported beam, central point load',
+      formula: 'delta_max = (F * L^3) / (48 * E * I) where I = (pi * d^4) / 64',
+      inputs,
+      normalizedInputsSI: {
+        forceN,
+        lengthM,
+        diameterM,
+        elasticModulusPa
+      },
+      result: {
+        areaMomentOfInertiaM4: 0,
+        maxDeflectionM: 0,
+        maxDeflectionMm: 0,
+        allowableDeflectionMm: 0,
+        slopeAtSupportsRad: 0
+      },
+      displayValue: 'Invalid Input',
+      displayUnit: 'mm',
+      assumptions: DEFLECTION_ASSUMPTIONS,
+      warnings: errors,
+      disclaimer: DEFLECTION_DISCLAIMER,
+      status: 'fail'
+    };
   }
 
   // Moment of inertia I = pi * d^4 / 64

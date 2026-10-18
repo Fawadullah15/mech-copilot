@@ -15,20 +15,18 @@ import {
   Calculator,
   Lightbulb,
   Info,
-  Sliders,
   Target,
-  FileSearch,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import type { CopilotMessage, ReasoningStep, MessageType } from '../types';
+import type { CopilotMessage, MessageType } from '../types';
 import EngineeringResultCard from './EngineeringResultCard';
 
 const SUGGESTED_PROMPTS = [
   'Check this shaft design',
+  'What diameter for FoS 2.5?',
   'Why is the safety factor low?',
   'Recommend a better material',
   'Reduce the shaft weight',
-  'Calculate the required diameter',
   'Explain this calculation',
   'Find possible failure points',
 ];
@@ -57,7 +55,6 @@ export default function CopilotPanel() {
     setIsProblemModalOpen,
     setIsCompareModalOpen,
   } = useApp();
-
 
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -93,26 +90,26 @@ export default function CopilotPanel() {
     switch (type) {
       case 'recommendation':
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-accent/20 text-accent-light border border-accent/30">
-            <Lightbulb size={11} /> AI Recommendation
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-[#64D6C5]/10 text-[#64D6C5] border border-[#64D6C5]/30">
+            <Lightbulb size={10} /> Recommendation
           </span>
         );
       case 'calculation':
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-            <Calculator size={11} /> Analytical Calculation
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-purple-500/15 text-purple-300 border border-purple-500/30">
+            <Calculator size={10} /> Analytical Verification
           </span>
         );
       case 'warning':
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            <ShieldAlert size={11} /> Design Warning
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-[#E7B65C]/15 text-[#E7B65C] border border-[#E7B65C]/30">
+            <ShieldAlert size={10} /> Design Warning
           </span>
         );
       case 'explanation':
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-cyan/20 text-cyan border border-cyan/30">
-            <Info size={11} /> AI Explanation
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-sky-500/15 text-sky-300 border border-sky-500/30">
+            <Info size={10} /> Theory & Derivation
           </span>
         );
       default:
@@ -123,21 +120,24 @@ export default function CopilotPanel() {
   if (!copilotOpen) {
     return (
       <>
-        <div className="hidden sm:flex h-full bg-navy-950 border-l border-navy-700/50 flex-col items-center py-4 w-12 font-sans shrink-0">
+        {/* Desktop Collapsed Rail Button */}
+        <div className="hidden lg:flex h-full bg-[#191C1F] border-l border-[#34393F] flex-col items-center py-3 w-10 shrink-0">
           <button
             onClick={() => setCopilotOpen(true)}
-            className="p-2 text-gray-400 hover:text-white hover:bg-navy-700/50 rounded-lg transition-colors"
+            className="p-2 text-[#969DA5] hover:text-[#64D6C5] hover:bg-[#22262A] rounded-[3px] transition-colors"
             title="Expand Engineering Copilot"
           >
-            <Bot size={20} className="text-accent" />
+            <Bot size={18} />
           </button>
         </div>
+        {/* Mobile / Small Screen Floating Pill */}
         <button
           onClick={() => setCopilotOpen(true)}
-          className="sm:hidden fixed bottom-4 right-4 z-30 p-3 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-500 transition-transform active:scale-95"
+          className="lg:hidden fixed bottom-4 right-4 z-40 p-2.5 rounded-[4px] bg-[#64D6C5] text-[#111315] shadow-lg hover:bg-[#52c4b3] transition-transform active:scale-95 font-mono text-xs font-bold flex items-center gap-1.5"
           title="Open Engineering Copilot"
         >
-          <Bot size={20} />
+          <Bot size={16} />
+          <span>COPILOT</span>
         </button>
       </>
     );
@@ -145,365 +145,358 @@ export default function CopilotPanel() {
 
   return (
     <>
-      {/* Mobile / Tablet Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 lg:hidden animate-fade-in"
+      {/* Mobile Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-xs z-30 lg:hidden animate-fade-in"
         onClick={() => setCopilotOpen(false)}
       />
-      <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[380px] lg:static lg:z-auto lg:w-[320px] xl:w-[360px] 2xl:w-[400px] h-full bg-navy-950 border-l border-navy-700/60 flex flex-col font-sans shrink-0 shadow-2xl relative transition-all duration-200">
-        {/* Top Header */}
-      <div className="h-14 px-4 border-b border-navy-700/60 flex items-center justify-between shrink-0 bg-navy-900">
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Bot className="text-accent" size={20} />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-status-pass rounded-full animate-pulse-slow"></span>
-          </div>
-          <div>
+
+      <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[380px] lg:static lg:z-auto lg:w-[330px] xl:w-[370px] 2xl:w-[400px] h-full bg-[#191C1F] border-l border-[#34393F] flex flex-col font-sans shrink-0 shadow-2xl relative transition-all duration-200">
+        {/* Panel Header */}
+        <div className="h-11 px-3.5 border-b border-[#34393F] flex items-center justify-between shrink-0 bg-[#22262A]">
+          <div className="flex items-center gap-2">
+            <div className="relative flex items-center">
+              <Bot className="text-[#64D6C5]" size={16} />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#34D399] rounded-full"></span>
+            </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-white font-semibold text-sm">Engineering Copilot</span>
-              <span className="text-[10px] bg-accent/15 text-accent-light px-1.5 py-0.2 rounded font-mono">
+              <span className="text-[#F0F1F2] font-semibold text-xs tracking-tight">Engineering Copilot</span>
+              <span className="text-[10px] font-mono px-1 py-0.2 bg-[#14171A] text-[#64D6C5] rounded-[2px] border border-[#34393F]">
                 v2.4
               </span>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-1">
-          {/* New Chat Button */}
-          <button
-            onClick={createNewConversation}
-            className="p-1.5 text-gray-400 hover:text-white hover:bg-navy-800 rounded-lg transition-colors"
-            title="New Conversation"
-          >
-            <Plus size={16} />
-          </button>
-
-          {/* Conversation History Popover Trigger */}
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className={`p-1.5 rounded-lg transition-colors ${
-              showHistory ? 'bg-navy-800 text-accent' : 'text-gray-400 hover:text-white hover:bg-navy-800'
-            }`}
-            title="Conversation History"
-          >
-            <History size={16} />
-          </button>
-
-          {/* Collapse */}
-          <button
-            onClick={() => setCopilotOpen(false)}
-            className="p-1.5 text-gray-400 hover:text-white hover:bg-navy-800 rounded-lg transition-colors"
-            title="Minimize"
-          >
-            <Minimize2 size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* History Drawer / Dropdown */}
-      {showHistory && (
-        <div className="bg-navy-900 border-b border-navy-700 p-3 animate-fade-in shadow-xl z-20 space-y-2">
-          <div className="flex items-center justify-between text-xs text-gray-400 font-semibold uppercase tracking-wider">
-            <span>Past Engineering Sessions</span>
+          <div className="flex items-center gap-1">
+            {/* New Thread */}
             <button
-              onClick={() => {
-                createNewConversation();
-                setShowHistory(false);
-              }}
-              className="text-accent hover:underline flex items-center gap-1 text-[11px]"
+              onClick={createNewConversation}
+              className="p-1 text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#2E3339] rounded-[3px] transition-colors"
+              title="New Thread"
             >
-              + New Thread
+              <Plus size={14} />
+            </button>
+
+            {/* History */}
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className={`p-1 rounded-[3px] transition-colors ${
+                showHistory ? 'bg-[#2E3339] text-[#64D6C5]' : 'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#2E3339]'
+              }`}
+              title="Thread History"
+            >
+              <History size={14} />
+            </button>
+
+            {/* Collapse Panel */}
+            <button
+              onClick={() => setCopilotOpen(false)}
+              className="p-1 text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#2E3339] rounded-[3px] transition-colors"
+              title="Minimize Copilot"
+            >
+              <Minimize2 size={14} />
             </button>
           </div>
-          <div className="space-y-1 max-h-36 overflow-y-auto">
-            {conversationThreads.map((t) => (
+        </div>
+
+        {/* History Drawer */}
+        {showHistory && (
+          <div className="bg-[#22262A] border-b border-[#34393F] p-3 animate-fade-in shadow-xl z-20 space-y-2">
+            <div className="flex items-center justify-between text-[10px] text-[#969DA5] font-mono uppercase tracking-wider">
+              <span>Past Engineering Sessions</span>
               <button
-                key={t.id}
                 onClick={() => {
-                  switchConversation(t.id);
+                  createNewConversation();
                   setShowHistory(false);
                 }}
-                className={`w-full text-left p-2 rounded-lg text-xs flex justify-between items-center transition-colors ${
-                  t.id === activeThreadId
-                    ? 'bg-accent/20 text-white font-medium border border-accent/40'
-                    : 'text-gray-300 hover:bg-navy-800'
-                }`}
+                className="text-[#64D6C5] hover:underline flex items-center gap-1 text-[10px]"
               >
-                <span className="truncate">{t.title}</span>
-                <span className="text-[10px] text-gray-500 font-mono">
-                  {new Date(t.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                </span>
+                + New Thread
               </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Context Awareness Ribbon */}
-      <div className="px-4 py-2 bg-navy-900/60 border-b border-navy-800 flex flex-col gap-1 shrink-0 text-[11px] font-mono">
-        <div className="flex justify-between items-center text-gray-400">
-          <span className="truncate text-gray-300">
-            Project: <strong className="text-white font-sans">{activeProject.name}</strong>
-          </span>
-          <span className="text-accent-light">{selectedMaterial.name}</span>
-        </div>
-        <div className="flex items-center justify-between text-gray-500 text-[10px]">
-          <span>
-            ⌀{designParams.diameter}mm • {designParams.torque}Nm • {designParams.rpm}RPM
-          </span>
-          <span className="text-status-pass font-bold">FoS Target: {designParams.safetyFactor}</span>
-        </div>
-
-        {/* Selected Component Banner if active */}
-        {selectedComponent && (
-          <div className="mt-1 p-1.5 bg-accent/10 border border-accent/30 rounded-lg flex items-center justify-between text-xs text-gray-200">
-            <div className="flex items-center gap-1.5 truncate">
-              <Target size={13} className="text-cyan shrink-0" />
-              <span className="truncate">
-                Selected: <strong className="text-white">{selectedComponent.name}</strong>
-              </span>
             </div>
-            <button
-              onClick={() => sendCopilotMessage(selectedComponent.suggestedPrompt)}
-              className="text-[10px] text-accent-light hover:underline font-sans shrink-0"
-            >
-              Analyze →
-            </button>
+            <div className="space-y-1 max-h-36 overflow-y-auto">
+              {conversationThreads.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    switchConversation(t.id);
+                    setShowHistory(false);
+                  }}
+                  className={`w-full text-left p-1.5 rounded-[3px] text-xs flex justify-between items-center transition-colors font-mono ${
+                    t.id === activeThreadId
+                      ? 'bg-[#64D6C5]/15 text-[#64D6C5] font-medium border border-[#64D6C5]/30'
+                      : 'text-[#C2C8D0] hover:bg-[#2E3339]'
+                  }`}
+                >
+                  <span className="truncate">{t.title}</span>
+                  <span className="text-[10px] text-[#6C737D]">
+                    {new Date(t.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Suggested Prompts Strip */}
-      <div className="p-2 border-b border-navy-800 bg-navy-950/70 overflow-x-auto whitespace-nowrap shrink-0 flex gap-1.5 no-scrollbar">
-        {SUGGESTED_PROMPTS.map((prompt, idx) => (
-          <button
-            key={idx}
-            onClick={() => sendCopilotMessage(prompt)}
-            className="text-[11px] px-2.5 py-1 rounded-full bg-navy-850 hover:bg-navy-750 text-gray-300 hover:text-white border border-navy-700/60 transition-colors shrink-0"
-          >
-            {prompt}
-          </button>
-        ))}
-      </div>
+        {/* Telemetry Context Ribbon */}
+        <div className="px-3 py-1.5 bg-[#14171A] border-b border-[#2A2E35] flex flex-col gap-0.5 shrink-0 text-[10px] font-mono">
+          <div className="flex justify-between items-center text-[#969DA5]">
+            <span className="truncate">
+              Model: <strong className="text-[#F0F1F2] font-sans">{activeProject.name}</strong>
+            </span>
+            <span className="text-[#64D6C5]">{selectedMaterial.name}</span>
+          </div>
+          <div className="flex items-center justify-between text-[#6C737D]">
+            <span>
+              ⌀{designParams.diameter}mm • {designParams.torque}N·m • {designParams.rpm}RPM
+            </span>
+            <span className="text-[#34D399]">FoS Target: {designParams.safetyFactor}x</span>
+          </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {copilotMessages.map((msg) => {
-          const isAssistant = msg.role === 'assistant';
-          const isSaved = savedMessageIds.has(msg.id);
-          const isCopied = copiedId === msg.id;
-
-          return (
-            <div
-              key={msg.id}
-              className={`flex flex-col ${isAssistant ? 'items-start' : 'items-end'}`}
-            >
-              <div
-                className={`max-w-[92%] rounded-xl p-3.5 text-sm shadow-md ${
-                  isAssistant
-                    ? 'bg-navy-800 text-gray-100 rounded-bl-sm border border-navy-700/80'
-                    : 'bg-accent/20 text-white rounded-br-sm border border-accent/40'
-                }`}
+          {/* Selected Component Banner if active */}
+          {selectedComponent && (
+            <div className="mt-1 p-1 bg-[#22262A] border border-[#34393F] rounded-[3px] flex items-center justify-between text-[11px] text-[#C2C8D0]">
+              <div className="flex items-center gap-1.5 truncate">
+                <Target size={11} className="text-[#64D6C5] shrink-0" />
+                <span className="truncate">
+                  Selected: <strong className="text-white">{selectedComponent.name}</strong>
+                </span>
+              </div>
+              <button
+                onClick={() => sendCopilotMessage(selectedComponent.suggestedPrompt)}
+                className="text-[10px] text-[#64D6C5] hover:underline font-mono shrink-0"
               >
-                {/* Header row for assistant messages */}
-                {isAssistant && (
-                  <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-navy-700/50">
-                    <div>{getBadgeForType(msg.type)}</div>
-                    <div className="flex items-center gap-1.5 text-gray-400">
-                      <button
-                        onClick={() => handleCopy(msg)}
-                        className="hover:text-white p-1 rounded transition-colors"
-                        title="Copy response"
-                      >
-                        {isCopied ? <Check size={13} className="text-status-pass" /> : <Copy size={13} />}
-                      </button>
-                      <button
-                        onClick={() => toggleSaveMessage(msg.id)}
-                        className={`p-1 rounded transition-colors ${
-                          isSaved ? 'text-amber-400' : 'hover:text-white'
-                        }`}
-                        title={isSaved ? 'Bookmarked' : 'Save response'}
-                      >
-                        <Bookmark size={13} fill={isSaved ? 'currentColor' : 'none'} />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                Inspect →
+              </button>
+            </div>
+          )}
+        </div>
 
-                {/* Content */}
-                <div className="whitespace-pre-wrap leading-relaxed text-[13px]">{msg.content}</div>
+        {/* Suggested Prompts Strip */}
+        <div className="p-2 border-b border-[#2A2E35] bg-[#191C1F] overflow-x-auto whitespace-nowrap shrink-0 flex gap-1.5 no-scrollbar">
+          {SUGGESTED_PROMPTS.map((prompt, idx) => (
+            <button
+              key={idx}
+              onClick={() => sendCopilotMessage(prompt)}
+              className="text-[10px] font-mono px-2 py-0.5 rounded-[3px] bg-[#22262A] hover:bg-[#2E3339] text-[#C2C8D0] hover:text-[#F0F1F2] border border-[#34393F] transition-colors shrink-0"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
 
-                {/* Structured Data Grid */}
-                {msg.structuredData && msg.structuredData.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 gap-2 bg-navy-900/80 p-2.5 rounded-lg border border-navy-700/50">
-                    {msg.structuredData.map((data, idx) => (
-                      <div key={idx} className="flex flex-col">
-                        <span className="text-gray-400 text-[10px] uppercase font-mono">{data.label}</span>
-                        <span className="text-gray-100 text-xs font-mono font-bold truncate" title={data.value}>
-                          {data.value}
-                        </span>
+        {/* Messages Scroll Area */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3.5">
+          {copilotMessages.map((msg) => {
+            const isAssistant = msg.role === 'assistant';
+            const isSaved = savedMessageIds.has(msg.id);
+            const isCopied = copiedId === msg.id;
+
+            return (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${isAssistant ? 'items-start' : 'items-end'}`}
+              >
+                <div
+                  className={`max-w-[94%] rounded-[4px] p-3 text-xs leading-relaxed ${
+                    isAssistant
+                      ? 'bg-[#22262A] text-[#F0F1F2] border border-[#34393F]'
+                      : 'bg-[#14171A] text-[#F0F1F2] border border-[#64D6C5]/40'
+                  }`}
+                >
+                  {/* Header row for assistant messages */}
+                  {isAssistant && (
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-[#2E3339]">
+                      <div>{getBadgeForType(msg.type)}</div>
+                      <div className="flex items-center gap-1.5 text-[#969DA5]">
+                        <button
+                          onClick={() => handleCopy(msg)}
+                          className="hover:text-white p-0.5 rounded transition-colors"
+                          title="Copy response"
+                        >
+                          {isCopied ? <Check size={12} className="text-[#34D399]" /> : <Copy size={12} />}
+                        </button>
+                        <button
+                          onClick={() => toggleSaveMessage(msg.id)}
+                          className={`p-0.5 rounded transition-colors ${
+                            isSaved ? 'text-[#E7B65C]' : 'hover:text-white'
+                          }`}
+                          title={isSaved ? 'Bookmarked' : 'Save response'}
+                        >
+                          <Bookmark size={12} fill={isSaved ? 'currentColor' : 'none'} />
+                        </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* AI Design Reasoning Chain */}
-                {msg.reasoningChain && msg.reasoningChain.length > 0 && (
-                  <div className="mt-3.5 pt-3 border-t border-navy-700/60 space-y-2">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                      <Sparkles size={13} className="text-accent" />
-                      AI Engineering Reasoning Chain
                     </div>
+                  )}
 
-                    <div className="space-y-1.5">
-                      {msg.reasoningChain.map((step, sIdx) => {
-                        const stageKey = `${msg.id}-${step.stage}`;
-                        const isExpanded = expandedStages[stageKey] ?? step.expanded;
+                  {/* Content */}
+                  <div className="whitespace-pre-wrap text-[12px] text-[#E4E7EC] leading-relaxed font-sans">{msg.content}</div>
+
+                  {/* Structured Data Grid */}
+                  {msg.structuredData && msg.structuredData.length > 0 && (
+                    <div className="mt-2.5 grid grid-cols-2 gap-1.5 bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
+                      {msg.structuredData.map((data, idx) => (
+                        <div key={idx} className="flex flex-col">
+                          <span className="text-[#969DA5] text-[10px] uppercase font-mono">{data.label}</span>
+                          <span className="text-[#F0F1F2] text-xs font-mono font-medium truncate" title={data.value}>
+                            {data.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* AI Design Reasoning Chain */}
+                  {msg.reasoningChain && msg.reasoningChain.length > 0 && (
+                    <div className="mt-2.5 pt-2 border-t border-[#2E3339] space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono font-semibold text-[#969DA5] uppercase tracking-wider">
+                        <Sparkles size={11} className="text-[#64D6C5]" />
+                        Analytical Reasoning Chain
+                      </div>
+
+                      <div className="space-y-1">
+                        {msg.reasoningChain.map((step, sIdx) => {
+                          const stageKey = `${msg.id}-${step.stage}`;
+                          const isExpanded = expandedStages[stageKey] ?? step.expanded;
+
+                          return (
+                            <div
+                              key={sIdx}
+                              className="bg-[#14171A] rounded-[3px] border border-[#2A2E35] overflow-hidden text-xs"
+                            >
+                              <button
+                                onClick={() => toggleReasoningStage(stageKey)}
+                                className="w-full px-2 py-1.5 flex items-center justify-between hover:bg-[#22262A] transition-colors text-left font-mono"
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <span className="px-1 py-0.2 rounded-[2px] bg-[#22262A] text-[9px] font-bold text-[#64D6C5] border border-[#34393F]">
+                                    {step.stage}
+                                  </span>
+                                  <span className="text-[#C2C8D0] truncate text-[11px]">{step.summary}</span>
+                                </div>
+                                {isExpanded ? (
+                                  <ChevronDown size={12} className="text-[#969DA5] shrink-0" />
+                                ) : (
+                                  <ChevronRight size={12} className="text-[#969DA5] shrink-0" />
+                                )}
+                              </button>
+
+                              {isExpanded && (
+                                <div className="p-2 pt-1 text-[#969DA5] font-mono text-[10px] leading-relaxed border-t border-[#2A2E35] bg-[#111315]">
+                                  {step.details}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Engineering Result Card */}
+                  {msg.engineeringResult && (
+                    <EngineeringResultCard
+                      result={msg.engineeringResult}
+                      onApply={(param, value) => {
+                        if (param === 'diameter') {
+                          applyRecommendation({ diameter: value });
+                        }
+                      }}
+                    />
+                  )}
+
+                  {/* Action Buttons */}
+                  {msg.actions && msg.actions.length > 0 && (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5 pt-2 border-t border-[#2E3339]">
+                      {msg.actions.map((action, idx) => {
+                        const onClick = () => {
+                          if (action.type === 'apply') applyRecommendation(action.payload);
+                          else if (action.type === 'analyze') runAnalysis();
+                          else if (action.type === 'explain') explainCalculation();
+                          else if (action.type === 'optimize') setIsOptimizationModalOpen(true);
+                          else if ((action.type as string) === 'compare') setIsCompareModalOpen(true);
+                        };
+
+                        const isPrimary = action.type === 'apply';
 
                         return (
-                          <div
-                            key={sIdx}
-                            className="bg-navy-900/90 rounded-lg border border-navy-700/60 overflow-hidden text-xs"
+                          <button
+                            key={idx}
+                            onClick={onClick}
+                            className={`text-xs font-mono py-1 px-2.5 rounded-[3px] transition-colors ${
+                              isPrimary
+                                ? 'bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-semibold'
+                                : 'bg-[#14171A] hover:bg-[#2A2E35] text-[#F0F1F2] border border-[#34393F]'
+                            }`}
                           >
-                            <button
-                              onClick={() => toggleReasoningStage(stageKey)}
-                              className="w-full p-2 flex items-center justify-between hover:bg-navy-800/60 transition-colors text-left font-mono"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="px-1.5 py-0.5 rounded bg-navy-800 text-[10px] font-bold text-cyan border border-navy-700">
-                                  {step.stage}
-                                </span>
-                                <span className="text-gray-200 truncate">{step.summary}</span>
-                              </div>
-                              {isExpanded ? (
-                                <ChevronDown size={14} className="text-gray-400 shrink-0" />
-                              ) : (
-                                <ChevronRight size={14} className="text-gray-400 shrink-0" />
-                              )}
-                            </button>
-
-                            {isExpanded && (
-                              <div className="p-2.5 pt-0 text-gray-300 font-mono text-[11px] leading-relaxed border-t border-navy-800 bg-navy-950/40">
-                                {step.details}
-                              </div>
-                            )}
-                          </div>
+                            {action.label}
+                          </button>
                         );
                       })}
-                    </div>
-                  </div>
-                )}
 
-                {/* Engineering Result Card */}
-                {msg.engineeringResult && (
-                  <EngineeringResultCard 
-                    result={msg.engineeringResult} 
-                    onApply={(param, value) => {
-                      if (param === 'diameter') {
-                        // Pass payload mapped to applyRecommendation correctly
-                        applyRecommendation({ diameter: value });
-                      }
-                    }} 
-                  />
-                )}
-
-                {/* Action Buttons */}
-                {msg.actions && msg.actions.length > 0 && (
-                  <div className="mt-3.5 flex flex-wrap gap-2 pt-2 border-t border-navy-700/50">
-                    {msg.actions.map((action, idx) => {
-                      const onClick = () => {
-                        if (action.type === 'apply') applyRecommendation(action.payload);
-                        else if (action.type === 'analyze') runAnalysis();
-                        else if (action.type === 'explain') explainCalculation();
-                        else if (action.type === 'optimize') setIsOptimizationModalOpen(true);
-                        else if ((action.type as string) === 'compare') setIsCompareModalOpen(true);
-                      };
-
-                      const btnClass =
-                        action.type === 'apply'
-                          ? 'btn-primary'
-                          : action.type === 'optimize'
-                          ? 'bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-lg text-xs font-medium'
-                          : action.type === 'analyze'
-                          ? 'btn-secondary'
-                          : 'btn-ghost text-gray-300 hover:text-white';
-
-                      return (
+                      {msg.type === 'recommendation' && (
                         <button
-                          key={idx}
-                          onClick={onClick}
-                          className={`${btnClass} text-xs py-1.5 px-3 rounded-lg font-medium transition-colors`}
+                          onClick={() => setIsCompareModalOpen(true)}
+                          className="bg-[#14171A] hover:bg-[#2A2E35] text-[#969DA5] hover:text-[#F0F1F2] border border-[#34393F] text-xs font-mono py-1 px-2.5 rounded-[3px] transition-colors"
                         >
-                          {action.label}
+                          Compare Diff
                         </button>
-                      );
-                    })}
+                      )}
+                    </div>
+                  )}
+                </div>
 
-                    {msg.type === 'recommendation' && (
-                      <button
-                        onClick={() => setIsCompareModalOpen(true)}
-                        className="btn-secondary text-xs py-1.5 px-3 rounded-lg font-medium transition-colors"
-                      >
-                        Compare Diff
-                      </button>
-                    )}
-                  </div>
-                )}
-
+                <span className="text-[#6C737D] text-[10px] font-mono mt-0.5 px-1">
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
+            );
+          })}
 
-              <span className="text-gray-500 text-[10px] font-mono mt-1 px-1">
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+          {/* Streaming / Typing indicator */}
+          {isStreaming && (
+            <div className="flex flex-col items-start animate-pulse">
+              <div className="bg-[#22262A] text-[#969DA5] rounded-[4px] p-2.5 text-xs border border-[#34393F] flex items-center gap-2 font-mono">
+                <Bot size={13} className="text-[#64D6C5] animate-spin" />
+                <span>Evaluating engineering equations...</span>
+              </div>
             </div>
-          );
-        })}
+          )}
 
-        {/* Streaming / Typing indicator */}
-        {isStreaming && (
-          <div className="flex flex-col items-start animate-pulse">
-            <div className="bg-navy-800 text-gray-300 rounded-xl p-3 text-xs border border-navy-700 flex items-center gap-2">
-              <Bot size={14} className="text-accent animate-spin" />
-              <span>Analyzing engineering equations & synthesizing recommendations...</span>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="p-3 bg-navy-900 border-t border-navy-700/60 shrink-0 space-y-2">
-        {/* Quick Problem Launcher shortcut button */}
-        <div className="flex justify-between items-center text-[11px] text-gray-400">
-          <span>Natural Language Assistant</span>
-          <button
-            onClick={() => setIsProblemModalOpen(true)}
-            className="text-accent hover:underline flex items-center gap-1"
-          >
-            <Sparkles size={11} />
-            Specify Problem Template
-          </button>
+          <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="relative">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Copilot (e.g. Check shaft, Reduce weight)..."
-            className="w-full bg-navy-950 border border-navy-700 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-accent disabled:opacity-40 disabled:hover:text-gray-400 transition-colors rounded-md"
-          >
-            <Send size={15} />
-          </button>
-        </form>
+        {/* Input Area */}
+        <div className="p-2.5 bg-[#22262A] border-t border-[#34393F] shrink-0 space-y-1.5">
+          <div className="flex justify-between items-center text-[10px] text-[#969DA5] font-mono">
+            <span>Natural Language Kernel</span>
+            <button
+              onClick={() => setIsProblemModalOpen(true)}
+              className="text-[#64D6C5] hover:underline flex items-center gap-1"
+            >
+              <Sparkles size={10} />
+              Problem Templates
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="relative">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask Copilot (e.g. Check shaft, Reduce weight)..."
+              className="w-full bg-[#14171A] border border-[#34393F] rounded-[4px] pl-2.5 pr-8 py-2 text-xs text-[#F0F1F2] placeholder-[#6C737D] font-sans focus:outline-none focus:border-[#64D6C5] transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 text-[#969DA5] hover:text-[#64D6C5] disabled:opacity-30 disabled:hover:text-[#969DA5] transition-colors"
+            >
+              <Send size={13} />
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
-  </>
+    </>
   );
 }

@@ -5,3 +5,4 @@ export * from './deflection';
 export * from './power';
 export * from './safetyFactor';
 export * from './shaft';
+export * from './explanation';

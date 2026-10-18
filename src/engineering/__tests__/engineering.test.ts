@@ -178,6 +178,18 @@ describe('Combined Stress: Von Mises vs Tresca Criteria', () => {
     // Consequently FoS_vm >= FoS_tresca
     assert.ok(vm.result.factorOfSafety >= tresca.result.factorOfSafety);
   });
+
+  it('rejects zero or negative yield strength with fail status', () => {
+    const invalidSy = calculateCombinedStress({
+      bendingStressMPa: 100,
+      shearStressMPa: 40,
+      yieldStrengthMPa: 0,
+      targetSafetyFactor: 2.0
+    });
+    assert.strictEqual(invalidSy.status, 'fail');
+    assert.strictEqual(invalidSy.displayValue, 'Invalid Input');
+    assert.ok(invalidSy.warnings.some((w) => w.includes('positive numeric values')));
+  });
 });
 
 describe('Shaft Deflection (Simply Supported Central Point Load)', () => {
@@ -193,6 +205,26 @@ describe('Shaft Deflection (Simply Supported Central Point Load)', () => {
 
     assert.strictEqual(defl.model, 'Simply supported beam, central point load');
     assert.ok(Math.abs(defl.result.maxDeflectionMm - 1.698) < 0.02);
+  });
+
+  it('rejects invalid geometric inputs with status fail and Invalid Input', () => {
+    const invalidD = calculateShaftDeflection({
+      force: 5000,
+      length: 1000,
+      diameter: -50,
+      elasticModulus: 200
+    });
+    assert.strictEqual(invalidD.status, 'fail');
+    assert.strictEqual(invalidD.displayValue, 'Invalid Input');
+
+    const invalidE = calculateShaftDeflection({
+      force: 5000,
+      length: 1000,
+      diameter: 50,
+      elasticModulus: 0
+    });
+    assert.strictEqual(invalidE.status, 'fail');
+    assert.strictEqual(invalidE.displayValue, 'Invalid Input');
   });
 });
 
@@ -281,5 +313,51 @@ describe('Composite Shaft Analysis & Copilot Tools', () => {
       targetSafetyFactor: 2.0
     });
     assert.ok(fullTool.overallStatus !== undefined);
+  });
+
+  it('validates Stage 3 telemetry transition values (d=45mm to 50mm for T=500Nm, F=12kN, L=320mm, AISI 4140 Sy=655MPa)', () => {
+    // State 1: d = 45 mm
+    const state45 = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      diameterMm: 45,
+      lengthMm: 320,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises'
+    });
+
+    const vm45 = state45.combinedStress.result.equivalentStressMPa;
+    const fos45 = state45.combinedStress.result.factorOfSafety;
+
+    // Expected: sigma_vm = 117.7 MPa, FoS = 5.56
+    assert.ok(Math.abs(vm45 - 117.74) < 0.2, `d=45mm vm expected ~117.7, got ${vm45}`);
+    assert.ok(Math.abs(fos45 - 5.56) < 0.05, `d=45mm FoS expected ~5.56, got ${fos45}`);
+
+    // State 2: d = 50 mm
+    const state50 = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      diameterMm: 50,
+      lengthMm: 320,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises'
+    });
+
+    const vm50 = state50.combinedStress.result.equivalentStressMPa;
+    const fos50 = state50.combinedStress.result.factorOfSafety;
+
+    // Expected: sigma_vm = 85.8 MPa, FoS = 7.63
+    assert.ok(Math.abs(vm50 - 85.84) < 0.2, `d=50mm vm expected ~85.8, got ${vm50}`);
+    assert.ok(Math.abs(fos50 - 7.63) < 0.05, `d=50mm FoS expected ~7.63, got ${fos50}`);
   });
 });

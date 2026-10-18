@@ -11,6 +11,13 @@ import AnalysisPage from './pages/AnalysisPage';
 import MaterialsPage from './pages/MaterialsPage';
 import CalculationsPage from './pages/CalculationsPage';
 import ReportsPage from './pages/ReportsPage';
+import TolerancesPage from './pages/TolerancesPage';
+import GdtPage from './pages/GdtPage';
+import FatiguePage from './pages/FatiguePage';
+import BearingsPage from './pages/BearingsPage';
+import ConnectionsPage from './pages/ConnectionsPage';
+import GearsPage from './pages/GearsPage';
+import VibrationPage from './pages/VibrationPage';
 import SettingsPage from './pages/SettingsPage';
 import ProblemInputModal from './components/ProblemInputModal';
 import OptimizationModal from './components/OptimizationModal';
@@ -49,6 +56,20 @@ function AppContent() {
         return <MaterialsPage />;
       case 'calculations':
         return <CalculationsPage />;
+      case 'tolerances':
+        return <TolerancesPage />;
+      case 'gdt':
+        return <GdtPage />;
+      case 'fatigue':
+        return <FatiguePage />;
+      case 'bearings':
+        return <BearingsPage />;
+      case 'connections':
+        return <ConnectionsPage />;
+      case 'gears':
+        return <GearsPage />;
+      case 'vibration':
+        return <VibrationPage />;
       case 'reports':
         return <ReportsPage />;
       case 'settings':

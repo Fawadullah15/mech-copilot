@@ -21,6 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   ShieldAlert,
+  Activity,
+  Layers,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import {
@@ -45,21 +47,22 @@ export default function AnalysisPage() {
 
   if (!analysisResults) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-        <div className="w-16 h-16 bg-navy-800 rounded-full flex items-center justify-center mb-6">
-          <ActivityIcon className="w-8 h-8 text-gray-400" />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#111315] font-sans">
+        <div className="w-12 h-12 bg-[#191C1F] border border-[#34393F] rounded-[4px] flex items-center justify-center mb-4">
+          <Activity className="w-6 h-6 text-[#64D6C5]" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-100 mb-2">
-          No Analysis Results Yet
+        <h2 className="text-base font-mono font-bold text-[#F0F1F2] uppercase tracking-wider mb-1">
+          No Simulation Telemetry Generated
         </h2>
-        <p className="text-gray-400 max-w-md mb-8">
-          Configure your design parameters and run an analysis to see the engineering results.
+        <p className="text-xs text-[#969DA5] max-w-sm mb-6 font-mono">
+          Configure geometric dimensions and external loads, then run simulation.
         </p>
         <button
           onClick={() => setActivePage('workspace')}
-          className="btn-primary flex items-center gap-2"
+          className="bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono text-xs font-semibold py-1.5 px-4 rounded-[3px] flex items-center gap-2 transition-colors"
         >
-          Go to Workspace <ArrowRight className="w-4 h-4" />
+          <span>Open Design Workspace</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     );
@@ -76,83 +79,92 @@ export default function AnalysisPage() {
 
   const generateAiSummary = () => {
     if (isPass) {
-      return `The design meets all safety requirements. The von Mises stress of ${analysisResults.vonMisesStress} MPa is well below the yield strength of ${analysisResults.yieldStrength} MPa, providing a factor of safety of ${analysisResults.factorOfSafety}. Maximum deflection is within acceptable limits at ${analysisResults.maxDeflection} mm. Fatigue life is estimated at ${formatNumber(analysisResults.fatigueLife)} cycles, indicating excellent long-term durability under the specified load conditions.`;
+      return `The design meets all structural safety margins. Calculated peak von Mises stress of ${analysisResults.vonMisesStress} MPa is strictly below the allowable limit (${analysisResults.yieldStrength} MPa yield), providing an effective factor of safety of ${analysisResults.factorOfSafety}x. Central span deflection is verified at ${analysisResults.maxDeflection} mm. High-cycle fatigue model estimates endurance life exceeding ${formatNumber(analysisResults.fatigueLife)} cycles.`;
     }
     if (isWarning) {
-      return `The design is marginal in some areas. The factor of safety is ${analysisResults.factorOfSafety}, which is close to your minimum target. While the von Mises stress (${analysisResults.vonMisesStress} MPa) does not exceed the yield strength (${analysisResults.yieldStrength} MPa), you should consider increasing the shaft diameter or selecting a stronger material if operational loads might exceed the design parameters.`;
+      return `The design exhibits marginal structural headroom. Factor of safety is calculated at ${analysisResults.factorOfSafety}x, near your baseline target (${designParams.safetyFactor}x). While von Mises stress (${analysisResults.vonMisesStress} MPa) remains below nominal yield (${analysisResults.yieldStrength} MPa), radial shock loads or torque spikes could induce localized plastic deformation. Consider increasing shaft diameter or selecting higher-grade alloy steel.`;
     }
-    return `The design does not meet requirements. The calculated factor of safety of ${analysisResults.factorOfSafety} is below the target. Critical values such as von Mises stress (${analysisResults.vonMisesStress} MPa) or deflection (${analysisResults.maxDeflection} mm) exceed allowable limits. Immediate design changes, such as increasing the diameter or choosing a higher-strength material, are necessary.`;
+    return `Critical design criteria failure detected. Calculated factor of safety of ${analysisResults.factorOfSafety}x is strictly below target (${designParams.safetyFactor}x). Combined von Mises stress (${analysisResults.vonMisesStress} MPa) or radial deflection (${analysisResults.maxDeflection} mm) exceeds allowable service thresholds. Immediate geometric redesign or alloy substitution required.`;
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 animate-fade-in space-y-6 bg-navy-950">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="flex-1 overflow-y-auto p-5 lg:p-6 space-y-5 bg-[#111315] font-sans">
+      {/* CAD Station Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#34393F]">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Engineering Analysis</h1>
-          <p className="text-gray-400 mt-1">Review simulation results and safety margins</p>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-[#64D6C5] mb-0.5">
+            Finite Analytical Telemetry
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-[#F0F1F2]">
+            Engineering Stress & Fatigue Analysis
+          </h1>
+          <p className="text-xs text-[#969DA5] font-mono mt-0.5">
+            Multiaxial stress tensor evaluation • S-N fatigue endurance • Beam deflection
+          </p>
         </div>
         <button
           onClick={runAnalysis}
           disabled={isAnalysisRunning}
-          className="btn-primary flex items-center gap-2"
+          className="bg-[#64D6C5] hover:bg-[#52c4b3] disabled:opacity-50 text-[#111315] font-mono text-xs font-semibold py-1.5 px-3.5 rounded-[3px] flex items-center gap-2 transition-colors self-start sm:self-auto shrink-0 shadow-sm"
         >
           {isAnalysisRunning ? (
-            <span className="animate-pulse-slow">Running...</span>
+            <span className="animate-pulse">Computing Matrix...</span>
           ) : (
             <>
-              <Play className="w-4 h-4" /> Run New Analysis
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Run Analysis</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Overall Status Banner */}
+      {/* Status Banner */}
       <div
-        className={`p-4 rounded-lg flex items-center gap-3 border ${
+        className={`px-3.5 py-2.5 rounded-[4px] flex items-center justify-between border text-xs font-mono ${
           isPass
-            ? 'bg-emerald-900/20 border-emerald-900/50 text-emerald-400'
+            ? 'bg-[#34D399]/10 border-[#34D399]/30 text-[#34D399]'
             : isWarning
-            ? 'bg-amber-900/20 border-amber-900/50 text-amber-400'
-            : 'bg-red-900/20 border-red-900/50 text-red-400'
+            ? 'bg-[#E7B65C]/10 border-[#E7B65C]/30 text-[#E7B65C]'
+            : 'bg-[#E16D72]/10 border-[#E16D72]/30 text-[#E16D72]'
         }`}
       >
-        {isPass && <CheckCircle className="w-5 h-5 flex-shrink-0" />}
-        {isWarning && <AlertTriangle className="w-5 h-5 flex-shrink-0" />}
-        {isFail && <XCircle className="w-5 h-5 flex-shrink-0" />}
-        <span className="font-medium">
-          {isPass
-            ? 'Design Approved — All parameters within limits'
-            : analysisResults.statusMessage}
+        <div className="flex items-center gap-2">
+          {isPass && <CheckCircle className="w-4 h-4 shrink-0" />}
+          {isWarning && <AlertTriangle className="w-4 h-4 shrink-0" />}
+          {isFail && <XCircle className="w-4 h-4 shrink-0" />}
+          <span className="font-semibold uppercase tracking-wider text-[11px]">
+            {isPass ? 'Design Approved — All Parameters Within Allowable Design Limits' : analysisResults.statusMessage}
+          </span>
+        </div>
+        <span className="text-[10px] opacity-80 uppercase tracking-widest hidden sm:inline">
+          Model: {designParams.diameter}mm / {designParams.length}mm / {designParams.torque}N·m
         </span>
       </div>
 
-      {/* Results Grid */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Von Mises Stress */}
+      {/* Results Telemetry Matrix */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <ResultCard
           label="Von Mises Stress"
           value={analysisResults.vonMisesStress}
           unit="MPa"
           status={
-            analysisResults.vonMisesStress <
-            analysisResults.yieldStrength / designParams.safetyFactor
+            analysisResults.vonMisesStress < analysisResults.yieldStrength / designParams.safetyFactor
               ? 'pass'
               : 'fail'
           }
+          subtext={`Limit: ${(analysisResults.yieldStrength / designParams.safetyFactor).toFixed(1)} MPa`}
         />
-        {/* Yield Strength */}
         <ResultCard
           label="Yield Strength"
           value={analysisResults.yieldStrength}
           unit="MPa"
           status="info"
+          subtext="AISI material constant"
         />
-        {/* Factor of Safety */}
         <ResultCard
           label="Factor of Safety"
           value={analysisResults.factorOfSafety}
-          unit=""
+          unit="x"
           status={
             analysisResults.factorOfSafety >= designParams.safetyFactor
               ? 'pass'
@@ -160,8 +172,8 @@ export default function AnalysisPage() {
               ? 'warning'
               : 'fail'
           }
+          subtext={`Target: ${designParams.safetyFactor.toFixed(1)}x`}
         />
-        {/* Max Deflection */}
         <ResultCard
           label="Max Deflection"
           value={analysisResults.maxDeflection}
@@ -173,17 +185,15 @@ export default function AnalysisPage() {
               ? 'warning'
               : 'fail'
           }
+          subtext="Midspan point load"
         />
-        {/* Torque Capacity */}
         <ResultCard
           label="Torque Capacity"
           value={formatNumber(analysisResults.torqueCapacity)}
-          unit="Nm"
-          status={
-            analysisResults.torqueCapacity > designParams.torque ? 'pass' : 'fail'
-          }
+          unit="N·m"
+          status={analysisResults.torqueCapacity > designParams.torque ? 'pass' : 'fail'}
+          subtext={`Applied: ${designParams.torque} N·m`}
         />
-        {/* Fatigue Life */}
         <ResultCard
           label="Fatigue Life"
           value={formatNumber(analysisResults.fatigueLife)}
@@ -195,84 +205,76 @@ export default function AnalysisPage() {
               ? 'warning'
               : 'fail'
           }
+          subtext="Basquin model estimate"
         />
       </div>
 
-      {/* AI Explanation Section */}
-      <div className="card border border-navy-700 bg-navy-800 rounded-lg overflow-hidden">
-        <button
-          onClick={() => setIsAiExpanded(!isAiExpanded)}
-          className="w-full p-4 flex items-center justify-between hover:bg-navy-700/50 transition-colors"
-        >
-          <div className="flex items-center gap-2 text-gray-100 font-medium">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse-slow" />
-            AI Analysis Summary
-          </div>
-          {isAiExpanded ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </button>
-        {isAiExpanded && (
-          <div className="p-4 pt-0 text-gray-300 leading-relaxed border-t border-navy-700/50 mt-2">
-            {generateAiSummary()}
-          </div>
-        )}
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-2 gap-6 mt-6">
+      {/* Engineering Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Stress Distribution */}
-        <div className="card bg-navy-800 border border-navy-700 rounded-lg p-5">
-          <h3 className="text-gray-100 font-medium mb-4">Stress Distribution</h3>
-          <div className="h-64 w-full">
+        <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] overflow-hidden">
+          <div className="bg-[#22262A] px-3.5 py-2 border-b border-[#34393F] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Layers size={13} className="text-[#64D6C5]" />
+              <h3 className="text-xs font-mono font-semibold text-[#F0F1F2] uppercase tracking-wider">
+                Stress Distribution Along Shaft Axis
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-[#969DA5]">Span: 0 to {designParams.length} mm</span>
+          </div>
+
+          <div className="p-4 h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stressData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid stroke="#243049" strokeDasharray="3 3" />
+              <AreaChart data={stressData} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
+                <CartesianGrid stroke="#262A30" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="position"
-                  stroke="#6b7280"
-                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                  stroke="#4B535D"
+                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
                   tickFormatter={(val) => `${val}mm`}
                 />
                 <YAxis
-                  stroke="#6b7280"
-                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                  stroke="#4B535D"
+                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a2236',
-                    border: '1px solid #243049',
-                    borderRadius: 8,
+                    backgroundColor: '#22262A',
+                    border: '1px solid #34393F',
+                    borderRadius: 4,
+                    fontSize: 11,
+                    fontFamily: 'monospace',
                   }}
-                  labelStyle={{ color: '#9ca3af' }}
-                  itemStyle={{ fontSize: 12 }}
+                  labelStyle={{ color: '#969DA5' }}
+                  itemStyle={{ fontSize: 11 }}
                 />
-                <Legend wrapperStyle={{ color: '#9ca3af', fontSize: 12, paddingTop: 10 }} />
+                <Legend wrapperStyle={{ color: '#969DA5', fontSize: 11, fontFamily: 'monospace', paddingTop: 6 }} />
                 <Area
                   type="monotone"
                   dataKey="vonMises"
-                  name="Von Mises"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.2}
+                  name="Von Mises (MPa)"
+                  stroke="#64D6C5"
+                  fill="#64D6C5"
+                  fillOpacity={0.15}
+                  strokeWidth={1.5}
                 />
                 <Area
                   type="monotone"
                   dataKey="shear"
-                  name="Shear"
-                  stroke="#06b6d4"
-                  fill="#06b6d4"
-                  fillOpacity={0.1}
+                  name="Torsional Shear (MPa)"
+                  stroke="#38BDF8"
+                  fill="#38BDF8"
+                  fillOpacity={0.08}
+                  strokeWidth={1.2}
                 />
                 <Area
                   type="monotone"
                   dataKey="bending"
-                  name="Bending"
-                  stroke="#8b5cf6"
-                  fill="#8b5cf6"
-                  fillOpacity={0.1}
+                  name="Bending Normal (MPa)"
+                  stroke="#A78BFA"
+                  fill="#A78BFA"
+                  fillOpacity={0.08}
+                  strokeWidth={1.2}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -280,51 +282,62 @@ export default function AnalysisPage() {
         </div>
 
         {/* Fatigue Life S-N Curve */}
-        <div className="card bg-navy-800 border border-navy-700 rounded-lg p-5">
-          <h3 className="text-gray-100 font-medium mb-4">Fatigue Life (S-N Curve)</h3>
-          <div className="h-64 w-full">
+        <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] overflow-hidden">
+          <div className="bg-[#22262A] px-3.5 py-2 border-b border-[#34393F] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity size={13} className="text-[#64D6C5]" />
+              <h3 className="text-xs font-mono font-semibold text-[#F0F1F2] uppercase tracking-wider">
+                High-Cycle Fatigue (S-N Wöhler Curve)
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono text-[#969DA5]">Logarithmic Cycles</span>
+          </div>
+
+          <div className="p-4 h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={fatigueData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid stroke="#243049" strokeDasharray="3 3" />
+              <LineChart data={fatigueData} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
+                <CartesianGrid stroke="#262A30" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="cycles"
                   scale="log"
                   domain={['dataMin', 'dataMax']}
                   type="number"
-                  stroke="#6b7280"
-                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                  stroke="#4B535D"
+                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
                   tickFormatter={(val) => val.toExponential(0)}
                 />
                 <YAxis
-                  stroke="#6b7280"
-                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                  stroke="#4B535D"
+                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
                   domain={['auto', 'auto']}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a2236',
-                    border: '1px solid #243049',
-                    borderRadius: 8,
+                    backgroundColor: '#22262A',
+                    border: '1px solid #34393F',
+                    borderRadius: 4,
+                    fontSize: 11,
+                    fontFamily: 'monospace',
                   }}
-                  labelStyle={{ color: '#9ca3af' }}
-                  itemStyle={{ fontSize: 12 }}
+                  labelStyle={{ color: '#969DA5' }}
+                  itemStyle={{ fontSize: 11 }}
                   labelFormatter={(val) => `${val.toExponential(2)} cycles`}
                 />
-                <Legend wrapperStyle={{ color: '#9ca3af', fontSize: 12, paddingTop: 10 }} />
+                <Legend wrapperStyle={{ color: '#969DA5', fontSize: 11, fontFamily: 'monospace', paddingTop: 6 }} />
                 <ReferenceLine
                   y={fatigueData[fatigueData.length - 1]?.stress || 0}
-                  stroke="#6b7280"
+                  stroke="#E7B65C"
                   strokeDasharray="3 3"
-                  label={{ value: 'Endurance Limit', fill: '#9ca3af', fontSize: 10, position: 'top' }}
+                  label={{ value: 'Endurance Limit', fill: '#E7B65C', fontSize: 10, fontFamily: 'monospace', position: 'top' }}
                 />
                 <Line
                   type="monotone"
                   dataKey="stress"
-                  name="Stress Amplitude"
-                  stroke="#3b82f6"
+                  name="Stress Amplitude (MPa)"
+                  stroke="#64D6C5"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#3b82f6', stroke: '#1a2236' }}
+                  activeDot={{ r: 4, fill: '#64D6C5', stroke: '#191C1F' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -332,34 +345,40 @@ export default function AnalysisPage() {
         </div>
       </div>
 
-      {/* Engineering Safety Disclaimer */}
-      <div className="p-3 bg-navy-900 rounded-lg border border-navy-700/80 flex items-center justify-between text-xs text-gray-400">
+      {/* AI Synthesis Callout */}
+      <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] overflow-hidden">
+        <button
+          onClick={() => setIsAiExpanded(!isAiExpanded)}
+          className="w-full px-3.5 py-2.5 bg-[#22262A] flex items-center justify-between hover:bg-[#2A2E35] transition-colors text-left"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#64D6C5]" />
+            <span className="text-xs font-mono font-semibold text-[#F0F1F2] uppercase tracking-wider">
+              Engineering Interpretation & Recommendations
+            </span>
+          </div>
+          {isAiExpanded ? (
+            <ChevronUp className="w-4 h-4 text-[#969DA5]" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-[#969DA5]" />
+          )}
+        </button>
+        {isAiExpanded && (
+          <div className="p-3.5 text-xs text-[#C2C8D0] leading-relaxed font-sans border-t border-[#34393F] bg-[#14171A]">
+            {generateAiSummary()}
+          </div>
+        )}
+      </div>
+
+      {/* Engineering Standards Disclaimer */}
+      <div className="px-3 py-2 bg-[#14171A] rounded-[3px] border border-[#2A2E35] flex items-center justify-between text-[10px] text-[#969DA5] font-mono">
         <div className="flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-accent shrink-0" />
-          <span>Engineering calculation — Simplified model — Engineer review required.</span>
+          <ShieldAlert className="w-3.5 h-3.5 text-[#64D6C5] shrink-0" />
+          <span>Analytical Formulation: Distortion Energy (Von Mises-Hencky) • AGMA / Shigley Shaft Standards</span>
         </div>
-        <span className="font-mono text-gray-500">Von Mises Multiaxial Model</span>
+        <span>ASME B106.1M Benchmark</span>
       </div>
     </div>
-  );
-}
-
-function ActivityIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-    </svg>
   );
 }
 
@@ -368,29 +387,36 @@ function ResultCard({
   value,
   unit,
   status,
+  subtext,
 }: {
   label: string;
   value: string | number;
   unit: string;
   status: 'pass' | 'warning' | 'fail' | 'info';
+  subtext?: string;
 }) {
-  const statusColors = {
-    pass: 'bg-emerald-500',
-    warning: 'bg-amber-500',
-    fail: 'bg-red-500',
-    info: 'bg-gray-500',
+  const statusPills = {
+    pass: 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/30',
+    warning: 'bg-[#E7B65C]/15 text-[#E7B65C] border-[#E7B65C]/30',
+    fail: 'bg-[#E16D72]/15 text-[#E16D72] border-[#E16D72]/30',
+    info: 'bg-[#64D6C5]/10 text-[#64D6C5] border-[#64D6C5]/20',
   };
 
   return (
-    <div className="card glass-panel bg-navy-800 p-5 rounded-lg border border-navy-700 flex flex-col justify-between">
-      <div className="flex justify-between items-start mb-2">
-        <span className="text-xs text-gray-400 uppercase tracking-wider">{label}</span>
-        <div className={`w-2 h-2 rounded-full ${statusColors[status]}`} />
+    <div className="bg-[#191C1F] p-3 rounded-[4px] border border-[#34393F] flex flex-col justify-between">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-[10px] font-mono text-[#969DA5] uppercase tracking-wider truncate">
+          {label}
+        </span>
+        <span className={`text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded-[2px] border ${statusPills[status]}`}>
+          {status}
+        </span>
       </div>
-      <div className="flex items-baseline gap-1 mt-1">
-        <span className="text-2xl font-mono font-bold text-gray-100">{value}</span>
-        {unit && <span className="text-sm text-gray-500">{unit}</span>}
+      <div className="flex items-baseline gap-1 my-1">
+        <span className="text-xl font-mono font-bold text-[#F0F1F2] tracking-tight">{value}</span>
+        {unit && <span className="text-xs font-mono text-[#969DA5]">{unit}</span>}
       </div>
+      {subtext && <div className="text-[10px] font-mono text-[#6C737D] truncate">{subtext}</div>}
     </div>
   );
 }

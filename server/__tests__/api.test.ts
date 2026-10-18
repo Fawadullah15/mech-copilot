@@ -78,4 +78,116 @@ describe('Backend API Tests', () => {
     const data = await res.json();
     assert.strictEqual(data.error, 'Route not found');
   });
+
+  describe('Offline Chat 7 Prompt Suite', () => {
+    const originalKey = env.OPENAI_API_KEY;
+
+    before(() => {
+      env.OPENAI_API_KEY = undefined;
+    });
+
+    after(() => {
+      env.OPENAI_API_KEY = originalKey;
+    });
+
+    it('Prompt 1: "Check this shaft design."', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Check this shaft design.' }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.toolsUsed.includes('run_full_shaft_analysis'));
+      assert.ok(data.engineeringResult);
+      assert.strictEqual(data.engineeringResult.tool, 'run_full_shaft_analysis');
+    });
+
+    it('Prompt 2: "Reduce the shaft weight."', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Reduce the shaft weight.' }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.toolsUsed.includes('calculate_required_shaft_diameter'));
+      assert.ok(data.message.content.includes('Hollow Shaft Bore') || data.message.content.includes('Mass Reduction'));
+    });
+
+    it('Prompt 3: "What diameter do I need for FoS 2.5?"', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'What diameter do I need for FoS 2.5?' }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.toolsUsed.includes('calculate_required_shaft_diameter'));
+      assert.strictEqual(data.engineeringResult.inputs.safetyFactor, 2.5);
+    });
+
+    it('Prompt 4: "Explain the current shaft\'s factor of safety."', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: "Explain the current shaft's factor of safety." }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.message.content.includes('Factor of Safety Evaluation'));
+      assert.ok(data.message.content.includes('Active FoS'));
+    });
+
+    it('Prompt 5: "Analyze this design with zero torque."', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Analyze this design with zero torque.' }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.toolsUsed.includes('run_full_shaft_analysis'));
+      assert.strictEqual(data.engineeringResult.inputs.torque, 0);
+    });
+
+    it('Prompt 6: "Change the diameter to 50 mm and recalculate."', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Change the diameter to 50 mm and recalculate.' }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.toolsUsed.includes('run_full_shaft_analysis'));
+      assert.strictEqual(data.engineeringResult.inputs.diameter, 50);
+    });
+
+    it('Prompt 7: "Give me an unsupported calculation that the system cannot perform."', async () => {
+      const res = await fetch(`${BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Give me an unsupported calculation that the system cannot perform.' }]
+        })
+      });
+      assert.strictEqual(res.status, 200);
+      const data = await res.json();
+      assert.ok(data.message.content.includes('Boundary Specification'));
+      assert.ok(data.message.content.includes('Computational Fluid Dynamics (CFD)'));
+      assert.strictEqual(data.toolsUsed.length, 0);
+    });
+  });
 });

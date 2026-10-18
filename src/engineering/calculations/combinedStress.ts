@@ -33,6 +33,49 @@ export function calculateCombinedStress(
 
   const warnings: string[] = [];
 
+  if (Sy <= 0 || isNaN(Sy) || targetSafetyFactor <= 0 || isNaN(targetSafetyFactor) || isNaN(sigma) || isNaN(tau)) {
+    return {
+      calculationType: 'combinedStress',
+      name: `Combined Stress Analysis (${criterion} Criterion)`,
+      model: `${criterion} Multiaxial Yield Failure Theory`,
+      formula: criterion === 'Tresca' ? 'σ_equiv(Tresca) = 2·τ_max = √(σ_b² + 4·τ²)' : 'σ_vm(Von Mises) = √(σ_b² + 3·τ²)',
+      inputs: {
+        bendingStressMPa: sigma,
+        shearStressMPa: tau,
+        yieldStrengthMPa: Sy,
+        criterion,
+        targetSafetyFactor,
+      },
+      normalizedInputsSI: {
+        bendingStressPa: (isNaN(sigma) ? 0 : sigma) * 1e6,
+        shearStressPa: (isNaN(tau) ? 0 : tau) * 1e6,
+        yieldStrengthPa: (isNaN(Sy) ? 0 : Sy) * 1e6,
+      },
+      result: {
+        criterion,
+        bendingStressMPa: isNaN(sigma) ? 0 : sigma,
+        shearStressMPa: isNaN(tau) ? 0 : tau,
+        principalStress1MPa: 0,
+        principalStress2MPa: 0,
+        maxShearStressMPa: 0,
+        equivalentStressMPa: 0,
+        allowableStressMPa: 0,
+        factorOfSafety: 0,
+        marginPercent: -100,
+      },
+      displayValue: 'Invalid Input',
+      displayUnit: 'MPa',
+      assumptions: [
+        'Multiaxial yield evaluated using explicit criterion',
+        'Plane stress condition on shaft surface',
+        'Homogeneous, isotropic, ductile material',
+      ],
+      warnings: ['Material yield strength and target safety factor must be strictly positive numeric values.'],
+      disclaimer: 'Engineering calculation — Simplified model — Engineer review required.',
+      status: 'fail',
+    };
+  }
+
   // Mohr's Circle calculations:
   const center = sigma / 2;
   const radius = Math.sqrt(Math.pow(sigma / 2, 2) + Math.pow(tau, 2));

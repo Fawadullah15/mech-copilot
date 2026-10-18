@@ -4,12 +4,10 @@ import {
   FileText,
   Box,
   FileCode,
-  Image as ImageIcon,
   CheckCircle2,
   Loader2,
   ArrowRight,
   X,
-  FileCheck,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { mockUploadedFiles } from '../data/engineeringRules';
@@ -35,11 +33,11 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
 
     setTimeout(() => {
       setStage('analyzing');
-    }, 900);
+    }, 600);
 
     setTimeout(() => {
       setStage('extracted');
-    }, 2200);
+    }, 1400);
   };
 
   const handleApplySpecs = () => {
@@ -60,124 +58,123 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm animate-fade-in p-4 font-sans">
-      <div className="bg-navy-900 border border-navy-700 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs animate-fade-in p-4 font-sans">
+      <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col font-sans">
         {/* Header */}
-        <div className="p-5 border-b border-navy-700/60 flex items-center justify-between bg-navy-950/80">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/15 text-accent rounded-lg border border-accent/30">
-              <UploadCloud size={20} />
+        <div className="p-4 border-b border-[#34393F] flex items-center justify-between bg-[#22262A]">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-[#14171A] text-[#64D6C5] rounded-[3px] border border-[#34393F]">
+              <UploadCloud size={16} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-100 flex items-center gap-2">
-                Preset Technical Specs & Ingestion
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-cyan-400 border border-blue-500/30">Preset Parser</span>
+              <h2 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider flex items-center gap-2">
+                Engineering Specification Ingestion
+                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-[2px] bg-[#64D6C5]/10 text-[#64D6C5] border border-[#64D6C5]/30">Preset Parser</span>
               </h2>
-              <p className="text-xs text-gray-400">
-                Select a preset engineering specification or drawing to extract and apply design constraints (Torque, RPM, Diameter, FoS).
+              <p className="text-[11px] text-[#969DA5] font-mono">
+                Select a reference spec sheet to extract geometric constraints and boundary loads.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition-colors"
+            className="text-[#969DA5] hover:text-white p-1 rounded-[3px] hover:bg-[#2E3339] transition-colors"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+        <div className="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
           {/* Workflow Stage Indicator */}
-          <div className="grid grid-cols-4 gap-2 text-center text-xs">
+          <div className="grid grid-cols-4 gap-2 text-center text-xs font-mono">
             <div
-              className={`p-2 rounded-lg border ${
+              className={`p-1.5 rounded-[2px] border ${
                 stage === 'idle' || stage === 'uploading'
-                  ? 'bg-accent/15 border-accent text-accent-light font-bold'
-                  : 'bg-navy-950 border-navy-800 text-gray-400'
+                  ? 'bg-[#64D6C5]/15 border-[#64D6C5] text-[#64D6C5] font-bold'
+                  : 'bg-[#14171A] border-[#2A2E35] text-[#969DA5]'
               }`}
             >
-              1. Upload File
+              1. Document
             </div>
             <div
-              className={`p-2 rounded-lg border ${
+              className={`p-1.5 rounded-[2px] border ${
                 stage === 'analyzing'
-                  ? 'bg-cyan/15 border-cyan text-cyan font-bold animate-pulse'
+                  ? 'bg-sky-500/15 border-sky-500 text-sky-300 font-bold animate-pulse'
                   : stage === 'extracted'
-                  ? 'bg-navy-950 border-navy-800 text-status-pass'
-                  : 'bg-navy-950 border-navy-800 text-gray-400'
+                  ? 'bg-[#14171A] border-[#2A2E35] text-[#34D399]'
+                  : 'bg-[#14171A] border-[#2A2E35] text-[#969DA5]'
               }`}
             >
-              2. Analyzing
+              2. OCR / Parse
             </div>
             <div
-              className={`p-2 rounded-lg border ${
+              className={`p-1.5 rounded-[2px] border ${
                 stage === 'extracted'
-                  ? 'bg-status-pass/15 border-status-pass text-status-pass font-bold'
-                  : 'bg-navy-950 border-navy-800 text-gray-400'
+                  ? 'bg-[#34D399]/15 border-[#34D399] text-[#34D399] font-bold'
+                  : 'bg-[#14171A] border-[#2A2E35] text-[#969DA5]'
               }`}
             >
-              3. Extracted
+              3. Telemetry
             </div>
             <div
-              className={`p-2 rounded-lg border ${
+              className={`p-1.5 rounded-[2px] border ${
                 stage === 'extracted'
-                  ? 'bg-accent/15 border-accent text-accent-light font-bold'
-                  : 'bg-navy-950 border-navy-800 text-gray-400'
+                  ? 'bg-[#64D6C5]/15 border-[#64D6C5] text-[#64D6C5] font-bold'
+                  : 'bg-[#14171A] border-[#2A2E35] text-[#969DA5]'
               }`}
             >
-              4. In Copilot
+              4. Ready
             </div>
           </div>
 
           {/* Upload Dropzone */}
           {stage === 'idle' && (
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-navy-700 hover:border-accent/60 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors bg-navy-950/40 cursor-pointer">
-                <div className="p-3 bg-navy-800 rounded-full text-gray-400 mb-3">
-                  <UploadCloud size={32} />
+            <div className="space-y-3">
+              <div className="border border-dashed border-[#34393F] hover:border-[#64D6C5] rounded-[4px] p-6 flex flex-col items-center justify-center text-center transition-colors bg-[#14171A] cursor-pointer">
+                <div className="p-2.5 bg-[#191C1F] rounded-[3px] text-[#969DA5] mb-2 border border-[#2A2E35]">
+                  <UploadCloud size={24} />
                 </div>
-                <h4 className="text-sm font-semibold text-gray-200 mb-1">
-                  Drag & Drop engineering files here, or browse
+                <h4 className="text-xs font-mono font-bold text-[#F0F1F2] mb-0.5">
+                  Drag & Drop engineering drawing or datasheet
                 </h4>
-                <p className="text-xs text-gray-500 max-w-sm mb-4">
-                  Supports CAD models (.step, .iges, .sldprt), 2D drawings (.pdf), images, and specification sheets (.docx)
+                <p className="text-[11px] text-[#969DA5] font-mono max-w-sm mb-3">
+                  Parses STEP, PDF datasheets, CAD dimension drawings, and JSON specs
                 </p>
-                <div className="flex gap-2 text-xs text-gray-400 font-mono">
-                  <span className="px-2 py-0.5 rounded bg-navy-800 border border-navy-700">.STEP</span>
-                  <span className="px-2 py-0.5 rounded bg-navy-800 border border-navy-700">.PDF</span>
-                  <span className="px-2 py-0.5 rounded bg-navy-800 border border-navy-700">.DWG</span>
-                  <span className="px-2 py-0.5 rounded bg-navy-800 border border-navy-700">.DOCX</span>
+                <div className="flex gap-1.5 text-[10px] text-[#969DA5] font-mono">
+                  <span className="px-1.5 py-0.2 rounded-[2px] bg-[#191C1F] border border-[#2A2E35]">.STEP</span>
+                  <span className="px-1.5 py-0.2 rounded-[2px] bg-[#191C1F] border border-[#2A2E35]">.PDF</span>
+                  <span className="px-1.5 py-0.2 rounded-[2px] bg-[#191C1F] border border-[#2A2E35]">.DWG</span>
                 </div>
               </div>
 
-              {/* Sample Test Files */}
-              <div className="space-y-2">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">
-                  Select sample engineering file to test:
+              {/* Sample Files */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#969DA5] block">
+                  Preset Reference Specifications:
                 </span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   {mockUploadedFiles.map((file) => (
                     <button
                       key={file.id}
                       onClick={() => handleSelectPreset(file)}
-                      className="p-3 bg-navy-950/90 hover:bg-navy-800 border border-navy-700 rounded-xl text-left transition-all flex flex-col justify-between"
+                      className="p-2.5 bg-[#14171A] hover:bg-[#22262A] border border-[#2A2E35] hover:border-[#34393F] rounded-[3px] text-left transition-colors flex flex-col justify-between"
                     >
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-1.5">
                         {file.fileType === 'pdf' ? (
-                          <FileText size={18} className="text-red-400" />
+                          <FileText size={15} className="text-[#E16D72]" />
                         ) : file.fileType === 'cad' ? (
-                          <Box size={18} className="text-cyan" />
+                          <Box size={15} className="text-[#64D6C5]" />
                         ) : (
-                          <FileCode size={18} className="text-blue-400" />
+                          <FileCode size={15} className="text-sky-400" />
                         )}
-                        <span className="text-xs font-mono font-bold text-gray-200 truncate">
+                        <span className="text-xs font-mono font-bold text-[#F0F1F2] truncate">
                           {file.name}
                         </span>
                       </div>
-                      <div className="flex justify-between text-[11px] text-gray-400">
+                      <div className="flex justify-between text-[10px] font-mono text-[#969DA5]">
                         <span>{file.fileSize}</span>
-                        <span className="text-accent-light">Click to test →</span>
+                        <span className="text-[#64D6C5]">Parse →</span>
                       </div>
                     </button>
                   ))}
@@ -188,15 +185,15 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
 
           {/* Analyzing State */}
           {(stage === 'uploading' || stage === 'analyzing') && (
-            <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
-              <Loader2 size={40} className="text-accent animate-spin" />
+            <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 font-mono">
+              <Loader2 size={32} className="text-[#64D6C5] animate-spin" />
               <div>
-                <h3 className="text-base font-bold text-gray-100">
-                  {stage === 'uploading' ? 'Uploading document...' : 'Analyzing engineering document...'}
+                <h3 className="text-xs font-bold text-[#F0F1F2] uppercase tracking-wider">
+                  {stage === 'uploading' ? 'Ingesting document...' : 'Extracting mechanical parameters...'}
                 </h3>
-                <p className="text-xs text-gray-400 mt-1 max-w-sm">
-                  Running automated OCR, geometry extraction, and operating requirement detection on{' '}
-                  <span className="font-mono text-cyan">{selectedFile?.name}</span>
+                <p className="text-[11px] text-[#969DA5] mt-1">
+                  Parsing OCR geometry tokens from{' '}
+                  <span className="text-[#64D6C5]">{selectedFile?.name}</span>
                 </p>
               </div>
             </div>
@@ -204,48 +201,48 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
 
           {/* Extracted Requirements State */}
           {stage === 'extracted' && selectedFile?.extractedSpecs && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="p-4 bg-status-pass/10 border border-status-pass/30 rounded-xl flex items-center gap-3">
-                <CheckCircle2 size={22} className="text-status-pass shrink-0" />
+            <div className="space-y-3 animate-fade-in font-mono">
+              <div className="p-3 bg-[#34D399]/10 border border-[#34D399]/30 rounded-[3px] flex items-center gap-2.5">
+                <CheckCircle2 size={18} className="text-[#34D399] shrink-0" />
                 <div>
-                  <h4 className="text-sm font-bold text-status-pass">Requirements Extracted Successfully</h4>
-                  <p className="text-xs text-gray-300">
-                    Extracted from <span className="font-mono">{selectedFile.name}</span> ({selectedFile.fileSize})
+                  <h4 className="text-xs font-bold text-[#34D399] uppercase tracking-wider">Parameters Extracted</h4>
+                  <p className="text-[11px] text-[#C2C8D0]">
+                    From {selectedFile.name} ({selectedFile.fileSize})
                   </p>
                 </div>
               </div>
 
-              <div className="bg-navy-950 p-4 rounded-xl border border-navy-700/80 space-y-3">
-                <h5 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  Extracted Design Specifications:
+              <div className="bg-[#14171A] p-3 rounded-[3px] border border-[#2A2E35] space-y-2">
+                <h5 className="text-[10px] text-[#969DA5] uppercase tracking-wider">
+                  Extracted Design Constraints:
                 </h5>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-                  <div className="p-2.5 bg-navy-900 rounded-lg border border-navy-800">
-                    <span className="text-gray-400 block text-[11px]">Design Torque</span>
-                    <span className="font-bold text-accent-light text-sm">
-                      {selectedFile.extractedSpecs.torque} Nm
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  <div className="p-2 bg-[#191C1F] rounded-[2px] border border-[#2A2E35]">
+                    <span className="text-[#969DA5] block text-[10px]">Torque</span>
+                    <span className="font-bold text-[#64D6C5]">
+                      {selectedFile.extractedSpecs.torque} N·m
                     </span>
                   </div>
-                  <div className="p-2.5 bg-navy-900 rounded-lg border border-navy-800">
-                    <span className="text-gray-400 block text-[11px]">Operating Speed</span>
-                    <span className="font-bold text-cyan text-sm">{selectedFile.extractedSpecs.rpm} RPM</span>
+                  <div className="p-2 bg-[#191C1F] rounded-[2px] border border-[#2A2E35]">
+                    <span className="text-[#969DA5] block text-[10px]">Speed</span>
+                    <span className="font-bold text-[#F0F1F2]">{selectedFile.extractedSpecs.rpm} RPM</span>
                   </div>
-                  <div className="p-2.5 bg-navy-900 rounded-lg border border-navy-800">
-                    <span className="text-gray-400 block text-[11px]">Safety Factor Target</span>
-                    <span className="font-bold text-status-pass text-sm">
-                      {selectedFile.extractedSpecs.safetyFactor}
+                  <div className="p-2 bg-[#191C1F] rounded-[2px] border border-[#2A2E35]">
+                    <span className="text-[#969DA5] block text-[10px]">Target FoS</span>
+                    <span className="font-bold text-[#34D399]">
+                      {selectedFile.extractedSpecs.safetyFactor}x
                     </span>
                   </div>
-                  <div className="p-2.5 bg-navy-900 rounded-lg border border-navy-800">
-                    <span className="text-gray-400 block text-[11px]">Min. Shaft Diameter</span>
-                    <span className="font-bold text-gray-200 text-sm">
+                  <div className="p-2 bg-[#191C1F] rounded-[2px] border border-[#2A2E35]">
+                    <span className="text-[#969DA5] block text-[10px]">Min. Diameter</span>
+                    <span className="font-bold text-[#F0F1F2]">
                       {selectedFile.extractedSpecs.diameterMin} mm
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 bg-navy-900/60 rounded-lg text-xs text-gray-300 border border-navy-800">
-                  <span className="text-gray-400 font-semibold block mb-1">Engineering Notes:</span>
+                <div className="p-2 bg-[#191C1F] rounded-[2px] text-[11px] text-[#C2C8D0] border border-[#2A2E35]">
+                  <span className="text-[#969DA5] block mb-0.5">Specification Notes:</span>
                   {selectedFile.extractedSpecs.notes}
                 </div>
               </div>
@@ -254,24 +251,24 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-navy-700/60 bg-navy-950/80 flex items-center justify-between">
+        <div className="px-4 py-2.5 border-t border-[#34393F] bg-[#22262A] flex items-center justify-between font-mono text-xs">
           <button
             onClick={() => {
               setStage('idle');
               setSelectedFile(null);
             }}
-            className="btn-ghost text-xs py-2 px-3"
+            className="text-[#969DA5] hover:text-white"
           >
-            {stage === 'extracted' ? 'Upload Another' : 'Cancel'}
+            {stage === 'extracted' ? 'Select Another' : 'Cancel'}
           </button>
 
           {stage === 'extracted' && (
             <button
               onClick={handleApplySpecs}
-              className="btn-primary text-xs flex items-center gap-2 py-2 px-4 shadow-lg shadow-accent/20"
+              className="bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-semibold flex items-center gap-1.5 py-1 px-3 rounded-[3px] transition-colors"
             >
-              Apply Extracted Specs to Workspace
-              <ArrowRight size={14} />
+              <span>Apply to Model</span>
+              <ArrowRight size={13} />
             </button>
           )}
         </div>

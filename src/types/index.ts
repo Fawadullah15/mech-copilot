@@ -6,6 +6,13 @@ export type PageId =
   | 'analysis'
   | 'materials'
   | 'calculations'
+  | 'tolerances'
+  | 'gdt'
+  | 'fatigue'
+  | 'bearings'
+  | 'connections'
+  | 'gears'
+  | 'vibration'
   | 'reports'
   | 'settings';
 
@@ -22,6 +29,20 @@ export interface Material {
   thermalExpansion: number;   // µm/(m·°C)
   costCategory: 'Low' | 'Medium' | 'High' | 'Very High';
   description: string;
+
+  // Metallurgical Intelligence & Traceability (Stage 04)
+  designation?: string;           // UNS designation (e.g. 'G41400', 'A96061')
+  condition?: string;             // Heat treat/temper state (e.g. 'Normalized & Tempered')
+  specification?: string;         // Standard specification (e.g. 'ASTM A29 / ASTM A322')
+  shearModulus?: number;          // GPa, isotropic relation G = E / [2*(1+ν)]
+  hardnessHB?: number;            // Brinell Hardness (HBW)
+  hardnessHRC?: number;           // Rockwell C Hardness
+  maxOperatingTempC?: number;     // Maximum continuous operating temperature (°C)
+  machinabilityPercent?: number;  // Machinability index (% relative to AISI 1212 at 100%)
+  verificationStatus?: 'verified' | 'draft';
+  sourceCitation?: string;        // Authoritative metallurgical source
+  assumptions?: string[];         // Standard testing/elastic assumptions
+  limitations?: string[];         // Operating limitations & de-rating factors
 }
 
 // ─── Design Parameters ─────────────────────────────────────────────
@@ -238,14 +259,19 @@ export interface ReportSection {
 // ─── Design Version History ─────────────────────────────────────────
 export interface DesignVersion {
   id: string;
+  projectId?: string;
   version: string;
   label: string;
   timestamp: string;
+  createdAt?: string;
   author: string;
   parameters: DesignParameters;
+  materialId?: string;
   materialName: string;
   factorOfSafety: number;
   status: 'pass' | 'warning' | 'fail';
   notes: string;
+  calculationSummary?: string;
 }
+
 

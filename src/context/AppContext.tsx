@@ -6,9 +6,19 @@ import type {
 import { materials, getMaterialById } from '../data/materials';
 import { explanationResponse, nextId, now } from '../data/aiResponses';
 import { computeAnalysis } from '../data/analysisResults';
+import { generateCalculationExplanation } from '../engineering';
 import { evaluateEngineeringWarnings } from '../data/engineeringRules';
 import { sendChatMessage } from '../services/chatApi';
-import { fetchProjects, fetchConversations, updateProjectParameters, initSampleProject } from '../services/projectApi';
+import {
+  fetchProjects,
+  fetchConversations,
+  updateProjectParameters,
+  initSampleProject,
+  fetchProjectVersions,
+  createProjectVersion,
+  restoreProjectVersion,
+  deleteProjectVersion,
+} from '../services/projectApi';
 
 export const DEFAULT_FALLBACK_PROJECT: Project = {
   id: 'proj-gearbox',
@@ -67,10 +77,17 @@ interface AppContextType {
   isVersionHistoryOpen: boolean; setIsVersionHistoryOpen: (open: boolean) => void;
   isCompareModalOpen: boolean; setIsCompareModalOpen: (open: boolean) => void;
   isOnboardingModalOpen: boolean; setIsOnboardingModalOpen: (open: boolean) => void;
-  designVersions: DesignVersion[]; saveDesignVersion: (label: string, notes?: string) => void;
-  restoreDesignVersion: (versionId: string) => void;
+  designVersions: DesignVersion[];
+  isLoadingVersions: boolean;
+  versionError: string | null;
+  saveDesignVersion: (label: string, notes?: string) => Promise<any>;
+  restoreDesignVersion: (versionId: string) => Promise<any>;
+  deleteDesignVersion: (versionId: string) => Promise<void>;
   copilotOpen: boolean; setCopilotOpen: (open: boolean) => void;
   isMobileMenuOpen: boolean; setIsMobileMenuOpen: (open: boolean) => void;
+  calculationsTab: 'equations' | 'standards';
+  setCalculationsTab: (tab: 'equations' | 'standards') => void;
+  navigateToStandards: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -221,7 +238,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [savedMessageIds, setSavedMessageIds] = useState<Set<string>>(new Set());
 
-  const [copilotOpen, setCopilotOpen] = useState(true);
+  const [copilotOpen, setCopilotOpen] = useState(() => 
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProblemModalOpen, setIsProblemModalOpen] = useState(false);
   const [isOptimizationModalOpen, setIsOptimizationModalOpen] = useState(false);
@@ -232,13 +251,65 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
   const [designVersions, setDesignVersions] = useState<DesignVersion[]>([]);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
+  const [calculationsTab, setCalculationsTab] = useState<'equations' | 'standards'>('equations');
+
+  const navigateToStandards = useCallback(() => {
+    setCalculationsTab('standards');
+    setActivePage('calculations');
+  }, [setActivePage]);
+
+  // Load persistent design versions from SQLite when active project changes
+  useEffect(() => {
+    if (!activeProject) {
+      setDesignVersions([]);
+      return;
+    }
+    let isMounted = true;
+    setIsLoadingVersions(true);
+    setVersionError(null);
+    fetchProjectVersions(activeProject.id)
+      .then((versions) => {
+        if (isMounted) {
+          setDesignVersions(versions);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setVersionError(err.message || 'Failed to load design versions');
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingVersions(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [activeProject?.id]);
 
   const runAnalysis = useCallback(async () => {
     setIsAnalysisRunning(true);
-    await new Promise((r) => setTimeout(r, 800));
+    // Deterministic, immediate physics calculation
+    const results = computeAnalysis(designParams);
+    if (activeProject) {
+      setProjectMemory((prev) => {
+        const mem = prev[activeProject.id];
+        if (!mem) return prev;
+        return {
+          ...prev,
+          [activeProject.id]: {
+            ...mem,
+            analysisResults: results,
+          },
+        };
+      });
+    }
     setIsAnalysisRunning(false);
     setActivePage('analysis');
-  }, [setActivePage]);
+  }, [activeProject, designParams, setActivePage]);
 
   const sendCopilotMessage = useCallback(async (content: string) => {
     if (isStreaming || !activeProject) return;
@@ -304,18 +375,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const explainCalculation = useCallback(() => {
     if (!activeProject) return;
-    const msg: CopilotMessage = { ...explanationResponse, id: nextId(), timestamp: now() };
+    // Generate deterministic proof from active telemetry and material properties
+    const msg = generateCalculationExplanation(designParams, selectedMaterial);
     setProjectMemory((prev) => {
       const mem = prev[activeProject.id];
       if (!mem) return prev;
       return {
         ...prev,
         [activeProject.id]: {
-          ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, msg] } : t)
+          ...mem,
+          threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, msg] } : t)
         }
       };
     });
-  }, [activeProject]);
+  }, [activeProject, designParams, selectedMaterial]);
 
   const engineeringWarnings = useMemo(() => evaluateEngineeringWarnings(designParams, selectedMaterial), [designParams, selectedMaterial]);
 
@@ -330,16 +403,69 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSavedMessageIds((prev) => { const next = new Set(prev); if (next.has(msgId)) next.delete(msgId); else next.add(msgId); return next; });
   }, []);
 
-  const saveDesignVersion = useCallback((label: string, notes: string = '') => {
-    const nextVer = `v1.${designVersions.length}`;
-    setDesignVersions(prev => [{ id: `v-${Date.now()}`, version: nextVer, label, timestamp: 'Just now', author: 'Current User', parameters: { ...designParams }, materialName: selectedMaterial.name, factorOfSafety: analysisResults ? analysisResults.factorOfSafety : 2.0, status: analysisResults ? analysisResults.status : 'pass', notes: notes || `Snapshot taken at ⌀${designParams.diameter} mm` }, ...prev]);
-  }, [designParams, selectedMaterial.name, analysisResults, designVersions.length]);
+  const saveDesignVersion = useCallback(async (label: string, notes: string = '') => {
+    if (!activeProject) return;
+    setVersionError(null);
+    try {
+      const created = await createProjectVersion(activeProject.id, {
+        label,
+        notes: notes || `Snapshot taken at ⌀${designParams.diameter} mm`,
+        parameters: { ...designParams },
+        materialId: selectedMaterial.id,
+        materialName: selectedMaterial.name,
+        factorOfSafety: analysisResults ? analysisResults.factorOfSafety : 2.0,
+        status: analysisResults ? analysisResults.status : 'pass',
+        calculationSummary: analysisResults ? analysisResults.statusMessage : undefined,
+      });
+      setDesignVersions((prev) => [created, ...prev]);
+      return created;
+    } catch (err: any) {
+      setVersionError(err.message || 'Failed to save design version');
+      throw err;
+    }
+  }, [activeProject, designParams, selectedMaterial, analysisResults]);
 
-  const restoreDesignVersion = useCallback((versionId: string) => {
-    const targetVer = designVersions.find((v) => v.id === versionId);
-    if (!targetVer) return;
-    setDesignParams({ ...targetVer.parameters });
-  }, [designVersions, setDesignParams]);
+  const restoreDesignVersion = useCallback(async (versionId: string) => {
+    if (!activeProject) return;
+    setVersionError(null);
+    try {
+      const { project: updatedProject, restoredVersion } = await restoreProjectVersion(activeProject.id, versionId);
+      // Restore parameters into design memory
+      setDesignParams({ ...restoredVersion.parameters });
+      if (restoredVersion.materialId) {
+        selectMaterial(restoredVersion.materialId);
+      }
+      setActiveProjectState(updatedProject);
+      setProjectMemory((prev) => {
+        const mem = prev[activeProject.id];
+        if (!mem) return prev;
+        return {
+          ...prev,
+          [activeProject.id]: {
+            ...mem,
+            parameters: updatedProject.parameters,
+            materialId: updatedProject.parameters.materialId || mem.materialId,
+          },
+        };
+      });
+      return { project: updatedProject, restoredVersion };
+    } catch (err: any) {
+      setVersionError(err.message || 'Failed to restore design version');
+      throw err;
+    }
+  }, [activeProject, setDesignParams, selectMaterial, setActiveProjectState]);
+
+  const deleteDesignVersion = useCallback(async (versionId: string) => {
+    if (!activeProject) return;
+    setVersionError(null);
+    try {
+      await deleteProjectVersion(activeProject.id, versionId);
+      setDesignVersions((prev) => prev.filter((v) => v.id !== versionId));
+    } catch (err: any) {
+      setVersionError(err.message || 'Failed to delete design version');
+      throw err;
+    }
+  }, [activeProject]);
 
   if (isLoadingProjects) {
     return <div className="flex h-screen w-screen items-center justify-center bg-navy-950 text-white">Loading Engineering Environment...</div>;
@@ -393,7 +519,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppContext.Provider value={{ activePage, setActivePage, activeProject, setActiveProject, allProjects, designParams, updateDesignParam, setDesignParams, selectedMaterial, selectMaterial, allMaterials: materials, analysisResults, isAnalysisRunning, runAnalysis, selectedComponent, setSelectedComponent, copilotMessages, sendCopilotMessage, applyRecommendation, explainCalculation, isStreaming, conversationThreads, activeThreadId, createNewConversation, switchConversation, savedMessageIds, toggleSaveMessage, engineeringWarnings, applyWarningFix, isProblemModalOpen, setIsProblemModalOpen, isOptimizationModalOpen, setIsOptimizationModalOpen, isFileUploadModalOpen, setIsFileUploadModalOpen, isWarningsDrawerOpen, setIsWarningsDrawerOpen, isCommandPaletteOpen, setIsCommandPaletteOpen, isVersionHistoryOpen, setIsVersionHistoryOpen, isCompareModalOpen, setIsCompareModalOpen, isOnboardingModalOpen, setIsOnboardingModalOpen, designVersions, saveDesignVersion, restoreDesignVersion, copilotOpen, setCopilotOpen, isMobileMenuOpen, setIsMobileMenuOpen }}>
+    <AppContext.Provider value={{ activePage, setActivePage, activeProject, setActiveProject, allProjects, designParams, updateDesignParam, setDesignParams, selectedMaterial, selectMaterial, allMaterials: materials, analysisResults, isAnalysisRunning, runAnalysis, selectedComponent, setSelectedComponent, copilotMessages, sendCopilotMessage, applyRecommendation, explainCalculation, isStreaming, conversationThreads, activeThreadId, createNewConversation, switchConversation, savedMessageIds, toggleSaveMessage, engineeringWarnings, applyWarningFix, isProblemModalOpen, setIsProblemModalOpen, isOptimizationModalOpen, setIsOptimizationModalOpen, isFileUploadModalOpen, setIsFileUploadModalOpen, isWarningsDrawerOpen, setIsWarningsDrawerOpen, isCommandPaletteOpen, setIsCommandPaletteOpen, isVersionHistoryOpen, setIsVersionHistoryOpen, isCompareModalOpen, setIsCompareModalOpen, isOnboardingModalOpen, setIsOnboardingModalOpen, designVersions, isLoadingVersions, versionError, saveDesignVersion, restoreDesignVersion, deleteDesignVersion, copilotOpen, setCopilotOpen, isMobileMenuOpen, setIsMobileMenuOpen, calculationsTab, setCalculationsTab, navigateToStandards }}>
       {children}
     </AppContext.Provider>
   );

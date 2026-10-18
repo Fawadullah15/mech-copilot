@@ -2,14 +2,12 @@ import React from 'react';
 import {
   AlertTriangle,
   AlertOctagon,
-  Info,
   CheckCircle2,
   X,
   ArrowRight,
   ShieldAlert,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import type { EngineeringWarning } from '../types';
 
 interface WarningsDrawerProps {
   isOpen: boolean;
@@ -22,40 +20,40 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in font-sans">
-      <div className="w-full max-w-md bg-navy-900 border-l border-navy-700 h-full shadow-2xl flex flex-col animate-slide-in">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-xs animate-fade-in font-sans">
+      <div className="w-full max-w-md bg-[#191C1F] border-l border-[#34393F] h-full shadow-2xl flex flex-col animate-slide-in">
         {/* Header */}
-        <div className="p-5 border-b border-navy-700 flex items-center justify-between bg-navy-950">
+        <div className="p-4 border-b border-[#34393F] flex items-center justify-between bg-[#22262A]">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <ShieldAlert size={20} />
+            <div className="p-1.5 rounded-[3px] bg-[#14171A] text-[#E7B65C] border border-[#34393F]">
+              <ShieldAlert size={16} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-100 flex items-center gap-2">
-                Engineering Warnings
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono">
+              <h2 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider flex items-center gap-2">
+                Engineering Diagnostics
+                <span className="text-[10px] px-1.5 py-0.2 rounded-[2px] bg-[#E7B65C]/15 text-[#E7B65C] font-mono border border-[#E7B65C]/30">
                   {engineeringWarnings.length}
                 </span>
               </h2>
-              <p className="text-xs text-gray-400">Automated mechanical integrity checks</p>
+              <p className="text-[11px] text-[#969DA5] font-mono">Automated mechanical integrity verifications</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-navy-800 transition-colors"
+            className="text-[#969DA5] hover:text-white p-1 rounded-[3px] hover:bg-[#2E3339] transition-colors"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Warning Cards List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-3 font-sans">
           {engineeringWarnings.length === 0 ? (
-            <div className="py-16 text-center space-y-3">
-              <CheckCircle2 size={40} className="text-status-pass mx-auto" />
-              <h4 className="text-sm font-bold text-gray-200">No Design Warnings</h4>
-              <p className="text-xs text-gray-400 max-w-xs mx-auto">
-                Current design parameters satisfy stress, temperature, and material safety margins.
+            <div className="py-16 text-center space-y-2">
+              <CheckCircle2 size={32} className="text-[#34D399] mx-auto" />
+              <h4 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider">Zero Active Faults</h4>
+              <p className="text-xs text-[#969DA5] max-w-xs mx-auto font-mono">
+                Current design parameters satisfy stress, deflection, and material safety margins.
               </p>
             </div>
           ) : (
@@ -66,64 +64,64 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
               return (
                 <div
                   key={warning.id}
-                  className={`card p-4 rounded-xl border transition-all ${
+                  className={`p-3 rounded-[4px] border transition-colors ${
                     isCritical
-                      ? 'bg-red-950/20 border-red-800/60'
-                      : 'bg-amber-950/20 border-amber-800/60'
+                      ? 'bg-[#E16D72]/10 border-[#E16D72]/40'
+                      : 'bg-[#E7B65C]/10 border-[#E7B65C]/40'
                   }`}
                 >
-                  <div className="flex items-start gap-2.5 mb-2">
+                  <div className="flex items-start gap-2 mb-2">
                     <Icon
-                      size={18}
+                      size={15}
                       className={`mt-0.5 shrink-0 ${
-                        isCritical ? 'text-status-fail' : 'text-status-warning'
+                        isCritical ? 'text-[#E16D72]' : 'text-[#E7B65C]'
                       }`}
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[11px] font-bold uppercase tracking-wider ${
-                            isCritical ? 'text-status-fail' : 'text-status-warning'
+                          className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
+                            isCritical ? 'text-[#E16D72]' : 'text-[#E7B65C]'
                           }`}
                         >
                           {warning.severity}
                         </span>
-                        <span className="text-xs font-mono text-gray-400">
+                        <span className="text-[10px] font-mono text-[#969DA5]">
                           {warning.affectedParameter}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-gray-100 mt-0.5">{warning.title}</h4>
+                      <h4 className="text-xs font-bold text-[#F0F1F2] mt-0.5">{warning.title}</h4>
                     </div>
                   </div>
 
-                  <p className="text-xs text-gray-300 leading-relaxed mb-3">{warning.reason}</p>
+                  <p className="text-xs text-[#C2C8D0] leading-relaxed mb-2.5">{warning.reason}</p>
 
                   {/* Current vs Required box */}
-                  <div className="grid grid-cols-2 gap-2 bg-navy-900/90 p-2.5 rounded-lg border border-navy-800 text-xs font-mono mb-3">
+                  <div className="grid grid-cols-2 gap-2 bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35] text-xs font-mono mb-2.5">
                     <div>
-                      <span className="text-gray-400 block text-[10px]">Current Value</span>
-                      <span className="text-red-400 font-bold">{warning.currentValue}</span>
+                      <span className="text-[#969DA5] block text-[9px] uppercase">Current Value</span>
+                      <span className="text-[#E16D72] font-bold">{warning.currentValue}</span>
                     </div>
                     <div>
-                      <span className="text-gray-400 block text-[10px]">Required Margin</span>
-                      <span className="text-status-pass font-bold">{warning.requiredValue}</span>
+                      <span className="text-[#969DA5] block text-[9px] uppercase">Required Margin</span>
+                      <span className="text-[#34D399] font-bold">{warning.requiredValue}</span>
                     </div>
                   </div>
 
                   {/* Recommended action & button */}
-                  <div className="pt-2 border-t border-navy-800">
-                    <div className="text-xs text-gray-400 mb-2">
-                      <strong className="text-gray-200">AI Recommendation: </strong>
+                  <div className="pt-2 border-t border-[#2A2E35]">
+                    <div className="text-[11px] text-[#969DA5] mb-2 font-mono">
+                      <strong className="text-[#F0F1F2]">Advisory: </strong>
                       {warning.recommendedAction}
                     </div>
 
                     {warning.autoFixValue && (
                       <button
                         onClick={() => applyWarningFix(warning.id)}
-                        className="btn-primary w-full py-2 text-xs flex items-center justify-center gap-1.5 shadow-sm"
+                        className="w-full bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono text-xs font-semibold py-1.5 px-3 rounded-[3px] flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                       >
-                        Apply Recommendation
-                        <ArrowRight size={13} />
+                        <span>Apply Recommended Parameter</span>
+                        <ArrowRight size={12} />
                       </button>
                     )}
                   </div>
@@ -134,9 +132,12 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-navy-700 bg-navy-950 flex items-center justify-between text-xs text-gray-400">
-          <span>Automated evaluation using Shigley & AGMA formulas</span>
-          <button onClick={onClose} className="btn-ghost py-1 px-3">
+        <div className="px-4 py-2.5 border-t border-[#34393F] bg-[#22262A] flex items-center justify-between text-[10px] font-mono text-[#969DA5]">
+          <span>Automated evaluation using Shigley & AGMA standards</span>
+          <button
+            onClick={onClose}
+            className="text-[#969DA5] hover:text-white py-0.5 px-2 font-mono"
+          >
             Close
           </button>
         </div>

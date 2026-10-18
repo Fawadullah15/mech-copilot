@@ -19,6 +19,13 @@ import {
   Settings,
   ArrowRight,
   Zap,
+  BookOpen,
+  Compass,
+  Activity,
+  CircleDot,
+  Link2,
+  Cog,
+  Waves,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../design-system/ThemeContext';
@@ -51,6 +58,7 @@ export default function CommandPalette() {
     selectMaterial,
     allMaterials,
     sendCopilotMessage,
+    navigateToStandards,
   } = useApp();
 
   const { theme, toggleTheme } = useTheme();
@@ -221,10 +229,106 @@ export default function CommandPalette() {
       },
     },
     {
+      id: 'nav-tolerances',
+      category: 'Navigation',
+      title: 'Go to Tolerances & Fits',
+      subtitle: 'ISO 286 cylindrical limits, fits, and 1D stack-up analysis',
+      icon: <Sliders size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G T',
+      perform: () => {
+        close();
+        setActivePage('tolerances');
+      },
+    },
+    {
+      id: 'nav-gdt',
+      category: 'Navigation',
+      title: 'Go to GD&T & CAD Controls',
+      subtitle: 'Feature Control Frames, Datum Reference Frames, and ISO 1101 / ASME Y14.5',
+      icon: <Compass size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G G',
+      perform: () => {
+        close();
+        setActivePage('gdt');
+      },
+    },
+    {
+      id: 'nav-fatigue',
+      category: 'Navigation',
+      title: 'Go to Fatigue & S-N Curves',
+      subtitle: 'Stress concentrations (Kt, Kf), notch sensitivity, Marin factors, and S-N life',
+      icon: <Activity size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G F',
+      perform: () => {
+        close();
+        setActivePage('fatigue');
+      },
+    },
+    {
+      id: 'nav-bearings',
+      category: 'Navigation',
+      title: 'Go to Bearings & L10 Life',
+      subtitle: 'ISO 281 dynamic L10 rating life, ISO 76 static safety, and shaft reactions',
+      icon: <CircleDot size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G B',
+      perform: () => {
+        close();
+        setActivePage('bearings');
+      },
+    },
+    {
+      id: 'nav-connections',
+      category: 'Navigation',
+      title: 'Go to Shaft–Hub Connections',
+      subtitle: 'DIN 6885-1 parallel keys, DIN 7190-1 interference fits, and thermal assembly',
+      icon: <Link2 size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G H',
+      perform: () => {
+        close();
+        setActivePage('connections');
+      },
+    },
+    {
+      id: 'nav-gears',
+      category: 'Navigation',
+      title: 'Go to Cylindrical Gears',
+      subtitle: 'ISO 21771-1 spur/helical gear pairs, kinematics, and 3D mesh forces',
+      icon: <Cog size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G E',
+      perform: () => {
+        close();
+        setActivePage('gears');
+      },
+    },
+    {
+      id: 'nav-vibration',
+      category: 'Navigation',
+      title: 'Go to Vibration & Dynamic Rotor Analysis',
+      subtitle: 'Lateral modal frequencies, critical speeds, unbalance response, and ISO 21940-11 balancing',
+      icon: <Waves size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G V',
+      perform: () => {
+        close();
+        setActivePage('vibration');
+      },
+    },
+    {
+      id: 'nav-standards',
+      category: 'Navigation',
+      title: 'Standards Registry & Verification',
+      subtitle: 'Inspect ISO, ASME, DIN, ASTM standards and assumptions',
+      icon: <BookOpen size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G S',
+      perform: () => {
+        close();
+        navigateToStandards();
+      },
+    },
+    {
       id: 'nav-reports',
       category: 'Navigation',
       title: 'Go to Reports',
-      subtitle: 'Generate engineering certification document',
+      subtitle: 'Generate formal engineering calculation report',
       icon: <FileText size={16} className="text-slate-300" />,
       shortcut: 'G R',
       perform: () => {
@@ -359,21 +463,21 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/75 backdrop-blur-sm animate-fade-in font-sans"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/80 backdrop-blur-xs animate-fade-in font-sans"
       onClick={close}
     >
       <div
-        className="w-full max-w-2xl bg-navy-900 border border-navy-700/90 rounded-2xl shadow-elevation-3 overflow-hidden animate-scale-in"
+        className="w-full max-w-2xl bg-[#191C1F] border border-[#34393F] rounded-[4px] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Search Header */}
-        <div className="flex items-center px-4 py-3.5 border-b border-navy-800 bg-navy-950/70 gap-3">
-          <Search className="w-5 h-5 text-accent-bright shrink-0" />
+        <div className="flex items-center px-4 py-3 border-b border-[#34393F] bg-[#22262A] gap-3">
+          <Search className="w-4 h-4 text-[#64D6C5] shrink-0" />
           <input
             ref={inputRef}
             type="text"
-            className="w-full bg-transparent border-none text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-0 font-sans"
+            className="w-full bg-transparent border-none text-xs text-[#F0F1F2] placeholder-[#6C737D] focus:outline-none focus:ring-0 font-mono"
             placeholder="Search actions, projects, calculations, or ask Copilot (e.g. 'run analysis', '45 mm')..."
             value={query}
             onChange={(e) => {
@@ -382,14 +486,14 @@ export default function CommandPalette() {
             }}
           />
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="kbd">Esc</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[2px] bg-[#14171A] text-[#969DA5] border border-[#34393F]">Esc</span>
           </div>
         </div>
 
         {/* Results List */}
-        <div className="max-h-[380px] overflow-y-auto p-2 divide-y divide-navy-800/40">
+        <div className="max-h-[380px] overflow-y-auto p-1.5 divide-y divide-[#2A2E35]">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs">
+            <div className="p-8 text-center text-[#969DA5] font-mono text-xs">
               No matching commands or actions found for "{query}".
             </div>
           ) : (
@@ -400,34 +504,34 @@ export default function CommandPalette() {
                   key={item.id}
                   onClick={() => item.perform()}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-[3px] cursor-pointer transition-colors ${
                     isSelected
-                      ? 'bg-navy-800 text-white border border-navy-700/80'
-                      : 'text-slate-300 hover:bg-navy-850/60 border border-transparent'
+                      ? 'bg-[#22262A] text-white border border-[#34393F]'
+                      : 'text-[#C2C8D0] hover:bg-[#22262A] border border-transparent'
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2 rounded-lg bg-navy-950/70 border border-navy-800 shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-1.5 rounded-[3px] bg-[#14171A] border border-[#34393F] shrink-0">
                       {item.icon}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold truncate text-slate-100">{item.title}</span>
-                        <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-navy-950 text-slate-400 border border-navy-800 shrink-0">
+                        <span className="text-xs font-semibold truncate text-[#F0F1F2]">{item.title}</span>
+                        <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded-[2px] bg-[#14171A] text-[#969DA5] border border-[#2A2E35] shrink-0">
                           {item.category}
                         </span>
                       </div>
                       {item.subtitle && (
-                        <p className="text-[11px] text-slate-400 truncate mt-0.5">{item.subtitle}</p>
+                        <p className="text-[11px] text-[#969DA5] truncate mt-0.5 font-mono">{item.subtitle}</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 ml-3">
+                  <div className="flex items-center gap-2 shrink-0 ml-3 font-mono">
                     {item.shortcut && (
-                      <span className="kbd">{item.shortcut}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-[2px] bg-[#14171A] text-[#969DA5] border border-[#34393F]">{item.shortcut}</span>
                     )}
-                    {isSelected && <ArrowRight size={14} className="text-accent-bright" />}
+                    {isSelected && <ArrowRight size={13} className="text-[#64D6C5]" />}
                   </div>
                 </div>
               );
@@ -436,13 +540,13 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 border-t border-navy-800 bg-navy-950/90 text-[11px] text-slate-500 flex items-center justify-between">
+        <div className="px-4 py-2 border-t border-[#34393F] bg-[#22262A] text-[10px] font-mono text-[#969DA5] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span>Use <kbd className="kbd text-[9px]">↑</kbd> <kbd className="kbd text-[9px]">↓</kbd> to navigate</span>
-            <span><kbd className="kbd text-[9px]">↵</kbd> to select</span>
-            <span><kbd className="kbd text-[9px]">Esc</kbd> to close</span>
+            <span>Use ↑ ↓ to navigate</span>
+            <span>↵ to select</span>
+            <span>Esc to close</span>
           </div>
-          <span className="font-mono text-[10px] text-slate-400">QUANTUM Command Center</span>
+          <span className="text-[#64D6C5]">QUANTUM Command Center</span>
         </div>
       </div>
     </div>

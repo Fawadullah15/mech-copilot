@@ -23,30 +23,30 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const sizeClasses = {
-    xs: 'px-2 py-1 text-[11px] gap-1',
-    sm: 'px-3 py-1.5 text-xs gap-1.5',
-    md: 'px-4 py-2 text-sm gap-2',
-    lg: 'px-5 py-2.5 text-base gap-2.5',
+    xs: 'px-2 py-0.5 text-[10px] gap-1',
+    sm: 'px-2.5 py-1 text-xs gap-1.5',
+    md: 'px-3.5 py-1.5 text-xs gap-2',
+    lg: 'px-4 py-2 text-sm gap-2',
   }[size];
 
   const variantClasses = {
     primary:
-      'bg-blue-600 hover:bg-blue-500 text-white font-semibold border border-blue-400/30 shadow-sm shadow-blue-500/20 active:scale-[0.98]',
+      'bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono font-semibold shadow-sm transition-colors',
     secondary:
-      'bg-navy-800 hover:bg-navy-750 text-slate-200 font-medium border border-navy-700 hover:border-navy-600 active:scale-[0.98]',
+      'bg-[#14171A] hover:bg-[#22262A] text-[#F0F1F2] border border-[#34393F] font-mono transition-colors',
     ghost:
-      'text-slate-400 hover:text-slate-100 hover:bg-navy-800/80 font-medium active:scale-[0.98]',
+      'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A] font-mono transition-colors',
     danger:
-      'bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-medium active:scale-[0.98]',
+      'bg-[#E16D72]/15 hover:bg-[#E16D72]/25 text-[#E16D72] border border-[#E16D72]/30 font-mono transition-colors',
     'outline-accent':
-      'border border-accent-bright/40 text-accent-bright hover:bg-accent-bright/10 font-semibold active:scale-[0.98]',
+      'border border-[#64D6C5]/40 text-[#64D6C5] hover:bg-[#64D6C5]/10 font-mono font-semibold transition-colors',
   }[variant];
 
   return (
     <button
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center rounded-lg transition-all duration-150 select-none ${sizeClasses} ${variantClasses} ${
-        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+      className={`inline-flex items-center justify-center rounded-[3px] select-none ${sizeClasses} ${variantClasses} ${
+        disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
       } ${className}`}
       {...props}
     >
@@ -58,7 +58,7 @@ export const Button: React.FC<ButtonProps> = ({
       {children && <span>{children}</span>}
       {rightIcon && !isLoading && <span className="shrink-0">{rightIcon}</span>}
       {shortcut && (
-        <span className="ml-1 px-1 py-0.2 text-[9px] font-mono font-semibold bg-black/25 text-slate-400 rounded border border-white/10">
+        <span className="ml-1 px-1 py-0.2 text-[9px] font-mono font-semibold bg-black/40 text-[#969DA5] rounded-[2px] border border-[#34393F]">
           {shortcut}
         </span>
       )}

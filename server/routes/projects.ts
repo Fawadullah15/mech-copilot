@@ -2,6 +2,13 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getAllProjects, getProjectById, createProject, updateProject, deleteProject, ensureDefaultProjectSeeded } from '../services/projectService.js';
 import { getConversationsByProjectId, createConversation, getMessagesByConversationId } from '../services/conversationService.js';
+import {
+  getVersionsByProjectId,
+  getVersionById,
+  createDesignVersion,
+  restoreDesignVersion,
+  deleteDesignVersion,
+} from '../services/versionService.js';
 import { isTestMode } from '../db/client.js';
 
 export const router = Router();
@@ -155,3 +162,122 @@ router.post('/:id/conversations', (req, res) => {
   const conversation = createConversation(convId, req.params.id, title, createdAt || new Date().toISOString());
   res.status(201).json({ ...conversation, messages: [] });
 });
+
+// ─── Design Version Endpoints ──────────────────────────────────────
+
+const createVersionSchema = z.object({
+  id: idSchema.optional(),
+  label: z.string().min(1).max(200),
+  notes: z.string().max(1000).optional(),
+  version: z.string().max(50).optional(),
+  author: z.string().max(100).optional(),
+  parameters: designParametersSchema,
+  materialId: z.string().max(100).optional(),
+  materialName: z.string().max(200).optional(),
+  factorOfSafety: z.number().nonnegative().optional(),
+  status: z.enum(['pass', 'warning', 'fail']).optional(),
+  calculationSummary: z.string().max(2000).optional(),
+});
+
+// List all versions for a project
+router.get('/:id/versions', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) return res.status(400).json({ error: 'Invalid project ID format' });
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  try {
+    const versions = getVersionsByProjectId(req.params.id);
+    res.json(versions);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve design versions' });
+  }
+});
+
+// Create a new design snapshot
+router.post('/:id/versions', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) return res.status(400).json({ error: 'Invalid project ID format' });
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const parseResult = createVersionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ error: 'Invalid version data', details: parseResult.error.format() });
+  }
+
+  try {
+    const newVersion = createDesignVersion({
+      ...parseResult.data,
+      projectId: req.params.id,
+    });
+    res.status(201).json(newVersion);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || 'Failed to create design version' });
+  }
+});
+
+// Get a specific snapshot by ID
+router.get('/:id/versions/:versionId', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  const versionIdResult = idSchema.safeParse(req.params.versionId);
+  if (!idResult.success || !versionIdResult.success) {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const version = getVersionById(req.params.id, req.params.versionId);
+  if (!version) return res.status(404).json({ error: 'Version not found' });
+
+  res.json(version);
+});
+
+// Restore a design snapshot
+router.post('/:id/versions/:versionId/restore', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  const versionIdResult = idSchema.safeParse(req.params.versionId);
+  if (!idResult.success || !versionIdResult.success) {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  try {
+    const result = restoreDesignVersion(req.params.id, req.params.versionId);
+    res.json({
+      message: 'Design version restored successfully',
+      project: result.project,
+      restoredVersion: result.restoredVersion,
+    });
+  } catch (err: any) {
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: err.message });
+    }
+    res.status(400).json({ error: err.message || 'Failed to restore design version' });
+  }
+});
+
+// Delete a design snapshot
+router.delete('/:id/versions/:versionId', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  const versionIdResult = idSchema.safeParse(req.params.versionId);
+  if (!idResult.success || !versionIdResult.success) {
+    return res.status(400).json({ error: 'Invalid ID format' });
+  }
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const deleted = deleteDesignVersion(req.params.id, req.params.versionId);
+  if (!deleted) {
+    return res.status(404).json({ error: 'Version not found' });
+  }
+
+  res.status(204).send();
+});
+

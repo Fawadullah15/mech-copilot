@@ -18,34 +18,34 @@ export const Badge: React.FC<BadgeProps> = ({
   children,
   className = '',
 }) => {
-  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs';
+  const sizeClasses = size === 'sm' ? 'px-1.5 py-0.2 text-[10px]' : 'px-2 py-0.5 text-[11px]';
 
   const variantClasses = {
-    pass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    warning: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-    critical: 'bg-red-500/15 text-red-400 border-red-500/30',
-    info: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-    neutral: 'bg-navy-800 text-slate-300 border-navy-700',
-    accent: 'bg-accent/15 text-accent-light border-accent/30',
-    mono: 'bg-navy-950 text-slate-400 border-navy-800 font-mono',
+    pass: 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/30',
+    warning: 'bg-[#E7B65C]/15 text-[#E7B65C] border-[#E7B65C]/30',
+    critical: 'bg-[#E16D72]/15 text-[#E16D72] border-[#E16D72]/30',
+    info: 'bg-[#64D6C5]/10 text-[#64D6C5] border-[#64D6C5]/20',
+    neutral: 'bg-[#22262A] text-[#969DA5] border-[#34393F]',
+    accent: 'bg-[#64D6C5]/15 text-[#64D6C5] border-[#64D6C5]/30',
+    mono: 'bg-[#14171A] text-[#969DA5] border-[#2A2E35]',
   }[variant];
 
   const dotColor = {
-    pass: 'bg-emerald-400',
-    warning: 'bg-amber-400',
-    critical: 'bg-red-400',
-    info: 'bg-blue-400',
-    neutral: 'bg-slate-400',
-    accent: 'bg-sky-400',
-    mono: 'bg-slate-500',
+    pass: 'bg-[#34D399]',
+    warning: 'bg-[#E7B65C]',
+    critical: 'bg-[#E16D72]',
+    info: 'bg-[#64D6C5]',
+    neutral: 'bg-[#969DA5]',
+    accent: 'bg-[#64D6C5]',
+    mono: 'bg-[#6C737D]',
   }[variant];
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-md border font-medium leading-none whitespace-nowrap ${sizeClasses} ${variantClasses} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-[2px] border font-mono font-medium leading-none whitespace-nowrap ${sizeClasses} ${variantClasses} ${className}`}
     >
       {withSymbol && ['pass', 'warning', 'critical', 'info'].includes(variant) && (
-        <EngineeringStatusSymbol status={variant as EngineeringStatusType} size={12} />
+        <EngineeringStatusSymbol status={variant as EngineeringStatusType} size={11} />
       )}
       {withDot && !withSymbol && (
         <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
@@ -56,4 +56,3 @@ export const Badge: React.FC<BadgeProps> = ({
 };
 
 export default Badge;
-

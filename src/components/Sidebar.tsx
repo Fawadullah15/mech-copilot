@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   LayoutDashboard,
   FolderOpen,
@@ -8,37 +8,35 @@ import {
   Calculator,
   FileText,
   Settings,
-  Search,
   History,
   Scale,
   Sun,
   Moon,
-  ChevronDown,
-  Sparkles,
-  ShieldAlert,
   X,
+  Compass,
+  Sliders,
+  Activity,
+  CircleDot,
+  Link2,
+  Cog,
+  Waves,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../design-system/ThemeContext';
 import { PageId } from '../types';
-import { BrandLogo } from './brand/BrandLogo';
 
 interface NavItem {
   id: PageId;
   label: string;
   icon: React.ComponentType<{ size?: number | string; className?: string }>;
-  badge?: string | number;
-  badgeVariant?: 'accent' | 'warning' | 'neutral';
+  shortcut?: string;
 }
-
 
 export default function Sidebar() {
   const {
     activePage,
     setActivePage,
     allProjects,
-    engineeringWarnings,
-    setIsCommandPaletteOpen,
     setIsVersionHistoryOpen,
     setIsCompareModalOpen,
     isMobileMenuOpen,
@@ -46,201 +44,184 @@ export default function Sidebar() {
   } = useApp();
 
   const { theme, toggleTheme } = useTheme();
-  const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
-  const [activeWorkspace, setActiveWorkspace] = useState('Apex Powertrain Division');
 
   const navItems: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'projects', label: 'Projects', icon: FolderOpen, badge: allProjects.length },
-    { id: 'workspace', label: 'Design Workspace', icon: PenTool, badge: 'Live', badgeVariant: 'accent' },
-    {
-      id: 'analysis',
-      label: 'Engineering Analysis',
-      icon: BarChart3,
-      badge: engineeringWarnings.length > 0 ? `${engineeringWarnings.length}` : undefined,
-      badgeVariant: engineeringWarnings.length > 0 ? 'warning' : undefined,
-    },
-    { id: 'materials', label: 'Materials Database', icon: Layers },
-    { id: 'calculations', label: 'Calculations', icon: Calculator },
+    { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard, shortcut: '0' },
+    { id: 'workspace', label: 'Design Workspace', icon: PenTool, shortcut: '1' },
+    { id: 'analysis', label: 'Engineering Analysis', icon: BarChart3, shortcut: '2' },
+    { id: 'calculations', label: 'Calculations', icon: Calculator, shortcut: '3' },
+    { id: 'materials', label: 'Materials Database', icon: Layers, shortcut: '4' },
+    { id: 'tolerances', label: 'Tolerances & Fits', icon: Sliders, shortcut: '5' },
+    { id: 'gdt', label: 'GD&T & CAD Controls', icon: Compass, shortcut: '6' },
+    { id: 'fatigue', label: 'Fatigue & S-N Curves', icon: Activity, shortcut: '7' },
+    { id: 'bearings', label: 'Bearings & L10 Life', icon: CircleDot, shortcut: '8' },
+    { id: 'connections', label: 'Shaft–Hub Connections', icon: Link2, shortcut: '9' },
+    { id: 'gears', label: 'Cylindrical Gears', icon: Cog, shortcut: 'G' },
+    { id: 'vibration', label: 'Vibration & Dynamics', icon: Waves, shortcut: 'V' },
     { id: 'reports', label: 'Reports', icon: FileText },
+    { id: 'projects', label: 'Projects', icon: FolderOpen },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
     <>
-      {/* Mobile Drawer Backdrop */}
+      {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
-      <aside className={`${isMobileMenuOpen ? 'fixed inset-y-0 left-0 z-50 flex shadow-2xl' : 'hidden lg:flex'} w-64 h-full bg-navy-950 border-r border-navy-800 flex-col font-sans shrink-0 select-none relative z-20 transition-all duration-200`}>
-        {/* Top Brand Header */}
-        <div className="h-16 px-5 border-b border-navy-800 flex items-center justify-between">
-          <BrandLogo size="md" />
-          <button 
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white p-1 rounded-md hover:bg-navy-800 transition-colors"
-            title="Close menu"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-      {/* Workspace Switcher */}
-      <div className="px-3 pt-3 pb-2 border-b border-navy-850">
-        <div className="relative">
-          <button
-            onClick={() => setIsWorkspaceMenuOpen((prev) => !prev)}
-            className="w-full flex items-center justify-between p-2 rounded-lg bg-navy-900 hover:bg-navy-850 border border-navy-800 text-left transition-colors"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-5 h-5 rounded-md bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-                AP
-              </div>
-              <div className="truncate">
-                <div className="text-xs font-semibold text-slate-200 truncate">{activeWorkspace}</div>
-                <div className="text-[10px] text-slate-500 font-mono truncate">Workspace • Active</div>
-              </div>
+      {/* Slim Desktop Rail / Mobile Drawer */}
+      <aside
+        className={`${
+          isMobileMenuOpen
+            ? 'fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-[#191C1F] border-r border-[#34393F] shadow-2xl'
+            : 'hidden lg:flex w-[52px] h-full flex-col items-center bg-[#111315] border-r border-[#34393F]'
+        } shrink-0 select-none z-30 transition-all duration-150`}
+      >
+        {/* Top Workstation Badge / Logo */}
+        <div
+          className={`${
+            isMobileMenuOpen
+              ? 'h-11 px-3 border-b border-[#34393F] flex items-center justify-between w-full'
+              : 'h-11 flex items-center justify-center w-full border-b border-[#34393F]'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-[4px] bg-[#191C1F] border border-[#34393F] flex items-center justify-center text-[#64D6C5] shadow-xs">
+              <Compass size={15} />
             </div>
-            <ChevronDown size={14} className="text-slate-400 shrink-0 ml-1" />
-          </button>
-
-          {isWorkspaceMenuOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 p-1 bg-navy-900 border border-navy-750 rounded-xl shadow-elevation-3 z-30 animate-fade-in text-xs">
-              {['Apex Powertrain Division', 'Robotics R&D Lab', 'Gearbox Prototyping Unit'].map((ws) => (
-                <button
-                  key={ws}
-                  onClick={() => {
-                    setActiveWorkspace(ws);
-                    setIsWorkspaceMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
-                    activeWorkspace === ws ? 'bg-navy-800 text-white font-semibold' : 'text-slate-300 hover:bg-navy-850'
-                  }`}
-                >
-                  {ws}
-                </button>
-              ))}
-            </div>
+            {isMobileMenuOpen && (
+              <span className="text-xs font-mono font-bold tracking-wider text-[#F0F1F2]">
+                QUANTUM AI
+              </span>
+            )}
+          </div>
+          {isMobileMenuOpen && (
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-[#969DA5] hover:text-[#F0F1F2] p-1 rounded-[4px] hover:bg-[#22262A]"
+              title="Close Navigation"
+            >
+              <X size={16} />
+            </button>
           )}
         </div>
 
-        {/* Global Search / Command Center Trigger */}
-        <button
-          onClick={() => setIsCommandPaletteOpen(true)}
-          className="w-full mt-2 flex items-center justify-between px-3 py-1.5 rounded-lg bg-navy-900/60 hover:bg-navy-900 border border-navy-800 text-slate-400 hover:text-slate-200 transition-colors text-xs"
+        {/* Navigation Items */}
+        <nav
+          className={`${
+            isMobileMenuOpen ? 'flex-1 py-2 px-2 space-y-0.5 w-full' : 'flex-1 py-2 flex flex-col items-center space-y-1 w-full'
+          }`}
         >
-          <div className="flex items-center gap-2">
-            <Search size={13} className="text-accent-bright" />
-            <span className="text-[11px]">Command Center...</span>
-          </div>
-          <span className="kbd text-[9px]">⌘K</span>
-        </button>
-      </div>
+          {navItems.map((item) => {
+            const isActive = activePage === item.id;
+            const Icon = item.icon;
 
-      {/* Primary Navigation */}
-      <nav className="flex-1 py-3 px-3 overflow-y-auto space-y-1">
-        <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
-          Platform
-        </div>
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActivePage(item.id);
-                setIsMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                isActive
-                  ? 'bg-blue-600/15 text-white font-semibold border border-blue-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-navy-900/70 border border-transparent'
-
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Icon
-                  size={16}
-                  className={isActive ? 'text-accent-bright' : 'text-slate-400'}
-                />
-                <span>{item.label}</span>
-              </div>
-              {item.badge && (
-                <span
-                  className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
-                    item.badgeVariant === 'accent'
-                      ? 'bg-accent/20 text-accent-light'
-                      : item.badgeVariant === 'warning'
-                      ? 'bg-amber-500/20 text-amber-300'
-                      : 'bg-navy-800 text-slate-400'
+            if (isMobileMenuOpen) {
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActivePage(item.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-[4px] text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[#22262A] text-[#64D6C5] border-l-2 border-[#64D6C5]'
+                      : 'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]/60'
                   }`}
                 >
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
+                  <div className="flex items-center gap-2.5">
+                    <Icon size={16} className={isActive ? 'text-[#64D6C5]' : 'text-[#969DA5]'} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.shortcut && (
+                    <span className="text-[10px] font-mono text-[#636A73]">Alt+{item.shortcut}</span>
+                  )}
+                </button>
+              );
+            }
 
-        {/* Quick Engineering Tools */}
-        <div className="pt-4 px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
-          Engineering Tools
-        </div>
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActivePage(item.id)}
+                title={`${item.label} (Alt+${item.shortcut})`}
+                className={`relative w-9 h-9 rounded-[4px] flex items-center justify-center transition-colors group ${
+                  isActive
+                    ? 'bg-[#191C1F] text-[#64D6C5] border border-[#34393F]'
+                    : 'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute -left-[7px] top-1.5 bottom-1.5 w-[2px] bg-[#64D6C5] rounded-r-xs" />
+                )}
+                <Icon size={16} />
+              </button>
+            );
+          })}
+        </nav>
 
-        <button
-          onClick={() => {
-            setIsVersionHistoryOpen(true);
-            setIsMobileMenuOpen(false);
-          }}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-navy-900/70 transition-colors"
+        {/* Bottom Utility Tools */}
+        <div
+          className={`${
+            isMobileMenuOpen
+              ? 'p-3 border-t border-[#34393F] w-full space-y-1.5 bg-[#111315]'
+              : 'py-2 flex flex-col items-center space-y-1 w-full border-t border-[#34393F]'
+          }`}
         >
-          <History size={15} className="text-amber-400/80" />
-          <span>Version History</span>
-        </button>
+          {/* Version History Checkpoints */}
+          <button
+            onClick={() => {
+              setIsVersionHistoryOpen(true);
+              setIsMobileMenuOpen(false);
+            }}
+            title="Version Checkpoint Timeline"
+            className={`${
+              isMobileMenuOpen
+                ? 'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]'
+                : 'w-9 h-9 rounded-[4px] flex items-center justify-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
+            }`}
+          >
+            <History size={15} />
+            {isMobileMenuOpen && <span>Checkpoints</span>}
+          </button>
 
-        <button
-          onClick={() => {
-            setIsCompareModalOpen(true);
-            setIsMobileMenuOpen(false);
-          }}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-navy-900/70 transition-colors"
-        >
-          <Scale size={15} className="text-cyan-400/80" />
-          <span>Design Compare</span>
-        </button>
-      </nav>
+          {/* Design Comparison */}
+          <button
+            onClick={() => {
+              setIsCompareModalOpen(true);
+              setIsMobileMenuOpen(false);
+            }}
+            title="Compare Configurations"
+            className={`${
+              isMobileMenuOpen
+                ? 'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]'
+                : 'w-9 h-9 rounded-[4px] flex items-center justify-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
+            }`}
+          >
+            <Scale size={15} />
+            {isMobileMenuOpen && <span>Compare Configs</span>}
+          </button>
 
-      {/* Bottom Profile & Theme Utilities */}
-      <div className="p-3 border-t border-navy-850 bg-navy-950/80 space-y-2">
-        <div className="flex items-center justify-between p-2 rounded-lg bg-navy-900 border border-navy-800/80">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-              ME
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-200 truncate">Lead Engineer</div>
-              <div className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Calculation Core v2.4
-              </div>
-            </div>
-          </div>
-
+          {/* Theme Switch */}
           <button
             onClick={toggleTheme}
-            className="p-1.5 text-slate-400 hover:text-slate-100 rounded-md hover:bg-navy-800 transition-colors"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            className={`${
+              isMobileMenuOpen
+                ? 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-[4px] text-xs text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]'
+                : 'w-9 h-9 rounded-[4px] flex items-center justify-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
+            }`}
           >
-            {theme === 'dark' ? <Sun size={14} className="text-amber-300" /> : <Moon size={14} className="text-blue-400" />}
+            {theme === 'dark' ? <Sun size={15} className="text-[#E7B65C]" /> : <Moon size={15} className="text-[#64D6C5]" />}
+            {isMobileMenuOpen && <span className="text-[11px] font-mono">{theme.toUpperCase()}</span>}
           </button>
         </div>
-      </div>
-    </aside>
-  </>
+      </aside>
+    </>
   );
 }
