@@ -167,7 +167,3 @@ npm run build
 * **Ujala Gull:** Documentation and Presentation.
 * **Noor Us Saba:** Research, Testing and Quality Assurance.
 * **Ayesha Khan:** Frontend Development and User Experience.
-
-> [!NOTE]
-> **Team Eligibility Review Note:**
-> The project team contains six members as listed above. Section 3 of the NYLP AI Hackathon 2026 Rulebook stipulates a maximum of 5 members per team, and the official submission form dropdown enforces this limit. This discrepancy is flagged for confirmation by the Team Lead with the hackathon organizing committee prior to final submission.
