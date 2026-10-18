@@ -14,50 +14,41 @@
 
 ## 1. Problem
 
-Designing rotating machine elements (such as gearbox shafts, pump drives, and motor couplings) is an iterative, error-prone discipline requiring simultaneous compliance with solid mechanics theory and international standards:
+Mechanical engineers often need to do calculations, check design details, and work with different tools when designing machine parts. These tasks can take time and require careful checking.
 
-* **Multiaxial Stress & Deflection:** Sizing a shaft requires resolving combined torsional shear ($\tau$) and cyclic bending ($\sigma_b$) into equivalent von Mises stresses, while ensuring centerline deflections remain below strict bearing-slope limits ($< 0.1\text{ mm}$ or $L/1000$).
-* **Fatigue & Stress Concentrations:** Real shafts incorporate shoulders, keyways, and fillets. Failure to apply accurate geometric stress concentration factors ($K_t$), notch sensitivity ($q$), and Marin endurance modifiers leads to unexpected high-cycle fatigue fractures.
-* **Standards Complexity:** Engineers must manually cross-reference standard tables for ISO 286 manufacturing fits, ISO 281 bearing rating lives, DIN 6885-1 keyways, DIN 7190-1 press fits, and ISO 21940-11 rotor balancing.
-* **The AI Hallucination Hazard:** Generic LLMs (e.g. ChatGPT, Claude) frequently hallucinate formulas, drop units, misapply equations, or fail static force equilibrium constraints ($\sum F = 0$). Unconstrained generative AI cannot be trusted with safety-critical engineering mathematics.
+When designing parts like rotating shafts, engineers must make sure the part is strong enough not to break or bend too much under heavy loads. Usually, engineers have to switch between paper formulas, spreadsheets, and complex software. General AI chatbots can answer questions, but they often make math mistakes or guess numbers. This makes it hard to quickly test ideas while being sure the math is right.
 
 ---
 
 ## 2. Solution
 
-**Mechanical Engineering Copilot** resolves the AI reliability problem by enforcing a **strict architectural boundary** between probabilistic language reasoning and deterministic solid mechanics:
+Mechanical Engineering Copilot is an AI-powered tool that helps users with supported mechanical design tasks.
 
-1. **Conversational Intent & Orchestration:** The LLM interprets natural language design queries (*"check if this shaft can handle 500 N·m at 1450 RPM"*, *"what diameter is needed for safety factor 2.5?"*), checks parameter completeness, and formulates structured tool requests.
-2. **Deterministic Physics Core:** Numerical calculations are never evaluated by the LLM. Instead, the backend executes validated, closed-form TypeScript engines that enforce standard formulas, unit consistency, and physical equilibrium.
-3. **Transparent Derivations:** Calculation results return to the copilot as structured JSON, which the assistant presents alongside substituted formulas, safety factors, and interactive UI action buttons.
-4. **Interactive CAD Visualization:** The React frontend reflects parameter mutations in real time via an SVG shaft-and-gear assembly visualizer, dynamic Recharts stress distributions, and S-N fatigue endurance curves.
+Users can enter design details and ask questions in plain English. The application helps them understand the design and runs supported engineering calculations through its built-in calculation system. While the AI assists with explanations and suggestions, users still need to review and verify engineering results before making final design decisions.
 
 ```mermaid
 flowchart LR
-    User([User / Engineer]) <--> UI[React 18 Workstation\n+ Reactive SVG CAD Viewer]
-    UI <--> Express[Express 5 Backend API\n(Boundary Validation & Zod)]
-    Express <--> LLM[OpenAI GPT-4o-mini\n(Intent & Tool Orchestrator)]
-    Express <--> Fallback[Offline Rule Solver\n(Zero-API-Key Fallback)]
-    LLM -- "Structured Tool Calls" --> Physics[Deterministic Engineering Engines\n- Shaft Stress & Deflection\n- Peterson Kt & Goodman Fatigue\n- ISO 281 Bearing Reactions\n- DIN Keys & Press Fits\n- Modal FEA Vibration]
-    Fallback --> Physics
-    Express <--> DB[(Native node:sqlite DB\nProjects, Checkpoints, Chat)]
+    User([User]) <--> UI[Web App & Visual Drawing]
+    UI <--> Backend[Backend System]
+    Backend <--> AI[AI Assistant\n(Helps with Questions)]
+    Backend <--> Calc[Engineering Math Engine\n(Runs the Calculations)]
+    Backend <--> DB[(Local Database\nSaves Your Work)]
 ```
 
 ---
 
 ## 3. Features
 
-* **AI-Assisted Engineering Copilot:** Right-docked assistant that parses design intent, executes calculations via tools, and provides clear engineering assessments. Includes an **offline deterministic mode** that functions without an OpenAI API key.
-* **Shaft Multiaxial Stress & Deflection:** Closed-form evaluation of pure torsion ($\tau = 16T/\pi d^3$), transverse bending ($M = FL/4$), von Mises equivalent stress ($\sigma_{\text{vm}}$), Tresca shear, and Euler-Bernoulli centerline deflection ($\delta = FL^3/48EI$).
-* **Dynamic Fatigue & S-N Curves:** Peterson/Neuber stress concentration factors ($K_t$), notch sensitivity ($q$), fatigue notch factor ($K_f$), Marin endurance factors ($k_a$ through $k_e$), and modified Goodman safety factors for infinite or finite life.
-* **Rolling Element Bearings ($L_{10h}$ Life):** ISO 281 dynamic rating life ($L_{10h} = \frac{10^6}{60n}(C/P)^p$), ISO 76 static safety factor ($s_0$), and 3D radial and axial reaction solving with overturning moment equilibrium.
-* **Shaft-Hub Connections:** DIN 6885-1 parallel key shear & flank crushing pressure (with reversing load de-rating), DIN 7190-1 cylindrical interference press fits (Lamé thick-wall equations), and thermal shrink-fit assembly temperatures.
-* **Cylindrical Gears & Mesh Forces:** ISO 21771-1 external spur and helical gear kinematics, transverse/normal pitch diameters, contact ratio ($> 1.2$), and 3D mesh forces ($F_t, F_r, F_a$) transferring directly into shaft load points.
-* **Vibration & Critical Speeds:** 1D Euler-Bernoulli beam modal FEA (consistent mass/stiffness matrices, generalized Jacobi eigensolver), critical speed Campbell diagrams, Jeffcott unbalance response, and ISO 21940-11:2016/Amd 1:2022 rotor balancing grades.
-* **Interactive SVG Visualizer:** Technical 2D/3D CAD representation with reactive dimension lines, bearing markers, gear geometry, and live material overlays.
-* **Local Persistence & Design Checkpoints:** Embedded SQLite database (`node:sqlite`) with automated schema migrations, project snapshots, version diff comparison, and rollback.
+* **Ask questions:** Ask the AI about supported mechanical design tasks and get clear, everyday explanations.
+* **Enter design details:** Change values like part size, length, applied force, and speed to see how they affect the design.
+* **Run calculations:** Get immediate math results for stress, bending, and safety margins from the built-in calculation system.
+* **View the design:** See a visual drawing of the machine part that updates live whenever you change numbers.
+* **See helpful charts:** Look at visual graphs that show stress distribution, fatigue life curves, and safe operating speeds.
+* **Compare materials:** Look up different metals like alloy steel, stainless steel, and titanium to see which fits your part best.
+* **Save your work:** Keep project details, conversation history, and design versions saved locally on your computer.
+* **Generate reports:** Create clean design summaries with one click to review and share your work.
 
-> **Scope & Limitations:** Calculations rely on closed-form beam, plate, and thick-cylinder solid mechanics. The system does not perform non-linear solid plasticity, 3D continuum FEA meshing, or CFD. Results are preliminary engineering sizing aids and do not substitute for formal Professional Engineer (PE) certification or physical testing.
+> **Note on Scope:** This tool provides preliminary design guidance for supported rotating parts. It is intended for initial sizing, planning, and learning, and does not replace official physical testing or certified engineering reviews.
 
 ---
 
