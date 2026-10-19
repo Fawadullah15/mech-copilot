@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   LayoutDashboard,
   FolderOpen,
@@ -20,6 +20,8 @@ import {
   Link2,
   Cog,
   Waves,
+  Pin,
+  PinOff,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../design-system/ThemeContext';
@@ -44,6 +46,51 @@ export default function Sidebar() {
   } = useApp();
 
   const { theme, toggleTheme } = useTheme();
+
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPinned, setIsPinned] = useState(() => {
+    try {
+      return localStorage.getItem('quantum_sidebar_pinned') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    leaveTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (leaveTimeoutRef.current) {
+        clearTimeout(leaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const togglePin = () => {
+    setIsPinned((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('quantum_sidebar_pinned', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const isExpanded = isMobileMenuOpen || isPinned || isHovered;
 
   const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard, shortcut: '0' },
@@ -73,33 +120,46 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Slim Desktop Rail / Mobile Drawer */}
+      {/* Desktop Layout Spacer: reserves space so opening drawer does not push main content */}
+      <div
+        className={`hidden lg:block shrink-0 transition-[width] duration-200 ease-out ${
+          isPinned ? 'w-60' : 'w-[52px]'
+        }`}
+        aria-hidden="true"
+      />
+
+      {/* Desktop Floating Drawer / Mobile Slide-over Drawer */}
       <aside
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={`${
           isMobileMenuOpen
             ? 'fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-[#191C1F] border-r border-[#34393F] shadow-2xl overflow-hidden'
-            : 'hidden lg:flex w-[52px] h-full max-h-screen flex-col items-center bg-[#111315] border-r border-[#34393F] overflow-hidden'
-        } shrink-0 select-none z-30 transition-all duration-150`}
+            : `hidden lg:flex fixed inset-y-0 left-0 z-40 h-full max-h-screen flex-col bg-[#111315] border-r border-[#34393F] transition-all duration-200 ease-out overflow-hidden select-none ${
+                isExpanded
+                  ? 'w-60 shadow-[8px_0_32px_rgba(0,0,0,0.7)]'
+                  : 'w-[52px]'
+              }`
+        }`}
       >
         {/* Top Workstation Badge / Logo */}
-        <div
-          className={`${
-            isMobileMenuOpen
-              ? 'h-11 px-3 border-b border-[#34393F] flex items-center justify-between w-full shrink-0'
-              : 'h-11 flex items-center justify-center w-full border-b border-[#34393F] shrink-0'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-[4px] bg-[#191C1F] border border-[#34393F] flex items-center justify-center text-[#64D6C5] shadow-xs">
+        <div className="h-11 px-3 border-b border-[#34393F] flex items-center justify-between w-full shrink-0 bg-[#111315]">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-7 h-7 rounded-[4px] bg-[#191C1F] border border-[#34393F] flex items-center justify-center text-[#64D6C5] shadow-xs shrink-0">
               <Compass size={15} />
             </div>
-            {isMobileMenuOpen && (
+            <div
+              className={`transition-all duration-200 overflow-hidden whitespace-nowrap ${
+                isExpanded ? 'opacity-100 max-w-[120px]' : 'opacity-0 max-w-0'
+              }`}
+            >
               <span className="text-xs font-mono font-bold tracking-wider text-[#F0F1F2]">
                 QUANTUM AI
               </span>
-            )}
+            </div>
           </div>
-          {isMobileMenuOpen && (
+
+          {isMobileMenuOpen ? (
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="text-[#969DA5] hover:text-[#F0F1F2] p-1 rounded-[4px] hover:bg-[#22262A]"
@@ -107,120 +167,156 @@ export default function Sidebar() {
             >
               <X size={16} />
             </button>
+          ) : (
+            <button
+              onClick={togglePin}
+              className={`text-[#969DA5] hover:text-[#F0F1F2] p-1 rounded-[4px] hover:bg-[#22262A] transition-all duration-200 ${
+                isExpanded ? 'opacity-100 max-w-[32px]' : 'opacity-0 max-w-0 pointer-events-none'
+              }`}
+              title={isPinned ? 'Unpin Sidebar (Floating Drawer Mode)' : 'Pin Sidebar (Keep Open)'}
+            >
+              {isPinned ? (
+                <PinOff size={14} className="text-[#64D6C5]" />
+              ) : (
+                <Pin size={14} className="text-[#969DA5] hover:text-[#64D6C5]" />
+              )}
+            </button>
           )}
         </div>
 
         {/* Navigation Items */}
         <nav
-          className={`${
-            isMobileMenuOpen
-              ? 'flex-1 py-2 px-2 space-y-0.5 w-full min-h-0 overflow-y-auto no-scrollbar'
-              : 'flex-1 py-2 flex flex-col items-center space-y-1 w-full min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar'
-          }`}
+          className="flex-1 py-2 px-1.5 space-y-0.5 w-full min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar"
+          tabIndex={-1}
         >
           {navItems.map((item) => {
             const isActive = activePage === item.id;
             const Icon = item.icon;
 
-            if (isMobileMenuOpen) {
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActivePage(item.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-[4px] text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'bg-[#22262A] text-[#64D6C5] border-l-2 border-[#64D6C5]'
-                      : 'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]/60'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Icon size={16} className={isActive ? 'text-[#64D6C5]' : 'text-[#969DA5]'} />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.shortcut && (
-                    <span className="text-[10px] font-mono text-[#636A73]">Alt+{item.shortcut}</span>
-                  )}
-                </button>
-              );
-            }
-
             return (
               <button
                 key={item.id}
-                onClick={() => setActivePage(item.id)}
-                title={`${item.label} (Alt+${item.shortcut})`}
-                className={`relative w-9 h-9 rounded-[4px] flex items-center justify-center transition-colors group ${
+                onClick={() => {
+                  setActivePage(item.id);
+                  if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+                }}
+                title={!isExpanded ? `${item.label} (Alt+${item.shortcut || ''})` : undefined}
+                className={`group relative w-full h-9 rounded-[4px] flex items-center transition-all duration-150 text-left ${
                   isActive
                     ? 'bg-[#191C1F] text-[#64D6C5] border border-[#34393F]'
-                    : 'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
+                    : 'text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F] border border-transparent'
                 }`}
               >
+                {/* Active Indicator Bar */}
                 {isActive && (
-                  <span className="absolute -left-[7px] top-1.5 bottom-1.5 w-[2px] bg-[#64D6C5] rounded-r-xs" />
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[2.5px] bg-[#64D6C5] rounded-r-xs" />
                 )}
-                <Icon size={16} />
+
+                {/* Icon Container - consistently positioned */}
+                <div className="w-[38px] h-full flex items-center justify-center shrink-0">
+                  <Icon
+                    size={16}
+                    className={`transition-colors ${
+                      isActive ? 'text-[#64D6C5]' : 'text-[#969DA5] group-hover:text-[#F0F1F2]'
+                    }`}
+                  />
+                </div>
+
+                {/* Item Label & Shortcut - revealed in drawer mode */}
+                <div
+                  className={`flex items-center justify-between flex-1 min-w-0 pr-2.5 transition-all duration-200 overflow-hidden whitespace-nowrap ${
+                    isExpanded
+                      ? 'opacity-100 max-w-[185px]'
+                      : 'opacity-0 max-w-0 pointer-events-none'
+                  }`}
+                >
+                  <span className="truncate text-xs font-medium tracking-tight">
+                    {item.label}
+                  </span>
+                  {item.shortcut && (
+                    <span className="text-[10px] font-mono text-[#636A73] group-hover:text-[#969DA5] shrink-0 ml-1.5 px-1 py-0.5 rounded bg-[#111315]/80 border border-[#34393F]/50">
+                      Alt+{item.shortcut}
+                    </span>
+                  )}
+                </div>
               </button>
             );
           })}
         </nav>
 
         {/* Bottom Utility Tools */}
-        <div
-          className={`${
-            isMobileMenuOpen
-              ? 'p-3 border-t border-[#34393F] w-full space-y-1.5 bg-[#111315] shrink-0'
-              : 'py-2 flex flex-col items-center space-y-1 w-full border-t border-[#34393F] shrink-0'
-          }`}
-        >
-          {/* Version History Checkpoints */}
+        <div className="py-2 px-1.5 flex flex-col space-y-1 w-full border-t border-[#34393F] shrink-0 bg-[#111315]">
+          {/* Version Checkpoint Timeline */}
           <button
             onClick={() => {
               setIsVersionHistoryOpen(true);
-              setIsMobileMenuOpen(false);
+              if (isMobileMenuOpen) setIsMobileMenuOpen(false);
             }}
-            title="Version Checkpoint Timeline"
-            className={`${
-              isMobileMenuOpen
-                ? 'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]'
-                : 'w-9 h-9 rounded-[4px] flex items-center justify-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
-            }`}
+            title={!isExpanded ? 'Version Checkpoint Timeline' : undefined}
+            className="group relative w-full h-9 rounded-[4px] flex items-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F] border border-transparent transition-all duration-150 text-left"
           >
-            <History size={15} />
-            {isMobileMenuOpen && <span>Checkpoints</span>}
+            <div className="w-[38px] h-full flex items-center justify-center shrink-0">
+              <History size={15} className="group-hover:text-[#F0F1F2]" />
+            </div>
+            <div
+              className={`flex items-center justify-between flex-1 min-w-0 pr-2.5 transition-all duration-200 overflow-hidden whitespace-nowrap ${
+                isExpanded
+                  ? 'opacity-100 max-w-[185px]'
+                  : 'opacity-0 max-w-0 pointer-events-none'
+              }`}
+            >
+              <span className="truncate text-xs font-medium">Checkpoints</span>
+            </div>
           </button>
 
           {/* Design Comparison */}
           <button
             onClick={() => {
               setIsCompareModalOpen(true);
-              setIsMobileMenuOpen(false);
+              if (isMobileMenuOpen) setIsMobileMenuOpen(false);
             }}
-            title="Compare Configurations"
-            className={`${
-              isMobileMenuOpen
-                ? 'w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] text-xs text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]'
-                : 'w-9 h-9 rounded-[4px] flex items-center justify-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
-            }`}
+            title={!isExpanded ? 'Compare Configurations' : undefined}
+            className="group relative w-full h-9 rounded-[4px] flex items-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F] border border-transparent transition-all duration-150 text-left"
           >
-            <Scale size={15} />
-            {isMobileMenuOpen && <span>Compare Configs</span>}
+            <div className="w-[38px] h-full flex items-center justify-center shrink-0">
+              <Scale size={15} className="group-hover:text-[#F0F1F2]" />
+            </div>
+            <div
+              className={`flex items-center justify-between flex-1 min-w-0 pr-2.5 transition-all duration-200 overflow-hidden whitespace-nowrap ${
+                isExpanded
+                  ? 'opacity-100 max-w-[185px]'
+                  : 'opacity-0 max-w-0 pointer-events-none'
+              }`}
+            >
+              <span className="truncate text-xs font-medium">Compare Configs</span>
+            </div>
           </button>
 
           {/* Theme Switch */}
           <button
             onClick={toggleTheme}
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-            className={`${
-              isMobileMenuOpen
-                ? 'w-full flex items-center justify-between px-2.5 py-1.5 rounded-[4px] text-xs text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A]'
-                : 'w-9 h-9 rounded-[4px] flex items-center justify-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F]'
-            }`}
+            title={!isExpanded ? `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode` : undefined}
+            className="group relative w-full h-9 rounded-[4px] flex items-center text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#191C1F] border border-transparent transition-all duration-150 text-left"
           >
-            {theme === 'dark' ? <Sun size={15} className="text-[#E7B65C]" /> : <Moon size={15} className="text-[#64D6C5]" />}
-            {isMobileMenuOpen && <span className="text-[11px] font-mono">{theme.toUpperCase()}</span>}
+            <div className="w-[38px] h-full flex items-center justify-center shrink-0">
+              {theme === 'dark' ? (
+                <Sun size={15} className="text-[#E7B65C]" />
+              ) : (
+                <Moon size={15} className="text-[#64D6C5]" />
+              )}
+            </div>
+            <div
+              className={`flex items-center justify-between flex-1 min-w-0 pr-2.5 transition-all duration-200 overflow-hidden whitespace-nowrap ${
+                isExpanded
+                  ? 'opacity-100 max-w-[185px]'
+                  : 'opacity-0 max-w-0 pointer-events-none'
+              }`}
+            >
+              <span className="truncate text-xs font-medium">Theme</span>
+              <span className="text-[10px] font-mono text-[#636A73] px-1 py-0.5 rounded bg-[#111315]/80 border border-[#34393F]/50">
+                {theme.toUpperCase()}
+              </span>
+            </div>
           </button>
         </div>
       </aside>
