@@ -1,16 +1,26 @@
 import { Project, ConversationThread, CopilotMessage } from '../types';
 import { API_BASE_URL } from './chatApi';
 
+async function parseJsonResponse<T>(res: Response, fallbackErrMsg: string): Promise<T> {
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('text/html')) {
+    throw new Error('Backend returned HTML (endpoint not found or offline)');
+  }
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || fallbackErrMsg);
+  }
+  return res.json();
+}
+
 export async function fetchProjects(): Promise<Project[]> {
   const res = await fetch(`${API_BASE_URL}/api/projects`);
-  if (!res.ok) throw new Error('Failed to fetch projects');
-  return res.json();
+  return parseJsonResponse<Project[]>(res, 'Failed to fetch projects');
 }
 
 export async function fetchProjectById(id: string): Promise<Project> {
   const res = await fetch(`${API_BASE_URL}/api/projects/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch project');
-  return res.json();
+  return parseJsonResponse<Project>(res, 'Failed to fetch project');
 }
 
 export async function updateProjectParameters(id: string, parameters: any): Promise<Project> {
@@ -19,14 +29,12 @@ export async function updateProjectParameters(id: string, parameters: any): Prom
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ parameters })
   });
-  if (!res.ok) throw new Error('Failed to update project parameters');
-  return res.json();
+  return parseJsonResponse<Project>(res, 'Failed to update project parameters');
 }
 
 export async function fetchConversations(projectId: string): Promise<ConversationThread[]> {
   const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/conversations`);
-  if (!res.ok) throw new Error('Failed to fetch conversations');
-  return res.json();
+  return parseJsonResponse<ConversationThread[]>(res, 'Failed to fetch conversations');
 }
 
 export async function initSampleProject(): Promise<Project[]> {
@@ -34,15 +42,13 @@ export async function initSampleProject(): Promise<Project[]> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   });
-  if (!res.ok) throw new Error('Failed to initialize sample project');
-  const data = await res.json();
+  const data = await parseJsonResponse<{ projects?: Project[] }>(res, 'Failed to initialize sample project');
   return data.projects || [];
 }
 
 export async function fetchProjectVersions(projectId: string): Promise<import('../types').DesignVersion[]> {
   const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/versions`);
-  if (!res.ok) throw new Error('Failed to fetch project versions');
-  const versions = await res.json();
+  const versions = await parseJsonResponse<any[]>(res, 'Failed to fetch project versions');
   // Ensure timestamp compatibility (mapped from createdAt if timestamp not set)
   return versions.map((v: any) => ({
     ...v,
@@ -72,11 +78,7 @@ export async function createProjectVersion(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || 'Failed to create design version');
-  }
-  const created = await res.json();
+  const created = await parseJsonResponse<any>(res, 'Failed to create design version');
   return {
     ...created,
     timestamp: created.timestamp || created.createdAt || 'Just now',
@@ -91,11 +93,10 @@ export async function restoreProjectVersion(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   });
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error || 'Failed to restore design version');
-  }
-  return res.json();
+  return parseJsonResponse<{ project: Project; restoredVersion: import('../types').DesignVersion }>(
+    res,
+    'Failed to restore design version'
+  );
 }
 
 export async function deleteProjectVersion(projectId: string, versionId: string): Promise<void> {

@@ -1,6 +1,8 @@
 import { CopilotMessage, MessageType } from '../types';
 
-export const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
+export const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? '' : 'http://localhost:3001');
 
 export interface ChatRequestPayload {
   projectId: string;
@@ -47,6 +49,11 @@ export async function sendChatMessage(messages: CopilotMessage[], projectId: str
       },
       body: JSON.stringify(payload),
     });
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      throw new Error('Engineering Copilot API server is unavailable or returned an HTML page.');
+    }
 
     const data: ChatResponsePayload = await response.json();
 

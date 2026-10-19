@@ -28,6 +28,9 @@ export function resolveDatabasePath(): string {
   if (isTestMode()) {
     return process.env.TEST_DATABASE_URL || ':memory:';
   }
+  if (process.env.VERCEL) {
+    return '/tmp/mech-copilot.db';
+  }
   const rawUrl = process.env.DATABASE_URL || env.DATABASE_URL || 'file:./data/mech-copilot.db';
   if (rawUrl.startsWith('file:')) {
     const filePath = rawUrl.slice(5);
