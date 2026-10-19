@@ -382,7 +382,7 @@ ${
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#111315] text-[#ECEFF1] overflow-y-auto">
+    <div className="flex flex-col bg-[#111315] text-[#ECEFF1]">
       {/* ─── Top Workstation Bar ───────────────────────────────────────────── */}
       <div className="h-14 border-b border-[#34393F] bg-[#191C1F] px-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">

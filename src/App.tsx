@@ -80,19 +80,19 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-navy-950 font-sans text-gray-100">
+    <div className="flex h-screen w-full overflow-hidden bg-navy-950 font-sans text-gray-100">
       {/* Left Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
         {/* Top Bar */}
         <TopBar />
 
         {/* Main + Copilot */}
-        <div className="flex flex-1 overflow-hidden relative">
+        <div className="flex flex-1 min-w-0 min-h-0 overflow-hidden relative">
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-navy-950">
+          <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden bg-navy-950">
             {renderPage()}
           </main>
 

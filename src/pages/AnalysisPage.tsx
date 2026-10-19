@@ -88,7 +88,7 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-5 lg:p-6 space-y-5 bg-[#111315] font-sans">
+    <div className="p-5 lg:p-6 space-y-5 bg-[#111315] font-sans">
       {/* CAD Station Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#34393F]">
         <div>
@@ -142,7 +142,7 @@ export default function AnalysisPage() {
       </div>
 
       {/* Results Telemetry Matrix */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-6 gap-3">
         <ResultCard
           label="Von Mises Stress"
           value={analysisResults.vonMisesStress}

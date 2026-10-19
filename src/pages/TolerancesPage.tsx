@@ -140,7 +140,7 @@ export default function TolerancesPage() {
   const shaftOptions = ['h6', 'h7', 'h8', 'h9', 'g6', 'f7', 'e8', 'd11', 'js6', 'k6', 'm6', 'n6', 'p6', 'r6', 's6'];
 
   return (
-    <div className="p-4 lg:p-6 space-y-4 animate-fade-in text-[#F0F1F2] max-w-7xl mx-auto flex flex-col h-full overflow-y-auto bg-[#111315] font-sans">
+    <div className="p-4 lg:p-6 space-y-4 animate-fade-in text-[#F0F1F2] max-w-7xl mx-auto flex flex-col bg-[#111315] font-sans">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#34393F]">
         <div>

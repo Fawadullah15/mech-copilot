@@ -96,7 +96,7 @@ export default function CalculationsPage() {
   };
 
   return (
-    <div className="p-5 lg:p-6 h-full overflow-y-auto animate-fade-in font-sans bg-[#111315] space-y-5">
+    <div className="p-5 lg:p-6 animate-fade-in font-sans bg-[#111315] space-y-5">
       {/* CAD Station Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#34393F]">
         <div>

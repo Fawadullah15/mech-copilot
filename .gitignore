@@ -12,3 +12,5 @@ capture_*.cjs
 *.png
 !public/*.png
 !docs/screenshots/*.png
+!screenshorts/*.png
+!screenshots/*.png

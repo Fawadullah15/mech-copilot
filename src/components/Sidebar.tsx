@@ -77,16 +77,16 @@ export default function Sidebar() {
       <aside
         className={`${
           isMobileMenuOpen
-            ? 'fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-[#191C1F] border-r border-[#34393F] shadow-2xl'
-            : 'hidden lg:flex w-[52px] h-full flex-col items-center bg-[#111315] border-r border-[#34393F]'
+            ? 'fixed inset-y-0 left-0 z-50 w-60 flex flex-col bg-[#191C1F] border-r border-[#34393F] shadow-2xl overflow-hidden'
+            : 'hidden lg:flex w-[52px] h-full max-h-screen flex-col items-center bg-[#111315] border-r border-[#34393F] overflow-hidden'
         } shrink-0 select-none z-30 transition-all duration-150`}
       >
         {/* Top Workstation Badge / Logo */}
         <div
           className={`${
             isMobileMenuOpen
-              ? 'h-11 px-3 border-b border-[#34393F] flex items-center justify-between w-full'
-              : 'h-11 flex items-center justify-center w-full border-b border-[#34393F]'
+              ? 'h-11 px-3 border-b border-[#34393F] flex items-center justify-between w-full shrink-0'
+              : 'h-11 flex items-center justify-center w-full border-b border-[#34393F] shrink-0'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -113,7 +113,9 @@ export default function Sidebar() {
         {/* Navigation Items */}
         <nav
           className={`${
-            isMobileMenuOpen ? 'flex-1 py-2 px-2 space-y-0.5 w-full' : 'flex-1 py-2 flex flex-col items-center space-y-1 w-full'
+            isMobileMenuOpen
+              ? 'flex-1 py-2 px-2 space-y-0.5 w-full min-h-0 overflow-y-auto no-scrollbar'
+              : 'flex-1 py-2 flex flex-col items-center space-y-1 w-full min-h-0 overflow-y-auto overflow-x-hidden no-scrollbar'
           }`}
         >
           {navItems.map((item) => {
@@ -169,8 +171,8 @@ export default function Sidebar() {
         <div
           className={`${
             isMobileMenuOpen
-              ? 'p-3 border-t border-[#34393F] w-full space-y-1.5 bg-[#111315]'
-              : 'py-2 flex flex-col items-center space-y-1 w-full border-t border-[#34393F]'
+              ? 'p-3 border-t border-[#34393F] w-full space-y-1.5 bg-[#111315] shrink-0'
+              : 'py-2 flex flex-col items-center space-y-1 w-full border-t border-[#34393F] shrink-0'
           }`}
         >
           {/* Version History Checkpoints */}

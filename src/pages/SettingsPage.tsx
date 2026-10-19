@@ -3,7 +3,7 @@ import { User, Sliders, Globe, Cpu, AlertCircle } from 'lucide-react';
 
 export default function SettingsPage() {
   return (
-    <div className="p-5 lg:p-6 h-full overflow-y-auto animate-fade-in max-w-4xl mx-auto space-y-5 bg-[#111315] font-sans">
+    <div className="p-5 lg:p-6 animate-fade-in max-w-4xl mx-auto space-y-5 bg-[#111315] font-sans">
       <div className="pb-3 border-b border-[#34393F]">
         <div className="text-[10px] font-mono uppercase tracking-widest text-[#64D6C5] mb-0.5">
           System Configuration

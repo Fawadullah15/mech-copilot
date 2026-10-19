@@ -154,7 +154,7 @@ export default function DashboardPage() {
           <span className="text-[10px] text-[#969DA5] font-mono">Real-time analytical verification</span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-6 gap-2.5">
           {healthScores.map((h, i) => (
             <div
               key={i}

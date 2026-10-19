@@ -50,7 +50,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="p-5 lg:p-6 h-full overflow-y-auto animate-fade-in max-w-5xl mx-auto space-y-5 bg-[#111315] font-sans">
+    <div className="p-5 lg:p-6 animate-fade-in max-w-5xl mx-auto space-y-5 bg-[#111315] font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-[#34393F]">
         <div>

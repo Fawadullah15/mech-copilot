@@ -63,10 +63,12 @@ export default function CopilotPanel() {
     'msg-3-RECOMMENDATION': true,
   });
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [copilotMessages, isStreaming, copilotOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -151,13 +153,13 @@ export default function CopilotPanel() {
         onClick={() => setCopilotOpen(false)}
       />
 
-      <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[380px] lg:static lg:z-auto lg:w-[330px] xl:w-[370px] 2xl:w-[400px] h-full bg-[#191C1F] border-l border-[#34393F] flex flex-col font-sans shrink-0 shadow-2xl relative transition-all duration-200">
+      <div className="fixed inset-y-0 right-0 z-40 w-full sm:w-[380px] lg:static lg:z-auto lg:w-[320px] xl:w-[350px] 2xl:w-[390px] h-full bg-[#191C1F] border-l border-[#34393F] flex flex-col font-sans shrink-0 shadow-2xl relative transition-all duration-200">
         {/* Panel Header */}
         <div className="h-11 px-3.5 border-b border-[#34393F] flex items-center justify-between shrink-0 bg-[#22262A]">
           <div className="flex items-center gap-2">
-            <div className="relative flex items-center">
+            <div className="relative flex items-center justify-center w-5 h-5">
               <Bot className="text-[#64D6C5]" size={16} />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#34D399] rounded-full"></span>
+              <span className="absolute top-0 right-0 w-2 h-2 bg-[#34D399] rounded-full"></span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-[#F0F1F2] font-semibold text-xs tracking-tight">Engineering Copilot</span>
@@ -286,7 +288,7 @@ export default function CopilotPanel() {
         </div>
 
         {/* Messages Scroll Area */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3.5">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 space-y-3.5">
           {copilotMessages.map((msg) => {
             const isAssistant = msg.role === 'assistant';
             const isSaved = savedMessageIds.has(msg.id);
@@ -462,8 +464,6 @@ export default function CopilotPanel() {
               </div>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}

@@ -28,11 +28,11 @@ Users can enter design details and ask questions in plain English. The applicati
 
 ```mermaid
 flowchart LR
-    User([User]) <--> UI[Web App & Visual Drawing]
-    UI <--> Backend[Backend System]
-    Backend <--> AI[AI Assistant\n(Helps with Questions)]
-    Backend <--> Calc[Engineering Math Engine\n(Runs the Calculations)]
-    Backend <--> DB[(Local Database\nSaves Your Work)]
+    User(["User"]) <--> UI["Web App & Visual Drawing"]
+    UI <--> Backend["Backend System"]
+    Backend <--> AI["AI Assistant<br/>(Helps with Questions)"]
+    Backend <--> Calc["Engineering Math Engine<br/>(Runs the Calculations)"]
+    Backend <--> DB[("Local Database<br/>Saves Your Work")]
 ```
 
 ---

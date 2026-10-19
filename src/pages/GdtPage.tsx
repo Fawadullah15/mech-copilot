@@ -222,7 +222,7 @@ export default function GdtPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-navy-950 p-6 text-gray-100">
+    <div className="bg-navy-950 p-6 text-gray-100">
       {/* Page Header */}
       <div className="mb-6 flex flex-col justify-between gap-4 border-b border-navy-800 pb-5 md:flex-row md:items-center">
         <div>
