@@ -12,6 +12,7 @@ import { sendChatMessage } from '../services/chatApi';
 import {
   fetchProjects,
   fetchConversations,
+  createProjectRecord,
   updateProjectParameters,
   initSampleProject,
   fetchProjectVersions,
@@ -94,6 +95,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedFit, setSelectedFit] = useState<string>('H7/h6');
   const [lastAnalysisRunAt, setLastAnalysisRunAt] = useState<number | null>(null);
+  const [draftParams, setDraftParams] = useState<DesignParameters>({
+    materialId: 'aisi-4140',
+    diameter: 45,
+    length: 320,
+    torque: 500,
+    force: 12000,
+    rpm: 1450,
+    safetyFactor: 2.0,
+    temperature: 60,
+    criterion: 'Von Mises',
+    deflectionLimitRatio: 1000,
+  });
   const debounceRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -152,6 +165,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSaveError(null);
   }, []);
 
+  const buildFallbackMemory = useCallback((project: Project): ProjectMemory => {
+    const defaultThreadId = `thread-${project.id}-default`;
+    return {
+      parameters: { ...project.parameters },
+      materialId: project.parameters.materialId || 'aisi-4140',
+      analysisResults: null,
+      threads: [
+        {
+          id: defaultThreadId,
+          title: 'Shaft Sizing & Verification',
+          createdAt: project.lastModified || now(),
+          messages: [],
+        },
+      ],
+      activeThreadId: defaultThreadId,
+    };
+  }, []);
+
   const persistProjectParameters = useCallback(async (projectId: string, params: DesignParameters) => {
     setSaveStatus('saving');
     setSaveError(null);
@@ -169,12 +200,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateDesignParam = useCallback(<K extends keyof DesignParameters>(key: K, value: DesignParameters[K]) => {
-    if (!activeProject) return;
+    if (!activeProject) {
+      setDraftParams((prev) => ({ ...prev, [key]: value }));
+      return;
+    }
     setSaveStatus('unsaved');
     setSaveError(null);
     setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
+      const mem = prev[activeProject.id] || buildFallbackMemory(activeProject);
       const newParams = { ...mem.parameters, [key]: value };
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = window.setTimeout(() => {
@@ -187,15 +220,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
       };
     });
-  }, [activeProject, persistProjectParameters]);
+  }, [activeProject, persistProjectParameters, buildFallbackMemory]);
 
   const setDesignParams = useCallback((params: DesignParameters) => {
-    if (!activeProject) return;
+    if (!activeProject) {
+      setDraftParams({ ...params });
+      return;
+    }
     setSaveStatus('unsaved');
     setSaveError(null);
     setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
+      const mem = prev[activeProject.id] || buildFallbackMemory(activeProject);
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = window.setTimeout(() => {
         persistProjectParameters(activeProject.id, params);
@@ -207,7 +242,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
       };
     });
-  }, [activeProject, persistProjectParameters]);
+  }, [activeProject, persistProjectParameters, buildFallbackMemory]);
 
   const resetParamsToStandard = useCallback(() => {
     const standardParams: DesignParameters = {
@@ -231,11 +266,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [updateDesignParam]);
 
   const createNewConversation = useCallback(() => {
-    if (!activeProject) return;
+    if (!activeProject) {
+      setWelcomeThread({
+        id: `thread-welcome-${Date.now()}`,
+        title: 'New Conversation',
+        createdAt: now(),
+        messages: [],
+      });
+      return;
+    }
     const threadId = `thread-${activeProject.id}-${Date.now()}`;
     setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
+      const mem = prev[activeProject.id] || buildFallbackMemory(activeProject);
       return {
         ...prev,
         [activeProject.id]: {
@@ -245,16 +287,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
       };
     });
-  }, [activeProject]);
+  }, [activeProject, buildFallbackMemory]);
 
   const switchConversation = useCallback((threadId: string) => {
     if (!activeProject) return;
     setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
+      const mem = prev[activeProject.id] || buildFallbackMemory(activeProject);
       return { ...prev, [activeProject.id]: { ...mem, activeThreadId: threadId } };
     });
-  }, [activeProject]);
+  }, [activeProject, buildFallbackMemory]);
 
   const [welcomeThread, setWelcomeThread] = useState<ConversationThread>({
     id: 'thread-welcome',
@@ -275,8 +316,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   const currentMem = activeProject && projectMemory[activeProject.id] ? projectMemory[activeProject.id] : null;
-  const designParams = currentMem ? currentMem.parameters : { materialId: 'aisi-4140', diameter: 45, length: 320, torque: 500, force: 12000, rpm: 1450, safetyFactor: 2.0, temperature: 60, criterion: 'Von Mises' as const };
-  const selectedMaterial = getMaterialById(currentMem ? currentMem.materialId : 'aisi-4140') || materials[0];
+  const designParams = currentMem ? currentMem.parameters : draftParams;
+  const selectedMaterial = getMaterialById(currentMem ? currentMem.materialId : draftParams.materialId) || materials[0];
   const analysisResults = useMemo(() => computeAnalysis(designParams), [designParams]);
   const conversationThreads = currentMem ? currentMem.threads : [welcomeThread];
   const activeThreadId = currentMem ? currentMem.activeThreadId : welcomeThread.id;
@@ -540,82 +581,206 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [activeProject, isStreaming, conversationThreads, activeThreadId, setActivePage]);
 
   const applyRecommendation = useCallback((payload?: any) => {
-    if (!activeProject) return;
-
     const updates: Partial<DesignParameters> = {};
-    if (payload?.diameter !== undefined) updates.diameter = Number(payload.diameter);
-    else if (payload?.recommendedDiameter !== undefined) updates.diameter = Number(payload.recommendedDiameter);
-    else if (payload?.minimumRequiredDiameterMm !== undefined) updates.diameter = Number(payload.minimumRequiredDiameterMm);
 
-    if (payload?.torque !== undefined) updates.torque = Number(payload.torque);
-    else if (payload?.appliedTorqueNm !== undefined) updates.torque = Number(payload.appliedTorqueNm);
-    else if (payload?.torqueNm !== undefined) updates.torque = Number(payload.torqueNm);
+    const pickNum = (val: any): number | undefined => {
+      if (val === undefined || val === null || val === '') return undefined;
+      const n = Number(val);
+      return Number.isFinite(n) ? n : undefined;
+    };
 
-    if (payload?.force !== undefined) updates.force = Number(payload.force);
-    else if (payload?.radialForceN !== undefined) updates.force = Number(payload.radialForceN);
+    const rawDia =
+      pickNum(payload?.diameter) ??
+      pickNum(payload?.diameterMm) ??
+      pickNum(payload?.recommendedDiameter) ??
+      pickNum(payload?.requiredDiameterMm) ??
+      pickNum(payload?.minimumRequiredDiameterMm) ??
+      pickNum(payload?.proposedValue);
+    if (rawDia !== undefined && rawDia > 0) {
+      updates.diameter = Math.round(rawDia * 100) / 100;
+    }
 
-    if (payload?.length !== undefined) updates.length = Number(payload.length);
-    else if (payload?.shaftSpanMm !== undefined) updates.length = Number(payload.shaftSpanMm);
-    else if (payload?.lengthMm !== undefined) updates.length = Number(payload.lengthMm);
+    const rawTorque =
+      pickNum(payload?.torque) ??
+      pickNum(payload?.appliedTorqueNm) ??
+      pickNum(payload?.torqueNm);
+    if (rawTorque !== undefined && rawTorque >= 0) {
+      updates.torque = Math.round(rawTorque * 100) / 100;
+    }
 
-    if (payload?.rpm !== undefined) updates.rpm = Number(payload.rpm);
-    else if (payload?.rotationalSpeedRpm !== undefined) updates.rpm = Number(payload.rotationalSpeedRpm);
+    const rawForce =
+      pickNum(payload?.force) ??
+      pickNum(payload?.radialForceN) ??
+      pickNum(payload?.radialLoadN);
+    if (rawForce !== undefined && rawForce >= 0) {
+      updates.force = Math.round(rawForce * 100) / 100;
+    }
 
-    if (payload?.safetyFactor !== undefined) updates.safetyFactor = Number(payload.safetyFactor);
-    else if (payload?.requiredFactorOfSafety !== undefined) updates.safetyFactor = Number(payload.requiredFactorOfSafety);
+    const rawLength =
+      pickNum(payload?.length) ??
+      pickNum(payload?.shaftSpanMm) ??
+      pickNum(payload?.lengthMm);
+    if (rawLength !== undefined && rawLength > 0) {
+      updates.length = Math.round(rawLength * 100) / 100;
+    }
 
-    if (payload?.criterion !== undefined) updates.criterion = payload.criterion;
-    else if (payload?.failureCriterion !== undefined) updates.criterion = payload.failureCriterion;
+    const rawRpm =
+      pickNum(payload?.rpm) ??
+      pickNum(payload?.rotationalSpeedRpm);
+    if (rawRpm !== undefined && rawRpm >= 0) {
+      updates.rpm = Math.round(rawRpm * 100) / 100;
+    }
 
-    if (payload?.materialId !== undefined) updates.materialId = payload.materialId;
+    const rawFos =
+      pickNum(payload?.safetyFactor) ??
+      pickNum(payload?.targetSafetyFactor) ??
+      pickNum(payload?.requiredFactorOfSafety);
+    if (rawFos !== undefined && rawFos > 0) {
+      updates.safetyFactor = Math.round(rawFos * 100) / 100;
+    }
+
+    const rawTemp =
+      pickNum(payload?.temperature) ??
+      pickNum(payload?.operatingTempC);
+    if (rawTemp !== undefined && rawTemp >= -273 && rawTemp <= 2000) {
+      updates.temperature = Math.round(rawTemp * 100) / 100;
+    }
+
+    const rawCrit = payload?.criterion ?? payload?.failureCriterion;
+    if (typeof rawCrit === 'string' && rawCrit.trim()) {
+      updates.criterion = rawCrit.toLowerCase().includes('tresca') ? 'Tresca' : 'Von Mises';
+    }
+
+    const rawMatId = payload?.materialId ?? payload?.material;
+    if (typeof rawMatId === 'string' && rawMatId.trim()) {
+      const q = rawMatId.trim().toLowerCase();
+      const matchedMat = materials.find(
+        (m) => m.id.toLowerCase() === q || m.name.toLowerCase() === q || m.name.toLowerCase().includes(q)
+      );
+      if (matchedMat) updates.materialId = matchedMat.id;
+    } else if (payload?.yieldStrengthMPa !== undefined) {
+      const sy = Number(payload.yieldStrengthMPa);
+      const matchedBySy = materials.find((m) => Math.abs(m.yieldStrength - sy) < 1e-3);
+      if (matchedBySy) updates.materialId = matchedBySy.id;
+    }
 
     if (Object.keys(updates).length === 0) {
       updates.diameter = 45;
     }
 
-    setSaveStatus('unsaved');
+    const summaryText = Object.entries(updates)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
+
+    const confirmMsg: CopilotMessage = {
+      id: nextId(),
+      role: 'assistant',
+      type: 'recommendation',
+      content: `Applied parameter updates to workstation: **${summaryText}**. Workstation CAD and calculations synchronized.`,
+      timestamp: now(),
+      actions: [{ label: 'Run Analysis', type: 'analyze' }],
+    };
+
+    if (!activeProject) {
+      const nextDraftParams: DesignParameters = { ...draftParams, ...updates };
+      setDraftParams(nextDraftParams);
+      setWelcomeThread((prev) => ({
+        ...prev,
+        messages: [...prev.messages, confirmMsg],
+      }));
+      setLastAnalysisRunAt(Date.now());
+
+      // Auto-provision a persistent backend project so subsequent work & Apply survive reloads
+      const nowIso = new Date().toISOString();
+      const newProjId = `proj-${Date.now()}`;
+      setSaveStatus('saving');
+      createProjectRecord({
+        id: newProjId,
+        name: 'Precision Shaft Design Project',
+        description: 'Parametric shaft workspace synchronized from Copilot recommendation.',
+        type: 'Shaft Design',
+        status: 'Active',
+        progress: 35,
+        lastModified: nowIso,
+        created: nowIso,
+        parameters: nextDraftParams,
+        tags: ['shaft', 'copilot'],
+      })
+        .then((createdProj) => {
+          const defaultThreadId = `thread-${createdProj.id}-default`;
+          setProjectMemory((prev) => ({
+            ...prev,
+            [createdProj.id]: {
+              parameters: { ...nextDraftParams },
+              materialId: nextDraftParams.materialId,
+              analysisResults: computeAnalysis(nextDraftParams),
+              threads: [
+                {
+                  id: defaultThreadId,
+                  title: 'Shaft Sizing & Verification',
+                  createdAt: nowIso,
+                  messages: [...welcomeThread.messages, confirmMsg],
+                },
+              ],
+              activeThreadId: defaultThreadId,
+            },
+          }));
+          setAllProjects((prev) => [createdProj, ...prev]);
+          setActiveProjectState(createdProj);
+          setSaveStatus('saved');
+          setLastSavedAt(Date.now());
+        })
+        .catch(() => {
+          // Offline fallback: draft state already applied synchronously
+          setSaveStatus('unsaved');
+        });
+      return;
+    }
+
+    setSaveStatus('saving');
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+
+    const existingMem = projectMemory[activeProject.id] || buildFallbackMemory(activeProject);
+    const newParams: DesignParameters = { ...existingMem.parameters, ...updates };
+
     setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
-      const newParams = { ...mem.parameters, ...updates };
-
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = window.setTimeout(() => {
-        persistProjectParameters(activeProject.id, newParams);
-      }, 450);
-
-      const summaryText = Object.entries(updates)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(', ');
-
-      const confirmMsg: CopilotMessage = {
-        id: nextId(),
-        role: 'assistant',
-        type: 'recommendation',
-        content: `Applied parameter updates to workstation: **${summaryText}**. Workstation CAD and calculations synchronized.`,
-        timestamp: now(),
-        actions: [{ label: 'Run Analysis', type: 'analyze' }]
-      };
-
+      const mem = prev[activeProject.id] || buildFallbackMemory(activeProject);
+      const syncedParams = { ...mem.parameters, ...updates };
       return {
         ...prev,
         [activeProject.id]: {
           ...mem,
-          parameters: newParams,
-          materialId: updates.materialId || mem.materialId,
-          threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, confirmMsg] } : t)
-        }
+          parameters: syncedParams,
+          materialId: syncedParams.materialId || mem.materialId,
+          analysisResults: computeAnalysis(syncedParams),
+          threads: mem.threads.map((t) =>
+            t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, confirmMsg] } : t
+          ),
+        },
       };
     });
-  }, [activeProject]);
+    setActiveProjectState((prev) =>
+      prev && prev.id === activeProject.id ? { ...prev, parameters: newParams } : prev
+    );
+    setLastAnalysisRunAt(Date.now());
+    persistProjectParameters(activeProject.id, newParams);
+  }, [activeProject, draftParams, welcomeThread, projectMemory, buildFallbackMemory, persistProjectParameters]);
 
   const explainCalculation = useCallback(() => {
-    if (!activeProject) return;
-    // Generate deterministic proof from active telemetry and material properties
     const msg = generateCalculationExplanation(designParams, selectedMaterial);
+    if (!activeProject) {
+      setWelcomeThread((prev) => ({
+        ...prev,
+        messages: [...prev.messages, msg],
+      }));
+      return;
+    }
+    // Generate deterministic proof from active telemetry and material properties
     setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
+      const mem = prev[activeProject.id] || buildFallbackMemory(activeProject);
       return {
         ...prev,
         [activeProject.id]: {
@@ -624,7 +789,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       };
     });
-  }, [activeProject, designParams, selectedMaterial]);
+  }, [activeProject, designParams, selectedMaterial, buildFallbackMemory]);
 
   const engineeringWarnings = useMemo(() => evaluateEngineeringWarnings(designParams, selectedMaterial), [designParams, selectedMaterial]);
 

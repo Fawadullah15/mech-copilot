@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { EngineeringResult } from '../types';
+import { materials } from '../data/materials';
 import { ShieldAlert, CheckCircle, Info, Calculator, Check, ArrowRight } from 'lucide-react';
 
 interface EngineeringResultCardProps {
@@ -7,9 +8,39 @@ interface EngineeringResultCardProps {
   onApply?: (payload: any) => void;
 }
 
+function resolveMaterialIdFromResult(
+  inp: Record<string, any>,
+  out: Record<string, any>,
+  yieldStrength?: number
+): string | undefined {
+  const rawId = inp.materialId ?? out.materialId;
+  if (typeof rawId === 'string' && rawId.trim()) {
+    const exact = materials.find((m) => m.id.toLowerCase() === rawId.trim().toLowerCase());
+    if (exact) return exact.id;
+  }
+  const rawName = inp.material ?? out.material ?? inp.materialName ?? out.materialName;
+  if (typeof rawName === 'string' && rawName.trim()) {
+    const q = rawName.trim().toLowerCase();
+    const byName = materials.find(
+      (m) => m.name.toLowerCase() === q || m.name.toLowerCase().includes(q) || q.includes(m.id.toLowerCase())
+    );
+    if (byName) return byName.id;
+  }
+  if (typeof yieldStrength === 'number' && Number.isFinite(yieldStrength)) {
+    const byYield = materials.find((m) => Math.abs(m.yieldStrength - yieldStrength) < 1e-3);
+    if (byYield) return byYield.id;
+  }
+  return undefined;
+}
+
 export default function EngineeringResultCard({ result, onApply }: EngineeringResultCardProps) {
-  const isRequiredDiameter = result.tool === 'calculate_required_shaft_diameter';
-  const isFullAnalysis = result.tool === 'run_full_shaft_analysis';
+  const [appliedAction, setAppliedAction] = useState<'diameter' | 'all' | null>(null);
+  const isRequiredDiameter = result.tool === 'calculate_required_shaft_diameter' || result.tool === 'calculate_required_diameter';
+  const isFullAnalysis = result.tool === 'run_full_shaft_analysis' || result.tool === 'run_complete_shaft_analysis';
+
+  useEffect(() => {
+    setAppliedAction(null);
+  }, [result]);
 
   const formatValue = (val: any) => {
     if (typeof val === 'number') {
@@ -31,22 +62,25 @@ export default function EngineeringResultCard({ result, onApply }: EngineeringRe
   const inp = result.inputs || {};
   const out = result.outputs || {};
 
-  const appliedTorque = inp.appliedTorqueNm ?? inp.torqueNm;
-  const rotationalSpeed = inp.rotationalSpeedRpm ?? inp.rpm;
-  const materialName = inp.material;
-  const yieldStrength = inp.yieldStrengthMPa;
-  const requiredFoS = inp.requiredFactorOfSafety ?? inp.safetyFactor;
+  const appliedTorque = inp.appliedTorqueNm ?? inp.torqueNm ?? out.appliedTorqueNm ?? out.torqueNm;
+  const rotationalSpeed = inp.rotationalSpeedRpm ?? inp.rpm ?? out.rotationalSpeedRpm ?? out.rpm;
+  const yieldStrength = inp.yieldStrengthMPa ?? out.yieldStrengthMPa;
+  const resolvedMaterialId = resolveMaterialIdFromResult(inp, out, yieldStrength !== undefined ? Number(yieldStrength) : undefined);
+  const resolvedMaterialObj = resolvedMaterialId ? materials.find((m) => m.id === resolvedMaterialId) : undefined;
+  const materialName = inp.material ?? out.material ?? resolvedMaterialObj?.name;
+  const requiredFoS = inp.requiredFactorOfSafety ?? inp.safetyFactor ?? inp.targetSafetyFactor ?? out.safetyFactor ?? out.requiredFactorOfSafety;
   const actualFoS = out.actualFactorOfSafety;
-  const shaftLength = inp.shaftSpanMm ?? inp.lengthMm;
-  const radialForce = inp.radialForceN ?? inp.force;
-  const currentDiameter = inp.currentDiameterMm;
-  const requiredDiameter = out.requiredDiameterMm ?? out.minimumRequiredDiameterMm;
-  const torsionalStress = out.torsionalStressMPa;
+  const shaftLength = inp.shaftSpanMm ?? inp.lengthMm ?? out.lengthMm ?? out.shaftSpanMm;
+  const radialForce = inp.radialForceN ?? inp.force ?? out.radialForceN;
+  const currentDiameter = inp.currentDiameterMm ?? inp.diameterMm;
+  const requiredDiameter = out.requiredDiameterMm ?? out.minimumRequiredDiameterMm ?? out.recommendedDiameter;
+  const torsionalStress = out.torsionalStressMPa ?? out.torsionalShearMPa;
   const bendingMoment = out.bendingMomentNm;
   const bendingStress = out.bendingStressMPa;
-  const combinedStress = out.combinedStressMPa;
+  const combinedStress = out.combinedStressMPa ?? out.equivalentStressMPa;
   const failureCriterion = inp.failureCriterion ?? inp.criterion ?? out.failureCriterion;
-  const deflection = out.flexuralDeflectionMm;
+  const deflection = out.flexuralDeflectionMm ?? out.maxDeflectionMm;
+  const operatingTemp = inp.operatingTempC ?? inp.temperature;
 
   const engineeringFields: { label: string; value: string; highlight?: boolean }[] = [];
 
@@ -71,25 +105,33 @@ export default function EngineeringResultCard({ result, onApply }: EngineeringRe
   if (deflection !== undefined) engineeringFields.push({ label: '15. Deflection (δ)', value: `${formatValue(deflection)} mm` });
   engineeringFields.push({ label: '16. Overall Status', value: String(overallStatus).toUpperCase(), highlight: true });
 
-  const diameterToApply = requiredDiameter || currentDiameter;
+  const rawDia = requiredDiameter ?? currentDiameter;
+  const diameterToApply =
+    rawDia !== undefined && Number.isFinite(Number(rawDia)) && Number(rawDia) > 0
+      ? Math.round(Number(rawDia) * 100) / 100
+      : undefined;
 
   const handleApplyDiameter = () => {
-    if (onApply && diameterToApply) {
+    if (onApply && diameterToApply !== undefined) {
       onApply({ diameter: diameterToApply });
+      setAppliedAction('diameter');
     }
   };
 
   const handleApplyAll = () => {
     if (onApply) {
-      const payload: any = {};
-      if (diameterToApply) payload.diameter = diameterToApply;
-      if (appliedTorque) payload.torque = appliedTorque;
-      if (rotationalSpeed) payload.rpm = rotationalSpeed;
-      if (shaftLength) payload.length = shaftLength;
-      if (radialForce !== undefined) payload.force = radialForce;
-      if (requiredFoS) payload.safetyFactor = requiredFoS;
-      if (failureCriterion) payload.criterion = failureCriterion;
+      const payload: Record<string, any> = {};
+      if (diameterToApply !== undefined) payload.diameter = diameterToApply;
+      if (appliedTorque !== undefined && Number.isFinite(Number(appliedTorque))) payload.torque = Number(appliedTorque);
+      if (rotationalSpeed !== undefined && Number.isFinite(Number(rotationalSpeed))) payload.rpm = Number(rotationalSpeed);
+      if (shaftLength !== undefined && Number.isFinite(Number(shaftLength))) payload.length = Number(shaftLength);
+      if (radialForce !== undefined && Number.isFinite(Number(radialForce))) payload.force = Number(radialForce);
+      if (requiredFoS !== undefined && Number.isFinite(Number(requiredFoS))) payload.safetyFactor = Number(requiredFoS);
+      if (operatingTemp !== undefined && Number.isFinite(Number(operatingTemp))) payload.temperature = Number(operatingTemp);
+      if (failureCriterion !== undefined) payload.criterion = failureCriterion;
+      if (resolvedMaterialId) payload.materialId = resolvedMaterialId;
       onApply(payload);
+      setAppliedAction('all');
     }
   };
 
@@ -165,21 +207,33 @@ export default function EngineeringResultCard({ result, onApply }: EngineeringRe
           <div className="flex items-center gap-1.5">
             {diameterToApply && (
               <button
+                type="button"
                 onClick={handleApplyDiameter}
-                className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[10px] font-mono font-semibold py-1 px-2.5 rounded-[5px] flex items-center gap-1 transition-colors"
+                className={`text-white text-[10px] font-mono font-semibold py-1 px-2.5 rounded-[5px] flex items-center gap-1 transition-colors ${
+                  appliedAction === 'diameter'
+                    ? 'bg-[#16A34A] hover:bg-[#15803D]'
+                    : 'bg-[#2563EB] hover:bg-[#1D4ED8]'
+                }`}
                 title="Apply recommended shaft diameter to CAD"
               >
                 <Check size={11} />
-                Apply ⌀{formatValue(diameterToApply)} mm
+                {appliedAction === 'diameter'
+                  ? `Applied ⌀${formatValue(diameterToApply)} mm`
+                  : `Apply ⌀${formatValue(diameterToApply)} mm`}
               </button>
             )}
             <button
+              type="button"
               onClick={handleApplyAll}
-              className="bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] text-[#172033] dark:text-white hover:border-[#2563EB] text-[10px] font-mono font-medium py-1 px-2.5 rounded-[5px] flex items-center gap-1 transition-colors"
-              title="Apply all load & geometry parameters"
+              className={`border text-[10px] font-mono font-medium py-1 px-2.5 rounded-[5px] flex items-center gap-1 transition-colors ${
+                appliedAction === 'all'
+                  ? 'bg-[#F0FDF4] dark:bg-[#052E16]/40 border-[#16A34A] text-[#16A34A]'
+                  : 'bg-white dark:bg-[#101A2B] border-[#E2E8F0] dark:border-[#334155] text-[#172033] dark:text-white hover:border-[#2563EB]'
+              }`}
+              title="Apply all load, material & geometry parameters"
             >
-              <ArrowRight size={11} />
-              Apply All
+              {appliedAction === 'all' ? <Check size={11} /> : <ArrowRight size={11} />}
+              {appliedAction === 'all' ? 'Applied All' : 'Apply All'}
             </button>
           </div>
         </div>

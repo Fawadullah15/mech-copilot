@@ -23,11 +23,69 @@ export async function fetchProjectById(id: string): Promise<Project> {
   return parseJsonResponse<Project>(res, 'Failed to fetch project');
 }
 
+export function sanitizeParametersForApi(parameters: Record<string, any>): Record<string, any> {
+  const clean: Record<string, any> = {};
+  if (typeof parameters.materialId === 'string' && parameters.materialId.trim()) {
+    clean.materialId = parameters.materialId.trim().slice(0, 50);
+  }
+  if (typeof parameters.diameter === 'number' && Number.isFinite(parameters.diameter) && parameters.diameter > 0) {
+    clean.diameter = Math.min(10000, Math.round(parameters.diameter * 100) / 100);
+  }
+  if (typeof parameters.length === 'number' && Number.isFinite(parameters.length) && parameters.length > 0) {
+    clean.length = Math.min(100000, Math.round(parameters.length * 100) / 100);
+  }
+  if (typeof parameters.torque === 'number' && Number.isFinite(parameters.torque) && parameters.torque >= 0) {
+    clean.torque = Math.min(1000000, Math.round(parameters.torque * 100) / 100);
+  }
+  if (typeof parameters.force === 'number' && Number.isFinite(parameters.force) && parameters.force >= 0) {
+    clean.force = Math.min(1000000, Math.round(parameters.force * 100) / 100);
+  }
+  if (typeof parameters.rpm === 'number' && Number.isFinite(parameters.rpm) && parameters.rpm >= 0) {
+    clean.rpm = Math.min(100000, Math.round(parameters.rpm * 100) / 100);
+  }
+  if (typeof parameters.safetyFactor === 'number' && Number.isFinite(parameters.safetyFactor) && parameters.safetyFactor > 0) {
+    clean.safetyFactor = Math.min(100, Math.round(parameters.safetyFactor * 100) / 100);
+  }
+  if (typeof parameters.temperature === 'number' && Number.isFinite(parameters.temperature) && parameters.temperature >= -273 && parameters.temperature <= 2000) {
+    clean.temperature = Math.round(parameters.temperature * 100) / 100;
+  }
+  if (parameters.criterion === 'Tresca' || parameters.criterion === 'Von Mises') {
+    clean.criterion = parameters.criterion;
+  }
+  if (typeof parameters.deflectionLimitRatio === 'number' && Number.isFinite(parameters.deflectionLimitRatio) && parameters.deflectionLimitRatio > 0) {
+    clean.deflectionLimitRatio = Math.min(100000, parameters.deflectionLimitRatio);
+  }
+  return clean;
+}
+
+export async function createProjectRecord(project: {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  status: string;
+  progress: number;
+  lastModified: string;
+  created: string;
+  parameters: any;
+  tags: string[];
+}): Promise<Project> {
+  const res = await fetch(`${API_BASE_URL}/api/projects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...project,
+      parameters: sanitizeParametersForApi(project.parameters || {}),
+    }),
+  });
+  return parseJsonResponse<Project>(res, 'Failed to create project');
+}
+
 export async function updateProjectParameters(id: string, parameters: any): Promise<Project> {
   const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ parameters })
+    body: JSON.stringify({ parameters: sanitizeParametersForApi(parameters || {}) })
   });
   return parseJsonResponse<Project>(res, 'Failed to update project parameters');
 }

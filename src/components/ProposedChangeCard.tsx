@@ -15,7 +15,21 @@ export default function ProposedChangeCard({ proposedChange, onApprove, onReject
 
   const handleApprove = () => {
     setDecision('approved');
-    onApprove(proposedChange.payload || { [proposedChange.parameter || 'diameter']: proposedChange.proposedValue });
+    const derived: Record<string, any> = {};
+    if (Array.isArray(proposedChange.changes)) {
+      for (const ch of proposedChange.changes) {
+        if (ch?.field && ch.proposed !== undefined) {
+          derived[ch.field] = ch.proposed;
+        }
+      }
+    }
+    const basePayload =
+      proposedChange.payload && Object.keys(proposedChange.payload).length > 0
+        ? proposedChange.payload
+        : Object.keys(derived).length > 0
+        ? derived
+        : { [proposedChange.parameter || 'diameter']: proposedChange.proposedValue };
+    onApprove(basePayload);
   };
 
   const handleReject = () => {

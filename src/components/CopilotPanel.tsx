@@ -618,43 +618,85 @@ export default function CopilotPanel() {
                     )}
 
                     {/* Contextual Action Buttons */}
-                    {msg.actions && msg.actions.length > 0 && (
-                      <div className="mt-2.5 flex flex-wrap gap-1.5 pt-2 border-t border-[#E2E8F0] dark:border-[#24344F]">
-                        {msg.actions.map((action, idx) => {
-                          const onClick = () => {
-                            if (action.type === 'apply') applyRecommendation(action.payload);
-                            else if (action.type === 'analyze') runAnalysis();
-                            else if (action.type === 'explain') explainCalculation();
-                            else if (action.type === 'optimize') setIsOptimizationModalOpen(true);
-                            else if ((action.type as string) === 'compare') setIsCompareModalOpen(true);
-                          };
+                    {(() => {
+                      const rawActions = msg.actions || [];
+                      const visibleActions = rawActions
+                        .map((a: any) => {
+                          if (!a || typeof a !== 'object') return null;
+                          if (typeof a.label === 'string' && a.label.trim().length > 0) {
+                            return a;
+                          }
+                          // Internal backend sync events are already handled by AppContext / ResultCard
+                          if (
+                            a.type === 'proposed_dimension_change' &&
+                            !msg.engineeringResult &&
+                            !msg.proposedChange &&
+                            a.proposedValue !== undefined
+                          ) {
+                            return {
+                              label: `Apply ⌀${a.proposedValue} ${a.unit || 'mm'}`,
+                              type: 'apply',
+                              payload: { [a.parameter || 'diameter']: a.proposedValue },
+                            };
+                          }
+                          if ((a.type === 'pdf_exported' || a.type === 'report_generated') && a.pdfDownloadUrl) {
+                            return {
+                              label: 'Download PDF Report',
+                              type: 'pdf_exported',
+                              payload: { pdfDownloadUrl: a.pdfDownloadUrl, projectId: a.projectId },
+                            };
+                          }
+                          return null;
+                        })
+                        .filter(Boolean) as any[];
 
-                          const isPrimary = action.type === 'apply';
-                          return (
+                      if (visibleActions.length === 0 && msg.type !== 'recommendation') {
+                        return null;
+                      }
+
+                      return (
+                        <div className="mt-2.5 flex flex-wrap gap-1.5 pt-2 border-t border-[#E2E8F0] dark:border-[#24344F]">
+                          {visibleActions.map((action, idx) => {
+                            const onClick = () => {
+                              if (action.type === 'apply') applyRecommendation(action.payload);
+                              else if (action.type === 'analyze') runAnalysis();
+                              else if (action.type === 'explain') explainCalculation();
+                              else if (action.type === 'optimize') setIsOptimizationModalOpen(true);
+                              else if ((action.type as string) === 'compare') setIsCompareModalOpen(true);
+                              else if (action.type === 'pdf_exported' && action.payload?.pdfDownloadUrl) {
+                                window.open(action.payload.pdfDownloadUrl, '_blank', 'noopener');
+                              }
+                            };
+
+                            const isPrimary = action.type === 'apply';
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={onClick}
+                                className={`text-[11px] font-medium py-1 px-2.5 rounded-[6px] transition-colors ${
+                                  isPrimary
+                                    ? 'bg-[#2563EB] hover:bg-[#1D4ED8] text-white'
+                                    : 'bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] text-[#172033] dark:text-white hover:border-[#2563EB] hover:text-[#2563EB]'
+                                }`}
+                              >
+                                {action.label}
+                              </button>
+                            );
+                          })}
+
+                          {msg.type === 'recommendation' && (
                             <button
-                              key={idx}
-                              onClick={onClick}
-                              className={`text-[11px] font-medium py-1 px-2.5 rounded-[6px] transition-colors ${
-                                isPrimary
-                                  ? 'bg-[#2563EB] hover:bg-[#1D4ED8] text-white'
-                                  : 'bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] text-[#172033] dark:text-white hover:border-[#2563EB] hover:text-[#2563EB]'
-                              }`}
+                              type="button"
+                              onClick={() => setIsCompareModalOpen(true)}
+                              className="bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] text-[#172033] dark:text-white hover:border-[#2563EB] text-[11px] font-medium py-1 px-2.5 rounded-[6px] transition-colors"
                             >
-                              {action.label}
+                              Compare Diff
                             </button>
-                          );
-                        })}
-
-                        {msg.type === 'recommendation' && (
-                          <button
-                            onClick={() => setIsCompareModalOpen(true)}
-                            className="bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] text-[#172033] dark:text-white hover:border-[#2563EB] text-[11px] font-medium py-1 px-2.5 rounded-[6px] transition-colors"
-                          >
-                            Compare Diff
-                          </button>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <span className="text-[#94A3B8] text-[10px] font-mono tabular-nums mt-0.5 px-1">
