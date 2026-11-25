@@ -5,11 +5,13 @@ import type {
   ParsedProblemRequirements,
   DesignParameters,
   Material,
+  UploadedEngineeringFile,
 } from '../types';
 import { getMaterialById } from './materials';
 import {
   calculateRequiredShaftDiameter,
-  calculateFullShaftAnalysis
+  calculateFullShaftAnalysis,
+  solveMinimumShaftDiameterCombined
 } from '../engineering';
 
 // ─── 1. Intelligent Engineering Warnings Engine ─────────────────────
@@ -18,26 +20,38 @@ export function evaluateEngineeringWarnings(
   material: Material
 ): EngineeringWarning[] {
   const warnings: EngineeringWarning[] = [];
+  const criterion = params.criterion || 'Von Mises';
 
-  // Minimum diameter check based on torque (Tresca)
-  const req = calculateRequiredShaftDiameter({
-    torque: params.torque,
-    yieldStrength: material.yieldStrength,
-    safetyFactor: params.safetyFactor
+  // Minimum diameter check: solves combined bending + torque (or pure torque if force = 0)
+  const sizingSolution = solveMinimumShaftDiameterCombined({
+    torqueNm: params.torque,
+    radialForceN: params.force,
+    lengthMm: params.length,
+    yieldStrengthMPa: material.yieldStrength,
+    targetSafetyFactor: params.safetyFactor,
+    criterion,
+    elasticModulusGPa: material.elasticModulus,
+    deflectionLimitRatio: params.deflectionLimitRatio
   });
-  const dMin = req.requiredDiameterMm;
+  const dMin = sizingSolution.requiredDiameterMm;
 
   if (params.diameter < dMin) {
+    const constraintDesc = sizingSolution.governingConstraint === 'deflection_stiffness'
+      ? 'deflection stiffness threshold'
+      : sizingSolution.governingConstraint === 'combined_stress'
+      ? `combined bending + torsion (${criterion})`
+      : 'pure torsional shear';
+
     warnings.push({
       id: 'warn-diameter-undersized',
       severity: 'critical',
       title: 'Diameter Below Recommended Minimum',
-      reason: `At ${params.torque} Nm torque and target FoS ${params.safetyFactor}, theoretical minimum shaft diameter is ${dMin.toFixed(1)} mm. Current diameter is ${params.diameter} mm.`,
+      reason: `At ${params.torque} N·m torque, ${params.force} N radial force, and target FoS ${params.safetyFactor}, theoretical minimum shaft diameter is ${dMin.toFixed(1)} mm (governed by ${constraintDesc}). Current diameter is ${params.diameter} mm.`,
       affectedParameter: 'Diameter',
       currentValue: `${params.diameter} mm`,
       requiredValue: `≥ ${Math.ceil(dMin)} mm`,
-      recommendedAction: `Increase shaft diameter to ${Math.max(45, Math.ceil(dMin / 5) * 5)} mm to restore safe stress margins.`,
-      autoFixValue: { diameter: Math.max(45, Math.ceil(dMin / 5) * 5) },
+      recommendedAction: `Increase shaft diameter to ≥ ${Math.ceil(dMin)} mm to restore structural safety margins.`,
+      autoFixValue: { diameter: Math.max(Math.ceil(dMin), params.diameter + 5) },
     });
   }
 
@@ -53,7 +67,8 @@ export function evaluateEngineeringWarnings(
     elasticModulusGPa: material.elasticModulus,
     targetSafetyFactor: params.safetyFactor,
     operatingTempC: params.temperature,
-    criterion: 'Von Mises'
+    criterion,
+    deflectionLimitRatio: params.deflectionLimitRatio
   });
 
   const estFoS = analysis.combinedStress.result.factorOfSafety;
@@ -63,7 +78,7 @@ export function evaluateEngineeringWarnings(
       id: 'warn-fos-low',
       severity: 'warning',
       title: 'Safety Factor Below Project Target',
-      reason: `Calculated safety factor (${estFoS.toFixed(2)} under Von Mises) is below the required project target of ${params.safetyFactor}.`,
+      reason: `Calculated safety factor (${estFoS.toFixed(2)} under ${criterion}) is below the required project target of ${params.safetyFactor}.`,
       affectedParameter: 'Safety Factor',
       currentValue: estFoS.toFixed(2),
       requiredValue: params.safetyFactor.toFixed(1),
@@ -74,26 +89,39 @@ export function evaluateEngineeringWarnings(
 
   // Deflection check
   if (analysis.deflection.status === 'fail' || analysis.deflection.status === 'warning') {
+    const limitDesc = analysis.deflection.result.allowableDeflectionMm?.toFixed(3);
     warnings.push({
       id: 'warn-deflection-high',
       severity: analysis.deflection.status === 'fail' ? 'critical' : 'warning',
       title: 'Midspan Shaft Deflection Exceeds Limit',
-      reason: `Centerline deflection (${analysis.deflection.result.maxDeflectionMm.toFixed(3)} mm) exceeds recommended machine design threshold (${analysis.deflection.result.allowableDeflectionMm?.toFixed(3)} mm).`,
+      reason: `Centerline deflection (${analysis.deflection.result.maxDeflectionMm.toFixed(3)} mm) exceeds recommended machine design threshold (${limitDesc} mm).`,
       affectedParameter: 'Deflection',
       currentValue: `${analysis.deflection.result.maxDeflectionMm.toFixed(3)} mm`,
-      requiredValue: `≤ ${analysis.deflection.result.allowableDeflectionMm?.toFixed(3)} mm`,
+      requiredValue: `≤ ${limitDesc} mm`,
       recommendedAction: 'Increase diameter to boost flexural rigidity (I ∝ d⁴) or shorten bearing span.',
       autoFixValue: { diameter: Math.max(params.diameter + 5, 45) },
     });
   }
 
-  // Temperature warning
-  if (params.temperature >= 70) {
+  // Material-specific temperature limit check
+  if (material.maxOperatingTempC !== undefined && params.temperature > material.maxOperatingTempC) {
+    warnings.push({
+      id: 'warn-temperature-limit-exceeded',
+      severity: 'critical',
+      title: 'Operating Temperature Exceeds Alloy Limit',
+      reason: `Operating temperature (${params.temperature}°C) exceeds the maximum continuous service rating for ${material.name} (${material.maxOperatingTempC}°C). Significant degradation of yield strength and creep risk occur.`,
+      affectedParameter: 'Temperature',
+      currentValue: `${params.temperature}°C`,
+      requiredValue: `≤ ${material.maxOperatingTempC}°C`,
+      recommendedAction: `Lower operating temperature or upgrade to a high-temperature alloy with higher service ceiling (e.g. Inconel 718 or AISI 304).`,
+      autoFixValue: { temperature: Math.min(60, material.maxOperatingTempC - 10) },
+    });
+  } else if (params.temperature >= 70) {
     warnings.push({
       id: 'warn-temperature',
       severity: params.temperature > 100 ? 'critical' : 'warning',
       title: 'Operating Temperature May Affect Material Strength',
-      reason: `Operating temperature (${params.temperature}°C) causes thermal derating of yield strength by approx ${(params.temperature * 0.08).toFixed(1)}% and increases thermal expansion ($\Delta L$).`,
+      reason: `Operating temperature (${params.temperature}°C) causes thermal derating of yield strength by approx ${(params.temperature * 0.08).toFixed(1)}% and increases thermal expansion (ΔL).`,
       affectedParameter: 'Temperature',
       currentValue: `${params.temperature}°C`,
       requiredValue: '< 60°C nominal',
@@ -366,57 +394,5 @@ export function parseEngineeringProblem(text: string): ParsedProblemRequirements
   };
 }
 
-// ─── 4. Mock File Upload Presets ────────────────────────────────────
-export const mockUploadedFiles = [
-  {
-    id: 'preset-1',
-    name: 'gearbox_shaft_spec_revB.pdf',
-    fileType: 'pdf' as const,
-    fileSize: '1.4 MB',
-    uploadedAt: 'Just now',
-    status: 'extracted' as const,
-    extractedSpecs: {
-      torque: 500,
-      rpm: 1450,
-      safetyFactor: 2.0,
-      recommendedMaterial: 'AISI 4140 Steel',
-      diameterMin: 42,
-      operatingTemp: 60,
-      notes: 'Industrial conveyor drive spec sheet. Requires keyway per DIN 6885-1.',
-    },
-  },
-  {
-    id: 'preset-2',
-    name: 'driveshaft_assembly_v3.step',
-    fileType: 'cad' as const,
-    fileSize: '4.8 MB',
-    uploadedAt: '10 min ago',
-    status: 'extracted' as const,
-    extractedSpecs: {
-      torque: 850,
-      rpm: 3500,
-      safetyFactor: 2.5,
-      recommendedMaterial: 'AISI 4340 Steel',
-      diameterMin: 50,
-      operatingTemp: 45,
-      notes: '3D CAD geometry with splined journal and dual bearing steps.',
-    },
-  },
-  {
-    id: 'preset-3',
-    name: 'hydraulic_pump_specs.docx',
-    fileType: 'spec' as const,
-    fileSize: '820 KB',
-    uploadedAt: 'Yesterday',
-    status: 'extracted' as const,
-    extractedSpecs: {
-      torque: 200,
-      rpm: 2200,
-      safetyFactor: 3.0,
-      recommendedMaterial: 'Aluminum 6061-T6',
-      diameterMin: 38,
-      operatingTemp: 80,
-      notes: 'Axial piston pump interface. Thermal expansion critical at 80°C.',
-    },
-  },
-];
+// ─── 4. Mock File Upload Presets (Clean Workspace) ──────────────────
+export const mockUploadedFiles: UploadedEngineeringFile[] = [];

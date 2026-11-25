@@ -128,6 +128,7 @@ export interface DeflectionInputs {
   diameter: ValueWithUnit<LengthUnit> | number; // mm
   elasticModulus: ValueWithUnit<StressUnit> | number; // GPa
   loadModel?: string;
+  deflectionLimitRatio?: number; // Configurable ratio, default 1000 for L/1000
 }
 
 export interface DeflectionResultData {
@@ -136,6 +137,8 @@ export interface DeflectionResultData {
   maxDeflectionMm: number;
   allowableDeflectionMm?: number;
   slopeAtSupportsRad: number;
+  deflectionLimitRatio?: number;
+  deflectionCriterionDescription?: string;
 }
 
 export interface CompositeShaftAnalysisInputs {
@@ -150,6 +153,7 @@ export interface CompositeShaftAnalysisInputs {
   targetSafetyFactor: number;
   operatingTempC: number;
   criterion?: YieldCriterion;
+  deflectionLimitRatio?: number;
 }
 
 export interface CompositeShaftAnalysisResult {
@@ -161,4 +165,37 @@ export interface CompositeShaftAnalysisResult {
   safetyFactor: EngineeringCalculationResult<SafetyFactorResultData>;
   overallStatus: CalculationStatus;
   summary: string;
+  minRequiredDiameterMm?: number;
+  torsionOnlyMinDiameterMm?: number;
+  combinedStressDiameterMm?: number;
+  deflectionGovernedDiameterMm?: number;
+  governingConstraint?: 'torsion_stress' | 'combined_stress' | 'deflection_stiffness';
+  bisectionIterations?: number;
+}
+
+export interface SolveMinimumDiameterInputs {
+  torqueNm: number;
+  radialForceN?: number;
+  lengthMm?: number;
+  bendingMomentNm?: number;
+  yieldStrengthMPa: number;
+  targetSafetyFactor?: number;
+  criterion?: YieldCriterion;
+  elasticModulusGPa?: number;
+  deflectionLimitRatio?: number;
+}
+
+export interface CombinedDiameterSolution {
+  requiredDiameterMm: number;
+  torsionOnlyDiameterMm: number;
+  combinedStressDiameterMm: number;
+  deflectionGovernedDiameterMm?: number;
+  governingConstraint: 'torsion_stress' | 'combined_stress' | 'deflection_stiffness';
+  criterion: YieldCriterion;
+  bisectionIterations: number;
+  achievedToleranceMm: number;
+  allowableStressMPa: number;
+  peakBendingMomentNm: number;
+  formula: string;
+  assumptions: string[];
 }

@@ -19,6 +19,8 @@ import ConnectionsPage from './pages/ConnectionsPage';
 import GearsPage from './pages/GearsPage';
 import VibrationPage from './pages/VibrationPage';
 import SettingsPage from './pages/SettingsPage';
+import ProductsManagementPage from './pages/ProductsManagementPage';
+import BOMWorkstationPage from './pages/BOMWorkstationPage';
 import ProblemInputModal from './components/ProblemInputModal';
 import OptimizationModal from './components/OptimizationModal';
 import FileUploadModal from './components/FileUploadModal';
@@ -29,6 +31,7 @@ import DesignCompareModal from './components/DesignCompareModal';
 import OnboardingModal from './components/OnboardingModal';
 
 function AppContent() {
+  const appCtx = useApp();
   const {
     activePage,
     copilotOpen,
@@ -40,7 +43,14 @@ function AppContent() {
     setIsFileUploadModalOpen,
     isWarningsDrawerOpen,
     setIsWarningsDrawerOpen,
-  } = useApp();
+  } = appCtx;
+
+  React.useEffect(() => {
+    (window as any).__MECH_COPILOT_APP__ = appCtx;
+  }, [appCtx]);
+
+  // The workspace page gets a special full-height treatment with Copilot panel integrated
+  const isWorkspacePage = activePage === 'workspace';
 
   const renderPage = () => {
     switch (activePage) {
@@ -72,6 +82,10 @@ function AppContent() {
         return <VibrationPage />;
       case 'reports':
         return <ReportsPage />;
+      case 'products':
+        return <ProductsManagementPage />;
+      case 'boms':
+        return <BOMWorkstationPage />;
       case 'settings':
         return <SettingsPage />;
       default:
@@ -80,23 +94,23 @@ function AppContent() {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-navy-950 font-sans text-gray-100">
-      {/* Left Sidebar */}
+    <div className="flex h-screen w-full overflow-hidden bg-[#F5F7FB] dark:bg-[#0A1120] font-sans text-[#0F172A] dark:text-[#F0F4FA]">
+      {/* Left Sidebar — fixed 216px */}
       <Sidebar />
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-hidden">
-        {/* Top Bar */}
+        {/* Top Bar — fixed 62px */}
         <TopBar />
 
-        {/* Main + Copilot */}
-        <div className="flex flex-1 min-w-0 min-h-0 overflow-hidden relative">
+        {/* Page area + Copilot */}
+        <div className="flex flex-1 min-w-0 min-h-0 overflow-hidden">
           {/* Page Content */}
-          <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden bg-navy-950">
+          <main className={`flex-1 min-w-0 min-h-0 ${isWorkspacePage ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} bg-[#F5F7FB] dark:bg-[#0A1120]`}>
             {renderPage()}
           </main>
 
-          {/* Right Copilot Panel */}
+          {/* Right Copilot Panel — 370px on workspace, hidden/collapsible elsewhere */}
           <CopilotPanel />
         </div>
       </div>
@@ -136,4 +150,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-

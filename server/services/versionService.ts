@@ -27,6 +27,9 @@ export interface DesignVersionRecord {
   status: 'pass' | 'warning' | 'fail';
   calculationSummary?: string;
   calculationEngineVersion: string;
+  drawingStatus?: 'DRAFT' | 'PRELIMINARY' | 'APPROVED' | 'OBSOLETE';
+  changedParameters?: Record<string, { previous: any; current: any }>;
+  restoredFromVersion?: string;
 }
 
 export interface CreateDesignVersionInput {
@@ -44,6 +47,26 @@ export interface CreateDesignVersionInput {
   status?: 'pass' | 'warning' | 'fail';
   calculationSummary?: string;
   calculationEngineVersion?: string;
+  drawingStatus?: 'DRAFT' | 'PRELIMINARY' | 'APPROVED' | 'OBSOLETE';
+  changedParameters?: Record<string, { previous: any; current: any }>;
+  restoredFromVersion?: string;
+}
+
+/**
+ * Computes difference between two parameter dictionaries
+ */
+export function computeParameterDelta(
+  prev: Record<string, any> = {},
+  curr: Record<string, any> = {}
+): Record<string, { previous: any; current: any }> {
+  const delta: Record<string, { previous: any; current: any }> = {};
+  const keys = new Set([...Object.keys(prev), ...Object.keys(curr)]);
+  for (const k of keys) {
+    if (prev[k] !== curr[k]) {
+      delta[k] = { previous: prev[k] ?? null, current: curr[k] ?? null };
+    }
+  }
+  return delta;
 }
 
 /**
@@ -55,6 +78,13 @@ function mapRowToRecord(row: any): DesignVersionRecord {
     parsedParams = typeof row.parameters === 'string' ? JSON.parse(row.parameters) : row.parameters;
   } catch {
     parsedParams = {};
+  }
+
+  let changedParameters = undefined;
+  try {
+    changedParameters = row.changedParameters ? JSON.parse(row.changedParameters) : undefined;
+  } catch {
+    changedParameters = undefined;
   }
 
   return {
@@ -73,6 +103,9 @@ function mapRowToRecord(row: any): DesignVersionRecord {
     status: (row.status as 'pass' | 'warning' | 'fail') || 'pass',
     calculationSummary: row.calculationSummary || undefined,
     calculationEngineVersion: row.calculationEngineVersion || '0.1.0',
+    drawingStatus: row.drawingStatus || 'DRAFT',
+    changedParameters,
+    restoredFromVersion: row.restoredFromVersion || undefined,
   };
 }
 
@@ -140,13 +173,33 @@ export function createDesignVersion(
   const status = input.status || 'pass';
   const calculationSummary = input.calculationSummary || null;
   const calculationEngineVersion = input.calculationEngineVersion || '0.1.0';
+  const drawingStatus = input.drawingStatus || 'DRAFT';
+  const restoredFromVersion = input.restoredFromVersion || null;
+
+  // Auto-calculate changed parameters delta if not provided
+  let changedParams = input.changedParameters;
+  if (!changedParams) {
+    const prevRow = database
+      .prepare('SELECT parameters FROM design_versions WHERE projectId = ? ORDER BY createdAt DESC, rowid DESC LIMIT 1;')
+      .get(input.projectId) as any;
+    if (prevRow) {
+      try {
+        const prevP = typeof prevRow.parameters === 'string' ? JSON.parse(prevRow.parameters) : prevRow.parameters;
+        changedParams = computeParameterDelta(prevP, input.parameters);
+      } catch {
+        changedParams = undefined;
+      }
+    }
+  }
+  const changedParametersJson = changedParams ? JSON.stringify(changedParams) : null;
 
   const insertStmt = database.prepare(`
     INSERT INTO design_versions (
       id, projectId, version, label, notes, createdAt, author, schemaVersion,
       parameters, materialId, materialName, factorOfSafety, status,
-      calculationSummary, calculationEngineVersion
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      calculationSummary, calculationEngineVersion,
+      drawingStatus, changedParameters, restoredFromVersion
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `);
 
   insertStmt.run(
@@ -164,7 +217,10 @@ export function createDesignVersion(
     factorOfSafety,
     status,
     calculationSummary,
-    calculationEngineVersion
+    calculationEngineVersion,
+    drawingStatus,
+    changedParametersJson,
+    restoredFromVersion
   );
 
   return {
@@ -183,18 +239,22 @@ export function createDesignVersion(
     status,
     calculationSummary: calculationSummary || undefined,
     calculationEngineVersion,
+    drawingStatus,
+    changedParameters: changedParams,
+    restoredFromVersion: restoredFromVersion || undefined,
   };
 }
 
 /**
  * Restores a snapshot into the active project design parameters.
  * Validates ownership, uses a transaction, and updates the project parameters in SQLite.
+ * Creates a NEW non-destructive version snapshot, preserving complete audit history.
  */
 export function restoreDesignVersion(
   projectId: string,
   versionId: string,
   database: DatabaseSync = defaultDb
-): { project: any; restoredVersion: DesignVersionRecord } {
+): { project: any; restoredVersion: DesignVersionRecord; newVersion?: DesignVersionRecord } {
   // Transactional restore
   database.exec('BEGIN IMMEDIATE;');
   try {
@@ -219,8 +279,26 @@ export function restoreDesignVersion(
       parameters: updatedParameters,
     });
 
+    // Create a new non-destructive version record to preserve history
+    const newVersion = createDesignVersion(
+      {
+        projectId,
+        label: `Restored: ${version.version} (${version.label})`,
+        notes: `Restored parameters from snapshot ${version.version}. Non-destructive revision created.`,
+        parameters: updatedParameters,
+        materialId: updatedParameters.materialId,
+        materialName: version.materialName,
+        factorOfSafety: version.factorOfSafety,
+        status: version.status,
+        calculationSummary: version.calculationSummary,
+        drawingStatus: version.drawingStatus || 'DRAFT',
+        restoredFromVersion: version.version,
+      },
+      database
+    );
+
     database.exec('COMMIT;');
-    return { project: updatedProject, restoredVersion: version };
+    return { project: updatedProject, restoredVersion: version, newVersion };
   } catch (err) {
     try {
       database.exec('ROLLBACK;');

@@ -1,4 +1,5 @@
 import { db } from '../db/client.js';
+import { documentService } from './documentService.ts';
 
 export function getAllProjects() {
   const stmt = db.prepare('SELECT * FROM projects');
@@ -14,23 +15,24 @@ export function getProjectById(id: string) {
 }
 
 export function createProject(project: any) {
+  const id = project.id || `proj-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   const stmt = db.prepare(`
     INSERT INTO projects (id, name, description, type, status, progress, lastModified, created, parameters, tags)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   stmt.run(
-    project.id,
-    project.name,
-    project.description,
-    project.type,
-    project.status,
-    project.progress,
-    project.lastModified,
-    project.created,
-    JSON.stringify(project.parameters),
+    id,
+    project.name || 'Untitled Project',
+    project.description || '',
+    project.type || 'General',
+    project.status || 'Active',
+    project.progress ?? 0,
+    project.lastModified || new Date().toISOString(),
+    project.created || new Date().toISOString(),
+    JSON.stringify(project.parameters || {}),
     JSON.stringify(project.tags || [])
   );
-  return project;
+  return { ...project, id };
 }
 
 export function updateProject(id: string, updates: any) {
@@ -39,8 +41,10 @@ export function updateProject(id: string, updates: any) {
 
   const updated = { ...current, ...updates };
   // deep merge parameters if provided
+  let parametersChanged = false;
   if (updates.parameters) {
     updated.parameters = { ...current.parameters, ...updates.parameters };
+    parametersChanged = true;
   }
   
   updated.lastModified = new Date().toISOString();
@@ -62,6 +66,15 @@ export function updateProject(id: string, updates: any) {
     id
   );
 
+  // If parameters changed, invalidate previous documents per Phase 6 & Phase 9
+  if (parametersChanged) {
+    try {
+      documentService.markProjectDocumentsStale(id);
+    } catch {
+      // Non-blocking in case table is not ready or test mock
+    }
+  }
+
   return updated;
 }
 
@@ -78,33 +91,7 @@ function mapProjectFromDb(row: any) {
   };
 }
 
-export const DEFAULT_DEMO_PROJECT = {
-  id: 'proj-gearbox',
-  name: 'Gearbox Assembly',
-  description: 'Two-stage spur gearbox for industrial conveyor drive system. Includes input shaft, intermediate shaft, output shaft, and housing design.',
-  type: 'Power Transmission',
-  status: 'In Progress',
-  progress: 72,
-  lastModified: '2026-09-17T06:30:00Z',
-  created: '2026-08-15T09:00:00Z',
-  parameters: {
-    materialId: 'aisi-4140',
-    diameter: 45,
-    length: 320,
-    torque: 500,
-    force: 12000,
-    rpm: 1450,
-    safetyFactor: 2.0,
-    temperature: 60,
-  },
-  tags: ['gearbox', 'power-transmission', 'industrial'],
-};
-
 export function ensureDefaultProjectSeeded() {
-  const existing = getAllProjects();
-  if (existing.length === 0) {
-    createProject(DEFAULT_DEMO_PROJECT);
-    return DEFAULT_DEMO_PROJECT;
-  }
+  // Clean workspace: do not auto-seed dummy demo projects into database
   return null;
 }

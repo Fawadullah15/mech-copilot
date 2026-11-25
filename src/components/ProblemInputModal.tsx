@@ -16,7 +16,7 @@ const EXAMPLE_PROBLEMS = [
 ];
 
 export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModalProps) {
-  const { updateDesignParam, runAnalysis, sendCopilotMessage } = useApp();
+  const { updateDesignParam, runAnalysis, sendCopilotMessage, setActivePage, setCopilotOpen } = useApp();
   const [inputProblem, setInputProblem] = useState(
     'Design a shaft for 500 Nm torque at 1500 RPM with a safety factor of 2.'
   );
@@ -33,9 +33,9 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
     if (parsed.diameter) updateDesignParam('diameter', parsed.diameter);
     if (parsed.length) updateDesignParam('length', parsed.length);
 
-    sendCopilotMessage(
-      `Problem specified: "${inputProblem}". Extracted Requirements: Torque=${parsed.torque || 500} Nm, RPM=${parsed.rpm || 1500}, Safety Factor=${parsed.safetyFactor || 2.0}. Please analyze sizing.`
-    );
+    setActivePage('workspace');
+    setCopilotOpen(true);
+    sendCopilotMessage(inputProblem);
     onClose();
     runAnalysis();
   };

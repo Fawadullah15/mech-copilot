@@ -1,70 +1,170 @@
 /**
- * Centralized Design Tokens for AXIS Mechanical Design Copilot.
- * Ensures consistent visual hierarchy, spacing, typography, and theme styling.
+ * Mechanical Copilot | Professional CAD Workspace Design System
+ * Reference-Driven Implementation: Blue, Purple, Black & Light Surfaces
  */
 
+export const studioTokens = {
+  colors: {
+    // Primary Palette from Reference Screenshots
+    canvas: '#F2F4FA',                 // Main background
+    surfacePrimary: '#FFFFFF',         // Main surface
+    surfaceSecondary: '#E9EDF7',       // Secondary surface
+    surfaceSubtle: '#DCE7FF',          // Light blue subtle surface
+    surfaceRaised: '#FFFFFF',          // High-elevation popovers
+    
+    // Dark Navigation & Secondary
+    darkNav: '#111827',                // Dark navigation sidebar
+    darkSecondary: '#1B2436',          // Dark secondary panels
+    darkSurface: '#1F293D',            // Elevated dark card surface
+    darkBorder: '#28344E',             // Dark border
+    
+    // Technical Text & Contrast
+    textPrimary: '#172033',            // Primary text
+    textSecondary: '#64708A',          // Secondary text
+    textTertiary: '#8D9BB5',           // Fine hints, disabled
+    textInverse: '#FFFFFF',            // High contrast text
+    
+    // Primary & Accent Colors
+    electricBlue: '#315EDE',           // Electric blue primary action
+    deepBlue: '#2446B8',               // Deep blue hover / emphasis
+    royalPurple: '#7653C9',            // Royal purple secondary highlight
+    lightPurple: '#EAE3FF',            // Light purple badge/tint
+    lightBlue: '#DCE7FF',              // Light blue badge/tint
+    
+    // Architectural Borders & Dividers
+    borderDefault: '#D9DFED',          // 1px panel border
+    borderSubtle: '#E2E7F3',           // Subtle divider
+    borderStrong: '#BCC7DE',           // Strong border
+    borderAccent: '#315EDE',           // Active blue outline
+    
+    // Operational States
+    success: '#39866B',                // Verified compliant
+    successSubtle: '#EDF6F2',
+    warning: '#C78B3B',                // Marginal warning
+    warningSubtle: '#FBF5EE',
+    error: '#C4515C',                  // Critical failure
+    danger: '#C4515C',                 // Alias
+    dangerSubtle: '#F9ECEB',
+  },
+  
+  typography: {
+    fontSans: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontDisplay: '"Space Grotesk", "Inter", -apple-system, sans-serif',
+    fontMono: '"IBM Plex Mono", "JetBrains Mono", Menlo, Consolas, monospace',
+    sizes: {
+      micro: '10px',
+      xs: '11px',
+      sm: '12px',
+      base: '13px',
+      md: '14px',
+      lg: '16px',
+      xl: '18px',
+      '2xl': '22px',
+    },
+  },
+  
+  radii: {
+    sharp: '2px',
+    subtle: '4px',
+    input: '6px',
+    card: '8px',
+    pill: '9999px',
+  },
+  
+  shadows: {
+    flat: 'none',
+    subtle: '0 1px 2px rgba(23, 32, 51, 0.04)',
+    panel: '0 2px 8px -2px rgba(23, 32, 51, 0.06), 0 1px 2px rgba(23, 32, 51, 0.03)',
+    overlay: '0 8px 24px -4px rgba(23, 32, 51, 0.12), 0 2px 6px -1px rgba(23, 32, 51, 0.06)',
+    modal: '0 20px 48px -8px rgba(23, 32, 51, 0.18), 0 4px 12px rgba(23, 32, 51, 0.06)',
+    blueGlow: '0 4px 14px 0 rgba(49, 94, 222, 0.35)',
+    purpleGlow: '0 4px 14px 0 rgba(118, 83, 201, 0.35)',
+  },
+  
+  transitions: {
+    fast: '120ms cubic-bezier(0.16, 1, 0.3, 1)',
+    normal: '200ms cubic-bezier(0.16, 1, 0.3, 1)',
+    smooth: '300ms cubic-bezier(0.16, 1, 0.3, 1)',
+  },
+};
+
+// Aliases for atelierTokens to maintain backwards compatibility
+export const atelierTokens = {
+  colors: {
+    canvas: studioTokens.colors.canvas,
+    surfacePrimary: studioTokens.colors.surfacePrimary,
+    surfaceSecondary: studioTokens.colors.surfaceSecondary,
+    surfaceSubtle: studioTokens.colors.surfaceSubtle,
+    surfaceRaised: studioTokens.colors.surfaceRaised,
+    textPrimary: studioTokens.colors.textPrimary,
+    textSecondary: studioTokens.colors.textSecondary,
+    textTertiary: studioTokens.colors.textTertiary,
+    textInverse: studioTokens.colors.textInverse,
+    borderSubtle: studioTokens.colors.borderSubtle,
+    borderDefault: studioTokens.colors.borderDefault,
+    borderStrong: studioTokens.colors.borderStrong,
+    borderAccent: studioTokens.colors.electricBlue,
+    accentPrimary: studioTokens.colors.electricBlue,
+    accentPrimaryHover: studioTokens.colors.deepBlue,
+    accentPrimarySubtle: studioTokens.colors.lightBlue,
+    accentSecondary: studioTokens.colors.royalPurple,
+    accentSecondarySubtle: studioTokens.colors.lightPurple,
+    techInfo: studioTokens.colors.electricBlue,
+    warning: studioTokens.colors.warning,
+    warningSubtle: studioTokens.colors.warningSubtle,
+    success: studioTokens.colors.success,
+    successSubtle: studioTokens.colors.successSubtle,
+    danger: studioTokens.colors.error,
+    dangerSubtle: studioTokens.colors.dangerSubtle,
+  },
+  typography: studioTokens.typography,
+  radii: studioTokens.radii,
+  shadows: studioTokens.shadows,
+  transitions: studioTokens.transitions,
+};
+
+// Backwards compatibility alias for existing code
 export const tokens = {
   colors: {
     dark: {
-      bgApp: '#060911',        // Base deep engineering canvas
-      bgSidebar: '#090d18',    // Deep navigation panel
-      bgSurface1: '#0e1424',   // Standard card & drawer background
-      bgSurface2: '#141c30',   // Elevated card & hover state
-      bgSurface3: '#1b253e',   // High-elevation popovers & active states
-      borderSubtle: 'rgba(255, 255, 255, 0.07)',
-      borderDefault: 'rgba(255, 255, 255, 0.12)',
-      borderStrong: 'rgba(255, 255, 255, 0.22)',
-      borderAccent: 'rgba(59, 130, 246, 0.4)',
-      textPrimary: '#f8fafc',
-      textSecondary: '#94a3b8',
-      textTertiary: '#64748b',
-      accentPrimary: '#38bdf8', // Cyan/electric blue
-      accentDark: '#2563eb',
-      accentCyan: '#06b6d4',
-      statusPass: '#10b981',
-      statusWarning: '#f59e0b',
-      statusCritical: '#ef4444',
-      statusInfo: '#3b82f6',
+      bgApp: studioTokens.colors.canvas,
+      bgSidebar: studioTokens.colors.darkNav,
+      bgSurface1: studioTokens.colors.surfacePrimary,
+      bgSurface2: studioTokens.colors.surfaceSecondary,
+      bgCard: studioTokens.colors.surfacePrimary,
+      border: studioTokens.colors.borderDefault,
+      borderAccent: studioTokens.colors.electricBlue,
+      textPrimary: studioTokens.colors.textPrimary,
+      textSecondary: studioTokens.colors.textSecondary,
+      textMuted: studioTokens.colors.textTertiary,
+      cyan: studioTokens.colors.electricBlue,
+      cyanBright: studioTokens.colors.electricBlue,
+      cyanMuted: studioTokens.colors.lightBlue,
+      accentPurple: studioTokens.colors.royalPurple,
+      accentPurpleBright: studioTokens.colors.lightPurple,
+      amber: studioTokens.colors.warning,
+      rose: studioTokens.colors.error,
+      emerald: studioTokens.colors.success,
     },
     light: {
-      bgApp: '#f8fafc',
-      bgSidebar: '#f1f5f9',
-      bgSurface1: '#ffffff',
-      bgSurface2: '#f8fafc',
-      bgSurface3: '#edf2f7',
-      borderSubtle: 'rgba(0, 0, 0, 0.06)',
-      borderDefault: 'rgba(0, 0, 0, 0.12)',
-      borderStrong: 'rgba(0, 0, 0, 0.22)',
-      borderAccent: 'rgba(37, 99, 235, 0.4)',
-      textPrimary: '#0f172a',
-      textSecondary: '#475569',
-      textTertiary: '#94a3b8',
-      accentPrimary: '#2563eb',
-      accentDark: '#1d4ed8',
-      accentCyan: '#0891b2',
-      statusPass: '#059669',
-      statusWarning: '#d97706',
-      statusCritical: '#dc2626',
-      statusInfo: '#2563eb',
+      bgApp: studioTokens.colors.canvas,
+      bgSidebar: studioTokens.colors.darkNav,
+      bgSurface1: studioTokens.colors.surfacePrimary,
+      bgSurface2: studioTokens.colors.surfaceSecondary,
+      bgCard: studioTokens.colors.surfacePrimary,
+      border: studioTokens.colors.borderDefault,
+      borderAccent: studioTokens.colors.electricBlue,
+      textPrimary: studioTokens.colors.textPrimary,
+      textSecondary: studioTokens.colors.textSecondary,
+      textMuted: studioTokens.colors.textTertiary,
+      cyan: studioTokens.colors.electricBlue,
+      cyanBright: studioTokens.colors.electricBlue,
+      cyanMuted: studioTokens.colors.lightBlue,
+      accentPurple: studioTokens.colors.royalPurple,
+      accentPurpleBright: studioTokens.colors.lightPurple,
+      amber: studioTokens.colors.warning,
+      rose: studioTokens.colors.error,
+      emerald: studioTokens.colors.success,
     },
-  },
-  radii: {
-    xs: '4px',
-    sm: '6px',
-    md: '8px',
-    lg: '12px',
-    xl: '16px',
-    full: '9999px',
-  },
-  shadows: {
-    subtle: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    card: '0 4px 12px -2px rgba(0, 0, 0, 0.25)',
-    modal: '0 20px 35px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-    glow: '0 0 20px -2px rgba(56, 189, 248, 0.25)',
-  },
-  transitions: {
-    fast: 'all 120ms cubic-bezier(0.4, 0, 0.2, 1)',
-    normal: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-    smooth: 'all 300ms cubic-bezier(0.16, 1, 0.3, 1)',
   },
 };

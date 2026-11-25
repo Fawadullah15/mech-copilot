@@ -59,7 +59,7 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs animate-fade-in p-4 font-sans">
-      <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col font-sans">
+      <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col font-sans">
         {/* Header */}
         <div className="p-4 border-b border-[#34393F] flex items-center justify-between bg-[#22262A]">
           <div className="flex items-center gap-2.5">
@@ -149,37 +149,43 @@ export default function FileUploadModal({ isOpen, onClose }: FileUploadModalProp
               </div>
 
               {/* Sample Files */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#969DA5] block">
-                  Preset Reference Specifications:
-                </span>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  {mockUploadedFiles.map((file) => (
-                    <button
-                      key={file.id}
-                      onClick={() => handleSelectPreset(file)}
-                      className="p-2.5 bg-[#14171A] hover:bg-[#22262A] border border-[#2A2E35] hover:border-[#34393F] rounded-[3px] text-left transition-colors flex flex-col justify-between"
-                    >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        {file.fileType === 'pdf' ? (
-                          <FileText size={15} className="text-[#E16D72]" />
-                        ) : file.fileType === 'cad' ? (
-                          <Box size={15} className="text-[#64D6C5]" />
-                        ) : (
-                          <FileCode size={15} className="text-sky-400" />
-                        )}
-                        <span className="text-xs font-mono font-bold text-[#F0F1F2] truncate">
-                          {file.name}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-[10px] font-mono text-[#969DA5]">
-                        <span>{file.fileSize}</span>
-                        <span className="text-[#64D6C5]">Parse →</span>
-                      </div>
-                    </button>
-                  ))}
+              {mockUploadedFiles.length > 0 ? (
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#969DA5] block">
+                    Preset Reference Specifications:
+                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    {mockUploadedFiles.map((file) => (
+                      <button
+                        key={file.id}
+                        onClick={() => handleSelectPreset(file)}
+                        className="p-2.5 bg-[#14171A] hover:bg-[#22262A] border border-[#2A2E35] hover:border-[#34393F] rounded-[3px] text-left transition-colors flex flex-col justify-between"
+                      >
+                        <div className="flex items-center gap-2 mb-1.5">
+                          {file.fileType === 'pdf' ? (
+                            <FileText size={15} className="text-[#E16D72]" />
+                          ) : file.fileType === 'cad' ? (
+                            <Box size={15} className="text-[#64D6C5]" />
+                          ) : (
+                            <FileCode size={15} className="text-sky-400" />
+                          )}
+                          <span className="text-xs font-mono font-bold text-[#F0F1F2] truncate">
+                            {file.name}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-mono text-[#969DA5]">
+                          <span>{file.fileSize}</span>
+                          <span className="text-[#64D6C5]">Parse →</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-3 bg-[#14171A] border border-[#2A2E35] rounded-[3px] text-center text-xs text-[#969DA5] font-mono">
+                  No preset files. Drag and drop or browse local CAD/STEP/PDF specification sheets.
+                </div>
+              )}
             </div>
           )}
 

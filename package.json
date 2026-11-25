@@ -13,11 +13,12 @@
     "db:reset": "tsx server/scripts/seed.ts",
     "demo:reset": "node scripts/reset-demo.mjs",
     "test": "npm run test:engineering && npm run test:server && npm run test:frontend",
-    "test:engineering": "tsx --test src/engineering/__tests__/engineering.test.ts src/engineering/__tests__/verification.test.ts src/standards/__tests__/standards.test.ts src/engineering/__tests__/materials_constraints.test.ts src/engineering/__tests__/tolerances_fits.test.ts src/engineering/__tests__/gdt.test.ts src/engineering/__tests__/stress_concentration_fatigue.test.ts src/engineering/__tests__/bearings.test.ts src/engineering/__tests__/shaft_hub_connections.test.ts src/engineering/__tests__/gear_geometry.test.ts src/engineering/__tests__/vibration.test.ts",
-    "test:server": "tsx --test server/__tests__/api.test.ts server/__tests__/ai.test.ts server/__tests__/llm.integration.test.ts server/__tests__/db.test.ts server/__tests__/migrations.test.ts server/__tests__/versions.test.ts",
-    "test:frontend": "tsx --test src/services/__tests__/chatApi.test.ts src/services/__tests__/versionApi.test.ts"
+    "test:engineering": "tsx --test src/engineering/__tests__/engineering.test.ts src/engineering/__tests__/verification.test.ts src/standards/__tests__/standards.test.ts src/engineering/__tests__/materials_constraints.test.ts src/engineering/__tests__/tolerances_fits.test.ts src/engineering/__tests__/gdt.test.ts src/engineering/__tests__/stress_concentration_fatigue.test.ts src/engineering/__tests__/bearings.test.ts src/engineering/__tests__/shaft_hub_connections.test.ts src/engineering/__tests__/gear_geometry.test.ts src/engineering/__tests__/vibration.test.ts src/engineering/__tests__/drawing_geometry.test.ts src/engineering/__tests__/drawing_dimensions.test.ts src/engineering/__tests__/drawing_verification.test.ts src/engineering/__tests__/manufacturing_spec.test.ts scripts/verify-prompt4-acceptance.ts",
+    "test:server": "tsx --test server/__tests__/api.test.ts server/__tests__/ai.test.ts server/__tests__/engineeringAgent.test.ts server/__tests__/prompt07Acceptance.test.ts server/__tests__/prompt08Acceptance.test.ts server/__tests__/prompt09Acceptance.test.ts server/__tests__/llm.integration.test.ts server/__tests__/db.test.ts server/__tests__/migrations.test.ts server/__tests__/versions.test.ts server/__tests__/products.test.ts server/__tests__/boms.test.ts server/__tests__/bomExplosion.test.ts",
+    "test:frontend": "tsx --test src/services/__tests__/chatApi.test.ts src/services/__tests__/versionApi.test.ts src/services/__tests__/manufacturingApi.test.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.32.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
     "express": "^5.2.1",
@@ -26,6 +27,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.15.0",
+    "three": "^0.170.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -34,6 +36,7 @@
     "@types/node": "^22.20.3",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "concurrently": "^10.0.5",

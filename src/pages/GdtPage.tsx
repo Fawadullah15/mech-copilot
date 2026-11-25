@@ -169,7 +169,7 @@ export default function GdtPage() {
   const handleExportJson = () => {
     const payload = {
       exportTimestamp: new Date().toISOString(),
-      project: activeProject.name,
+      project: activeProject?.name || 'Shaft Assembly',
       standardSystem,
       cadFeatures,
       datums,
@@ -191,7 +191,7 @@ export default function GdtPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `GDT_Callouts_${activeProject.name.replace(/\s+/g, '_')}_${standardSystem}.json`;
+    a.download = `GDT_Callouts_${(activeProject?.name || 'Shaft').replace(/\s+/g, '_')}_${standardSystem}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -222,7 +222,7 @@ export default function GdtPage() {
   };
 
   return (
-    <div className="bg-navy-950 p-6 text-gray-100">
+    <div className="bg-navy-950 p-4 sm:p-6 lg:p-8 text-gray-100">
       {/* Page Header */}
       <div className="mb-6 flex flex-col justify-between gap-4 border-b border-navy-800 pb-5 md:flex-row md:items-center">
         <div>

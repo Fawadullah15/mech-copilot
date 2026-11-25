@@ -20,27 +20,27 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-xs animate-fade-in font-sans">
-      <div className="w-full max-w-md bg-[#191C1F] border-l border-[#34393F] h-full shadow-2xl flex flex-col animate-slide-in">
+    <div className="fixed inset-0 z-50 flex justify-end bg-[#0F172A]/50 backdrop-blur-xs animate-fade-in font-sans">
+      <div className="w-full max-w-md bg-white dark:bg-[#101A2B] border-l border-[#E2E8F0] dark:border-[#1E2D45] h-full shadow-2xl flex flex-col animate-slide-in">
         {/* Header */}
-        <div className="p-4 border-b border-[#34393F] flex items-center justify-between bg-[#22262A]">
+        <div className="p-4 border-b border-[#E2E8F0] dark:border-[#1E2D45] flex items-center justify-between bg-[#F8FAFC] dark:bg-[#162236]">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-[3px] bg-[#14171A] text-[#E7B65C] border border-[#34393F]">
+            <div className="p-1.5 rounded-[6px] bg-white dark:bg-[#101A2B] text-[#D97706] border border-[#E2E8F0] dark:border-[#334155]">
               <ShieldAlert size={16} />
             </div>
             <div>
-              <h2 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-xs font-mono font-bold text-[#172033] dark:text-white uppercase tracking-wider flex items-center gap-2">
                 Engineering Diagnostics
-                <span className="text-[10px] px-1.5 py-0.2 rounded-[2px] bg-[#E7B65C]/15 text-[#E7B65C] font-mono border border-[#E7B65C]/30">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-[4px] bg-[#FFFBEB] text-[#D97706] font-mono border border-[#FDE68A]">
                   {engineeringWarnings.length}
                 </span>
               </h2>
-              <p className="text-[11px] text-[#969DA5] font-mono">Automated mechanical integrity verifications</p>
+              <p className="text-[11px] text-[#64748B] font-mono">Automated mechanical integrity verifications</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#969DA5] hover:text-white p-1 rounded-[3px] hover:bg-[#2E3339] transition-colors"
+            className="text-[#64748B] hover:text-[#172033] dark:hover:text-white p-1 rounded-[5px] hover:bg-[#E2E8F0] dark:hover:bg-[#1B2942] transition-colors"
           >
             <X size={16} />
           </button>
@@ -50,9 +50,9 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
         <div className="flex-1 overflow-y-auto p-3.5 space-y-3 font-sans">
           {engineeringWarnings.length === 0 ? (
             <div className="py-16 text-center space-y-2">
-              <CheckCircle2 size={32} className="text-[#34D399] mx-auto" />
-              <h4 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider">Zero Active Faults</h4>
-              <p className="text-xs text-[#969DA5] max-w-xs mx-auto font-mono">
+              <CheckCircle2 size={32} className="text-[#16A34A] mx-auto" />
+              <h4 className="text-xs font-mono font-bold text-[#172033] dark:text-white uppercase tracking-wider">Zero Active Faults</h4>
+              <p className="text-xs text-[#64748B] max-w-xs mx-auto font-mono">
                 Current design parameters satisfy stress, deflection, and material safety margins.
               </p>
             </div>
@@ -64,61 +64,59 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
               return (
                 <div
                   key={warning.id}
-                  className={`p-3 rounded-[4px] border transition-colors ${
+                  className={`p-3 rounded-[8px] border transition-colors ${
                     isCritical
-                      ? 'bg-[#E16D72]/10 border-[#E16D72]/40'
-                      : 'bg-[#E7B65C]/10 border-[#E7B65C]/40'
+                      ? 'bg-[#FEF2F2] dark:bg-[#450A0A]/30 border-[#FECACA] dark:border-[#DC2626]/40'
+                      : 'bg-[#FFFBEB] dark:bg-[#451A03]/30 border-[#FDE68A] dark:border-[#D97706]/40'
                   }`}
                 >
                   <div className="flex items-start gap-2 mb-2">
                     <Icon
                       size={15}
                       className={`mt-0.5 shrink-0 ${
-                        isCritical ? 'text-[#E16D72]' : 'text-[#E7B65C]'
+                        isCritical ? 'text-[#DC2626]' : 'text-[#D97706]'
                       }`}
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <span
                           className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
-                            isCritical ? 'text-[#E16D72]' : 'text-[#E7B65C]'
+                            isCritical ? 'text-[#DC2626]' : 'text-[#D97706]'
                           }`}
                         >
                           {warning.severity}
                         </span>
-                        <span className="text-[10px] font-mono text-[#969DA5]">
+                        <span className="text-[10px] font-mono text-[#64748B]">
                           {warning.affectedParameter}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-[#F0F1F2] mt-0.5">{warning.title}</h4>
+                      <h4 className="text-xs font-bold text-[#172033] dark:text-white mt-0.5">{warning.title}</h4>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#C2C8D0] leading-relaxed mb-2.5">{warning.reason}</p>
+                  <p className="text-xs text-[#475569] dark:text-[#CBD5E1] leading-relaxed mb-2.5">{warning.reason}</p>
 
-                  {/* Current vs Required box */}
-                  <div className="grid grid-cols-2 gap-2 bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35] text-xs font-mono mb-2.5">
+                  <div className="grid grid-cols-2 gap-2 bg-white dark:bg-[#101A2B] p-2 rounded-[6px] border border-[#E2E8F0] dark:border-[#24344F] text-xs font-mono mb-2.5">
                     <div>
-                      <span className="text-[#969DA5] block text-[9px] uppercase">Current Value</span>
-                      <span className="text-[#E16D72] font-bold">{warning.currentValue}</span>
+                      <span className="text-[#64748B] block text-[9px] uppercase">Current Value</span>
+                      <span className="text-[#DC2626] font-bold">{warning.currentValue}</span>
                     </div>
                     <div>
-                      <span className="text-[#969DA5] block text-[9px] uppercase">Required Margin</span>
-                      <span className="text-[#34D399] font-bold">{warning.requiredValue}</span>
+                      <span className="text-[#64748B] block text-[9px] uppercase">Required Margin</span>
+                      <span className="text-[#16A34A] font-bold">{warning.requiredValue}</span>
                     </div>
                   </div>
 
-                  {/* Recommended action & button */}
-                  <div className="pt-2 border-t border-[#2A2E35]">
-                    <div className="text-[11px] text-[#969DA5] mb-2 font-mono">
-                      <strong className="text-[#F0F1F2]">Advisory: </strong>
+                  <div className="pt-2 border-t border-[#E2E8F0] dark:border-[#24344F]">
+                    <div className="text-[11px] text-[#64748B] mb-2 font-mono">
+                      <strong className="text-[#172033] dark:text-white">Advisory: </strong>
                       {warning.recommendedAction}
                     </div>
 
                     {warning.autoFixValue && (
                       <button
                         onClick={() => applyWarningFix(warning.id)}
-                        className="w-full bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono text-xs font-semibold py-1.5 px-3 rounded-[3px] flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                        className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-mono text-xs font-semibold py-1.5 px-3 rounded-[6px] flex items-center justify-center gap-1.5 transition-colors shadow-xs"
                       >
                         <span>Apply Recommended Parameter</span>
                         <ArrowRight size={12} />
@@ -132,11 +130,11 @@ export default function WarningsDrawer({ isOpen, onClose }: WarningsDrawerProps)
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 border-t border-[#34393F] bg-[#22262A] flex items-center justify-between text-[10px] font-mono text-[#969DA5]">
+        <div className="px-4 py-2.5 border-t border-[#E2E8F0] dark:border-[#1E2D45] bg-[#F8FAFC] dark:bg-[#162236] flex items-center justify-between text-[10px] font-mono text-[#64748B]">
           <span>Automated evaluation using Shigley & AGMA standards</span>
           <button
             onClick={onClose}
-            className="text-[#969DA5] hover:text-white py-0.5 px-2 font-mono"
+            className="text-[#64748B] hover:text-[#172033] dark:hover:text-white py-0.5 px-2 font-mono"
           >
             Close
           </button>

@@ -4,47 +4,75 @@
 
 @layer base {
   :root {
-    --bg-app: #111315;
-    --bg-surface-1: #191C1F;
-    --bg-surface-2: #22262A;
-    --border-subtle: #25292E;
-    --border-default: #34393F;
-    --text-primary: #F0F1F2;
-    --text-secondary: #969DA5;
-    --text-muted: #636A73;
-    --accent: #64D6C5;
+    /* Updated Design System — matches Prompt 10 reference */
+    --bg-app: #F5F7FB;
+    --bg-surface-1: #FFFFFF;
+    --bg-surface-2: #F1F5F9;
+    --bg-surface-3: #EFF6FF;
+    --sidebar-bg: #0F1929;
+    --header-bg: #FFFFFF;
+    --border-subtle: #F1F5F9;
+    --border-default: #E2E8F0;
+    --border-strong: #CBD5E1;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
+    --accent-subtle: #EFF6FF;
+    --accent-secondary: #7C3AED;
+    --tech-info: #2563EB;
+    --warning: #D97706;
+    --success: #16A34A;
+    --danger: #DC2626;
+    /* Legacy aliases for existing components */
+    --dark-nav: #0F1929;
+    --dark-secondary: #1E2D45;
   }
 
-  .theme-light {
-    --bg-app: #F5F6F8;
-    --bg-surface-1: #FFFFFF;
-    --bg-surface-2: #EAECEF;
-    --border-subtle: #E1E4E8;
-    --border-default: #CFD3D8;
-    --text-primary: #111315;
-    --text-secondary: #57606A;
-    --text-muted: #8C959F;
-    --accent: #0D9488;
+  .theme-dark {
+    --bg-app: #0F141F;
+    --bg-surface-1: #172033;
+    --bg-surface-2: #1F2A42;
+    --bg-surface-3: #283756;
+    --dark-nav: #0B0F19;
+    --dark-secondary: #111827;
+    --border-subtle: #23304A;
+    --border-default: #314264;
+    --border-strong: #455C88;
+    --text-primary: #F0F4FA;
+    --text-secondary: #A3B1CC;
+    --text-muted: #7282A3;
+    --accent: #4372FF;
+    --accent-hover: #315EDE;
+    --accent-subtle: #1F2E59;
+    --accent-secondary: #906BFF;
+    --tech-info: #4372FF;
+    --warning: #E09F48;
+    --success: #45A886;
+    --danger: #E0636F;
   }
 
   body {
-    @apply bg-[#111315] text-[#F0F1F2] font-sans antialiased;
+    @apply bg-[#F2F4FA] text-[#172033] font-sans antialiased;
     overflow: hidden;
     user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .theme-light body {
-    @apply bg-[#F5F6F8] text-[#111315];
+  .theme-dark body {
+    @apply bg-[#0F141F] text-[#F0F4FA];
   }
 
   #root {
     @apply h-screen w-full overflow-hidden;
   }
 
-  /* Precision Engineering Scrollbar */
+  /* Precision Engineering Drafting Scrollbar */
   ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -52,14 +80,23 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-[#34393F] rounded-[2px] hover:bg-[#464C54] transition-colors;
+    background-color: #D9DFED;
+    border-radius: 3px;
+    transition: background-color 150ms ease;
   }
 
-  .theme-light ::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-[2px] hover:bg-slate-400;
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #BCC7DE;
   }
 
-  /* Remove number input spinners */
+  .theme-dark ::-webkit-scrollbar-thumb {
+    background-color: #314264;
+  }
+  .theme-dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #455C88;
+  }
+
+  /* Remove number input spinners for CAD precision */
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -72,130 +109,103 @@
 }
 
 @layer components {
-  /* Cards & Panels */
+  /* CAD Cards & Engineering Panels */
   .card {
-    @apply bg-[#191C1F] border border-[#34393F] rounded-[4px] p-4 transition-all duration-150;
+    @apply bg-[#FFFFFF] border border-[#D9DFED] rounded-[8px] p-4 transition-all duration-150 shadow-[0_1px_3px_rgba(23,32,51,0.04)];
   }
 
-  .theme-light .card {
-    @apply bg-white border-[#CFD3D8] shadow-sm text-slate-900;
+  .theme-dark .card {
+    @apply bg-[#172033] border-[#23304A] text-[#F0F4FA];
   }
 
   .card-hover {
-    @apply card hover:border-[#464C54] hover:bg-[#1D2125] cursor-pointer;
+    @apply card hover:border-[#315EDE]/40 hover:shadow-[0_2px_8px_-2px_rgba(23,32,51,0.08)] cursor-pointer;
   }
 
-  .theme-light .card-hover {
-    @apply hover:border-slate-300 hover:bg-slate-50;
+  .theme-dark .card-hover {
+    @apply hover:border-[#4372FF]/40 hover:bg-[#1F2A42];
   }
 
   .glass-dock {
-    @apply bg-[#191C1F]/95 backdrop-blur-md border border-[#34393F] rounded-[4px];
+    @apply bg-[#FFFFFF]/95 backdrop-blur-md border border-[#D9DFED] rounded-[8px] shadow-[0_2px_8px_-2px_rgba(23,32,51,0.06)];
   }
 
-  .theme-light .glass-dock {
-    @apply bg-white/95 backdrop-blur-md border-[#CFD3D8] shadow-sm;
+  .theme-dark .glass-dock {
+    @apply bg-[#172033]/95 border-[#23304A];
   }
 
-  /* Button System */
+  /* Studio Button System */
   .btn-primary {
-    @apply px-3 py-1.5 bg-[#64D6C5] hover:bg-[#52C4B3] text-[#111315] text-xs font-semibold rounded-[4px]
-           transition-colors duration-150 active:scale-[0.98]
-           flex items-center justify-center gap-1.5 font-mono tracking-tight;
+    @apply px-4 py-2 bg-[#315EDE] hover:bg-[#2446B8] text-[#FFFFFF] text-xs font-semibold rounded-[6px]
+           shadow-subtle transition-all duration-150 active:scale-[0.98]
+           flex items-center justify-center gap-2 font-sans tracking-normal;
+  }
+
+  .btn-gradient {
+    @apply px-4 py-2 bg-gradient-to-r from-[#315EDE] to-[#7653C9] hover:opacity-95 text-[#FFFFFF] text-xs font-semibold rounded-[6px]
+           shadow-blueGlow transition-all duration-150 active:scale-[0.98]
+           flex items-center justify-center gap-2 font-sans tracking-normal;
   }
 
   .btn-secondary {
-    @apply px-3 py-1.5 bg-[#22262A] hover:bg-[#2B3036] text-[#F0F1F2] text-xs font-medium rounded-[4px]
-           border border-[#34393F] hover:border-[#464C54] transition-colors duration-150 active:scale-[0.98]
-           flex items-center justify-center gap-1.5;
+    @apply px-3.5 py-1.5 bg-[#E9EDF7] hover:bg-[#DCE7FF] text-[#172033] text-xs font-medium rounded-[6px]
+           border border-[#D9DFED] hover:border-[#BCC7DE] transition-colors duration-150 active:scale-[0.98]
+           flex items-center justify-center gap-1.5 font-sans;
   }
 
-  .theme-light .btn-secondary {
-    @apply bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200;
+  .theme-dark .btn-secondary {
+    @apply bg-[#1F2A42] hover:bg-[#283756] text-[#F0F4FA] border-[#23304A] hover:border-[#314264];
   }
 
   .btn-ghost {
-    @apply px-2.5 py-1 text-[#969DA5] hover:text-[#F0F1F2] hover:bg-[#22262A] text-xs rounded-[4px]
+    @apply px-2.5 py-1 text-[#64708A] hover:text-[#172033] hover:bg-[#E9EDF7] text-xs rounded-[6px]
            transition-colors duration-150 flex items-center justify-center gap-1.5;
   }
 
-  .theme-light .btn-ghost {
-    @apply hover:text-slate-900 hover:bg-slate-100;
+  .theme-dark .btn-ghost {
+    @apply text-[#A3B1CC] hover:text-[#F0F4FA] hover:bg-[#1F2A42];
   }
 
-  /* Input Fields */
+  /* Precision Engineering Input Fields */
   .input-field {
-    @apply w-full px-2.5 py-1.5 bg-[#111315] border border-[#34393F] rounded-[4px] text-[#F0F1F2] text-xs
-           placeholder-[#636A73] focus:outline-none focus:border-[#64D6C5] focus:ring-1 focus:ring-[#64D6C5]/30
-           transition-colors duration-150 font-mono;
+    @apply w-full px-2.5 py-1.5 bg-[#FFFFFF] border border-[#D9DFED] rounded-[6px] text-[#172033] text-xs
+           placeholder-[#8D9BB5] focus:outline-none focus:border-[#315EDE] focus:ring-1 focus:ring-[#315EDE]/20
+           transition-colors duration-150 font-mono shadow-subtle;
   }
 
-  .theme-light .input-field {
-    @apply bg-white border-slate-300 text-slate-900 placeholder-slate-400;
+  .theme-dark .input-field {
+    @apply bg-[#172033] border-[#23304A] text-[#F0F4FA] placeholder-[#7282A3] focus:border-[#4372FF] focus:ring-[#4372FF]/20;
   }
 
   .label-text {
-    @apply text-[11px] font-medium text-[#969DA5] uppercase tracking-wider block mb-1 font-mono;
+    @apply text-[11px] font-medium text-[#64708A] uppercase tracking-wider block mb-1 font-mono;
+  }
+
+  .theme-dark .label-text {
+    @apply text-[#A3B1CC];
   }
 
   /* Keyboard shortcut hint */
   .kbd {
-    @apply inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono font-semibold
-           text-[#969DA5] bg-[#22262A] border border-[#34393F] rounded-[3px];
+    @apply px-1.5 py-0.5 text-[10px] font-mono bg-[#E9EDF7] text-[#64708A] rounded-[3px] border border-[#D9DFED];
   }
 
-
-  .theme-light .kbd {
-    @apply bg-slate-100 text-slate-600 border-slate-200;
-  }
-}
-
-@media print {
-  /* Hide application chrome, sidebars, topbars, buttons and modals */
-  aside,
-  header,
-  nav,
-  .no-print,
-  button,
-  .btn-primary,
-  .btn-secondary,
-  .btn-ghost,
-  #copilot-panel,
-  [role="dialog"] {
-    display: none !important;
+  .theme-dark .kbd {
+    @apply bg-[#1F2A42] text-[#A3B1CC] border-[#23304A];
   }
 
-  body, html, #root {
-    background: #ffffff !important;
-    color: #111827 !important;
-    overflow: visible !important;
-    height: auto !important;
-    width: 100% !important;
-    user-select: text !important;
+  /* Engineering Grid Pattern */
+  .engineering-grid {
+    background-image: 
+      linear-gradient(to right, rgba(217, 223, 237, 0.45) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(217, 223, 237, 0.45) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
-  main {
-    overflow: visible !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-  }
-
-  .print-document {
-    box-shadow: none !important;
-    border: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #111827 !important;
-  }
-
-  .print-document section {
-    break-inside: avoid;
-    page-break-inside: avoid;
+  .theme-dark .engineering-grid {
+    background-image: 
+      linear-gradient(to right, rgba(35, 48, 74, 0.4) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(35, 48, 74, 0.4) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 }
-

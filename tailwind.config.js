@@ -5,102 +5,138 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Quantum AI Stage 5 Precision Engineering Workstation Palette
-        workstation: {
-          bg: '#111315',
-          surface: '#191C1F',
-          raised: '#22262A',
-          border: '#34393F',
-          borderSubtle: '#25292E',
-          text: '#F0F1F2',
-          textMuted: '#969DA5',
-          textDim: '#636A73',
-          accent: '#64D6C5',
-          accentHover: '#52C4B3',
-          accentDark: '#38A898',
-          warning: '#E7B65C',
-          error: '#E16D72',
-          pass: '#34D399',
+        // Professional CAD Workspace Visual Identity (Blue, Purple, Dark & Light)
+        cad: {
+          canvas: '#F2F4FA',
+          surface: '#FFFFFF',
+          secondary: '#E9EDF7',
+          subtle: '#DCE7FF',
+          darkNav: '#111827',
+          darkSecondary: '#1B2436',
+          darkSurface: '#1F293D',
+          darkBorder: '#28344E',
+          border: '#D9DFED',
+          borderSubtle: '#E2E7F3',
+          borderStrong: '#BCC7DE',
+          text: '#172033',
+          textMuted: '#64708A',
+          textTertiary: '#8D9BB5',
+          blue: '#315EDE',
+          deepBlue: '#2446B8',
+          purple: '#7653C9',
+          lightPurple: '#EAE3FF',
+          lightBlue: '#DCE7FF',
+          success: '#39866B',
+          warning: '#C78B3B',
+          error: '#C4515C',
         },
+        // Mapped atelier tokens for backwards-compatibility
+        atelier: {
+          canvas: '#F2F4FA',
+          surfacePrimary: '#FFFFFF',
+          surfaceSecondary: '#E9EDF7',
+          surfaceSubtle: '#DCE7FF',
+          borderSubtle: '#E2E7F3',
+          borderDefault: '#D9DFED',
+          borderStrong: '#BCC7DE',
+          textPrimary: '#172033',
+          textSecondary: '#64708A',
+          textTertiary: '#8D9BB5',
+          accent: '#315EDE',
+          accentHover: '#2446B8',
+          accentSubtle: '#DCE7FF',
+          accentBlue: '#315EDE',
+          accentBlueSubtle: '#DCE7FF',
+          techInfo: '#315EDE',
+          warning: '#C78B3B',
+          warningSubtle: '#FBF5EE',
+          success: '#39866B',
+          successSubtle: '#EDF6F2',
+          danger: '#C4515C',
+          dangerSubtle: '#F9ECEB',
+        },
+        // Mapped workstation palette
+        workstation: {
+          bg: '#F2F4FA',
+          surface: '#FFFFFF',
+          raised: '#E9EDF7',
+          border: '#D9DFED',
+          borderSubtle: '#E2E7F3',
+          text: '#172033',
+          textMuted: '#64708A',
+          textDim: '#8D9BB5',
+          accent: '#315EDE',
+          accentHover: '#2446B8',
+          accentDark: '#1E3B9E',
+          warning: '#C78B3B',
+          error: '#C4515C',
+          pass: '#39866B',
+        },
+        // Mapped navy palette
         navy: {
-          950: '#111315', // Main canvas background
-          900: '#191C1F', // Workstation panel surface
-          850: '#1D2125',
-          800: '#22262A', // Raised card surface
-          750: '#2B3036',
-          700: '#34393F', // Fine technical borders
-          600: '#464C54',
-          500: '#5C646E',
-          400: '#969DA5', // Secondary technical text
-          300: '#B0B7C0',
-          200: '#D2D7DE',
-          100: '#F0F1F2', // Primary technical text
+          950: '#111827', // Dark Navigation
+          900: '#1B2436', // Dark Secondary
+          850: '#1F293D', // Dark Card
+          800: '#E9EDF7', // Light Secondary
+          750: '#DCE7FF',
+          700: '#D9DFED', // Border
+          600: '#BCC7DE',
+          500: '#8D9BB5',
+          400: '#64708A', // Secondary text
+          300: '#172033', // Primary text
+          200: '#F2F4FA',
+          100: '#FFFFFF',
         },
         surface: {
-          0: '#111315',
-          1: '#191C1F',
-          2: '#22262A',
-          3: '#2B3036',
-          4: '#34393F',
+          base: '#F2F4FA',
+          panel: '#FFFFFF',
+          raised: '#E9EDF7',
+          sunken: '#111827',
+          overlay: '#FFFFFF',
         },
         accent: {
-          DEFAULT: '#64D6C5',
-          dark: '#38A898',
-          light: '#82E2D3',
-          bright: '#64D6C5',
-          glow: 'rgba(100, 214, 197, 0.15)',
+          cyan: '#315EDE',
+          'cyan-bright': '#315EDE',
+          'cyan-muted': '#DCE7FF',
+          purple: '#7653C9',
+          'purple-bright': '#EAE3FF',
+          'purple-subtle': '#F4F0FF',
         },
         cyan: {
-          DEFAULT: '#64D6C5',
-          light: '#82E2D3',
-          dark: '#38A898',
-        },
-        status: {
-          pass: '#34D399',
-          warning: '#E7B65C',
-          fail: '#E16D72',
-          info: '#64D6C5',
+          DEFAULT: '#315EDE',
+          bright: '#315EDE',
+          muted: '#DCE7FF',
+          400: '#315EDE',
+          500: '#2446B8',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
-      },
-      letterSpacing: {
-        tighter: '-0.035em',
-        tightest: '-0.05em',
-        'mono-wide': '0.12em',
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['Space Grotesk', 'Inter', '-apple-system', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'JetBrains Mono', 'Menlo', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'elevation-1': '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3)',
-        'elevation-2': '0 4px 14px -2px rgba(0, 0, 0, 0.45)',
-        'elevation-3': '0 12px 30px -4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08)',
-        'glow-accent': '0 0 20px -3px rgba(56, 189, 248, 0.3)',
-      },
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'slide-in': 'slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        'slide-up': 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-        'fade-in': 'fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-        'scale-in': 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        xs: '0 1px 2px rgba(23, 32, 51, 0.04)',
+        subtle: '0 1px 2px rgba(23, 32, 51, 0.05)',
+        panel: '0 2px 8px -2px rgba(23, 32, 51, 0.06), 0 1px 2px rgba(23, 32, 51, 0.03)',
+        overlay: '0 8px 24px -4px rgba(23, 32, 51, 0.12), 0 2px 6px -1px rgba(23, 32, 51, 0.06)',
+        modal: '0 20px 48px -8px rgba(23, 32, 51, 0.18), 0 4px 12px rgba(23, 32, 51, 0.06)',
+        blueGlow: '0 4px 14px 0 rgba(49, 94, 222, 0.35)',
+        purpleGlow: '0 4px 14px 0 rgba(118, 83, 201, 0.35)',
       },
       keyframes: {
-        slideIn: {
-          '0%': { transform: 'translateX(20px)', opacity: '0' },
-          '100%': { transform: 'translateX(0)', opacity: '1' },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(2px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(16px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+        'pulse-subtle': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.6' },
         },
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.96)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
+      },
+      animation: {
+        'fade-in': 'fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },

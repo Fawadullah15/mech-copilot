@@ -6,14 +6,17 @@ import { env } from '../config/env.ts';
 describe('LLM Integration (Mocked API)', () => {
   const originalFetch = global.fetch;
   const originalKey = env.OPENAI_API_KEY;
+  const originalProvider = env.LLM_PROVIDER;
 
   before(() => {
+    env.LLM_PROVIDER = 'openai';
     env.OPENAI_API_KEY = 'test_key';
   });
 
   after(() => {
     global.fetch = originalFetch;
     env.OPENAI_API_KEY = originalKey;
+    env.LLM_PROVIDER = originalProvider;
   });
 
   it('Test 1 — Diameter tool result: should process and return engineeringResult', async () => {

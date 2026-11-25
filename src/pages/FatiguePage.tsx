@@ -292,7 +292,7 @@ export default function FatiguePage() {
   // Export JSON Report
   const handleExportJson = () => {
     const report = {
-      project: activeProject.name,
+      project: activeProject?.name || 'Shaft Assembly',
       timestamp: new Date().toISOString(),
       geometry: {
         notchType,
@@ -362,13 +362,13 @@ export default function FatiguePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Fatigue_Report_${activeProject.name.replace(/\s+/g, '_')}.json`;
+    a.download = `Fatigue_Report_${(activeProject?.name || 'Shaft').replace(/\s+/g, '_')}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="bg-navy-950 p-6 text-gray-100">
+    <div className="bg-navy-950 p-4 sm:p-6 lg:p-8 text-gray-100">
       {/* Header Banner */}
       <div className="mb-6 flex flex-col justify-between gap-4 border-b border-navy-800 pb-5 md:flex-row md:items-center">
         <div>

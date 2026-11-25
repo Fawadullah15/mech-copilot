@@ -14,7 +14,12 @@ export type PageId =
   | 'gears'
   | 'vibration'
   | 'reports'
-  | 'settings';
+  | 'settings'
+  | 'products'
+  | 'boms';
+
+// ─── Manufacturing & BOM ────────────────────────────────────────────
+export * from './manufacturing.js';
 
 // ─── Materials ──────────────────────────────────────────────────────
 export interface Material {
@@ -55,6 +60,8 @@ export interface DesignParameters {
   rpm: number;
   safetyFactor: number;
   temperature: number;        // °C
+  criterion?: 'Von Mises' | 'Tresca';
+  deflectionLimitRatio?: number; // e.g. 1000 for L/1000
 }
 
 // ─── Analysis ───────────────────────────────────────────────────────
@@ -67,6 +74,9 @@ export interface AnalysisResult {
   fatigueLife: number;        // cycles
   shearStress: number;        // MPa
   bendingStress: number;      // MPa
+  equivalentStress?: number;  // MPa (under selected criterion)
+  criterion?: 'Von Mises' | 'Tresca';
+  minRequiredDiameterMm?: number;
   status: 'pass' | 'warning' | 'fail';
   statusMessage: string;
 }
@@ -153,6 +163,45 @@ export type MessageType =
   | 'warning'
   | 'general';
 
+export type AgentOperationState =
+  | 'Thinking'
+  | 'Waiting for Information'
+  | 'Waiting for Approval'
+  | 'Executing'
+  | 'Completed'
+  | 'Failed';
+
+export interface ToolExecutionLogEntry {
+  tool: string;
+  category?: string;
+  permission: 'READ_ONLY' | 'REVERSIBLE' | 'HIGH_IMPACT';
+  status: 'success' | 'failed';
+  timestamp: string;
+  durationMs?: number;
+}
+
+export interface ProposedEngineeringChange {
+  type: 'proposed_dimension_change' | 'proposed_material_change' | 'proposed_geometry_update' | 'high_impact_operation';
+  title: string;
+  description: string;
+  permission: 'READ_ONLY' | 'REVERSIBLE' | 'HIGH_IMPACT';
+  requiresApproval: boolean;
+  parameter?: string;
+  currentValue?: any;
+  proposedValue?: any;
+  unit?: string;
+  changes?: { field: string; current: any; proposed: any; unit?: string }[];
+  payload?: any;
+  approved?: boolean;
+  rejected?: boolean;
+}
+
+export interface EngineeringRequirementsSummary {
+  identified: Record<string, any>;
+  missing: string[];
+  assumptions?: string[];
+}
+
 export interface CopilotMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -161,9 +210,25 @@ export interface CopilotMessage {
   type?: MessageType;
   structuredData?: { label: string; value: string }[];
   actions?: CopilotAction[];
+  action?: any;
+  operationState?: AgentOperationState;
+  toolExecutionLogs?: ToolExecutionLogEntry[];
+  requirements?: EngineeringRequirementsSummary;
+  proposedChange?: ProposedEngineeringChange;
   reasoningChain?: ReasoningStep[];
   saved?: boolean;
-  engineeringResult?: EngineeringResult;
+  engineeringResult?: any;
+  provider?: 'gemini' | 'openai' | 'offline';
+  providerStatus?: string;
+  model?: string;
+}
+
+export interface ProviderStatusInfo {
+  provider: 'gemini' | 'openai' | 'offline';
+  status: 'connected' | 'failed' | 'offline' | 'unconfigured';
+  displayStatus: string;
+  model: string;
+  error?: string;
 }
 
 export interface CopilotAction {

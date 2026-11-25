@@ -29,10 +29,11 @@ export function computeAnalysis(params: DesignParameters): AnalysisResult {
     elasticModulusGPa: mat.elasticModulus,
     targetSafetyFactor: params.safetyFactor,
     operatingTempC: params.temperature,
-    criterion: 'Von Mises'
+    criterion: params.criterion || 'Von Mises',
+    deflectionLimitRatio: params.deflectionLimitRatio
   });
 
-  const vonMisesStress = fullAnalysis.combinedStress.result.equivalentStressMPa;
+  const eqStress = fullAnalysis.combinedStress.result.equivalentStressMPa;
   const shearStress = fullAnalysis.torsion.result.shearStressMPa;
   const bendingStress = fullAnalysis.bending.result.bendingStressMPa;
   const factorOfSafety = fullAnalysis.combinedStress.result.factorOfSafety;
@@ -45,7 +46,7 @@ export function computeAnalysis(params: DesignParameters): AnalysisResult {
 
   // Fatigue life estimate (simplified Basquin S-N approach)
   const enduranceLimit = mat.tensileStrength * 0.5;
-  const stressRatio = vonMisesStress / enduranceLimit;
+  const stressRatio = eqStress / enduranceLimit;
   let fatigueLife: number;
   if (stressRatio < 1) {
     fatigueLife = 1e7;
@@ -59,7 +60,10 @@ export function computeAnalysis(params: DesignParameters): AnalysisResult {
   }
 
   return {
-    vonMisesStress: Math.round(vonMisesStress * 10) / 10,
+    vonMisesStress: Math.round(eqStress * 10) / 10,
+    equivalentStress: Math.round(eqStress * 10) / 10,
+    criterion: fullAnalysis.combinedStress.result.criterion,
+    minRequiredDiameterMm: fullAnalysis.minRequiredDiameterMm,
     yieldStrength: mat.yieldStrength,
     factorOfSafety: Math.round(factorOfSafety * 100) / 100,
     maxDeflection: Math.round(maxDeflection * 1000) / 1000,

@@ -9,6 +9,10 @@ import {
   restoreDesignVersion,
   deleteDesignVersion,
 } from '../services/versionService.js';
+import { reportService } from '../services/reportService.ts';
+import { pdfService } from '../services/pdfService.ts';
+import { documentService } from '../services/documentService.ts';
+import { workflowOrchestrator } from '../services/workflowOrchestrator.ts';
 import { isTestMode } from '../db/client.js';
 
 export const router = Router();
@@ -25,6 +29,8 @@ const designParametersSchema = z.object({
   rpm: z.number().nonnegative().max(100000).optional(),
   safetyFactor: z.number().positive().max(100).optional(),
   temperature: z.number().min(-273).max(2000).optional(),
+  criterion: z.enum(['Von Mises', 'Tresca']).optional(),
+  deflectionLimitRatio: z.number().positive().max(100000).optional(),
 }).strict();
 
 const createProjectSchema = z.object({
@@ -52,11 +58,7 @@ const updateProjectSchema = z.object({
 
 // Get all projects
 router.get('/', (req, res) => {
-  let projects = getAllProjects();
-  if (projects.length === 0 && !isTestMode()) {
-    ensureDefaultProjectSeeded();
-    projects = getAllProjects();
-  }
+  const projects = getAllProjects();
   res.json(projects);
 });
 
@@ -279,5 +281,68 @@ router.delete('/:id/versions/:versionId', (req, res) => {
   }
 
   res.status(204).send();
+});
+
+// --------------------------------------------------------------------------
+// PROMPT 08: Report, PDF, Documents, & Workflow Endpoints
+// --------------------------------------------------------------------------
+
+// Compile / retrieve 10-section structured JSON report
+router.get('/:id/report', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) return res.status(400).json({ error: 'Invalid ID format' });
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  try {
+    const reportData = reportService.compileProjectReport(req.params.id);
+    res.json(reportData);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to compile report' });
+  }
+});
+
+// Stream downloadable binary PDF
+router.get('/:id/report/pdf', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) return res.status(400).json({ error: 'Invalid ID format' });
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  try {
+    const reportData = reportService.compileProjectReport(req.params.id);
+    const { buffer } = pdfService.generateReportPdfBuffer(reportData);
+    const filename = `Engineering-Report-${project.id}-${reportData.revision}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.length);
+    res.send(buffer);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to generate PDF' });
+  }
+});
+
+// List project engineering documents (drawings, reports, specs)
+router.get('/:id/documents', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) return res.status(400).json({ error: 'Invalid ID format' });
+
+  const project = getProjectById(req.params.id);
+  if (!project) return res.status(404).json({ error: 'Project not found' });
+
+  const docs = documentService.getDocumentsByProject(req.params.id);
+  res.json(docs);
+});
+
+// List project workflows
+router.get('/:id/workflows', (req, res) => {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) return res.status(400).json({ error: 'Invalid ID format' });
+
+  const workflows = workflowOrchestrator.getWorkflowsByProject(req.params.id);
+  res.json(workflows);
 });
 

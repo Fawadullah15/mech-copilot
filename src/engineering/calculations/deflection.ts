@@ -94,18 +94,26 @@ export function calculateShaftDeflection(
   const maxDeflectionMm = maxDeflectionM * 1000;
   const lengthMm = lengthM * 1000;
 
-  // Engineering guideline: allowable deflection for rotating shafts typically L/1000 to L/2000 (especially for gears)
-  // or ~0.1 - 0.25 mm for bearing life
-  const allowableDeflectionMm = lengthMm / 1000;
+  // Configurable deflection screening criterion (default L/1000, configurable to L/1500, L/2000, etc.)
+  const limitRatio = (inputs.deflectionLimitRatio && inputs.deflectionLimitRatio > 0)
+    ? inputs.deflectionLimitRatio
+    : 1000;
+  const allowableDeflectionMm = lengthMm / limitRatio;
+  const deflectionCriterionDescription = `Selected design screening heuristic: L/${limitRatio} (${allowableDeflectionMm.toFixed(3)} mm); this is an application-specific engineering heuristic rather than a universal statutory requirement.`;
 
   let status: CalculationStatus = 'pass';
   if (maxDeflectionMm > allowableDeflectionMm * 1.5 || maxDeflectionMm > 0.5) {
     status = 'fail';
-    warnings.push(`Deflection (${maxDeflectionMm.toFixed(4)} mm) exceeds maximum allowable limit (${allowableDeflectionMm.toFixed(4)} mm).`);
+    warnings.push(`Deflection (${maxDeflectionMm.toFixed(4)} mm) exceeds maximum allowable limit (${allowableDeflectionMm.toFixed(4)} mm per L/${limitRatio} criterion).`);
   } else if (maxDeflectionMm > allowableDeflectionMm || maxDeflectionMm > 0.2) {
     status = 'warning';
-    warnings.push(`Deflection (${maxDeflectionMm.toFixed(4)} mm) is approaching allowable limit for precision components (${allowableDeflectionMm.toFixed(4)} mm).`);
+    warnings.push(`Deflection (${maxDeflectionMm.toFixed(4)} mm) is approaching allowable limit for precision components (${allowableDeflectionMm.toFixed(4)} mm per L/${limitRatio} criterion).`);
   }
+
+  const updatedAssumptions = [
+    ...DEFLECTION_ASSUMPTIONS,
+    `Selected deflection limit criterion: L/${limitRatio} (${allowableDeflectionMm.toFixed(3)} mm) — configurable engineering screening heuristic, not a universal statutory code.`
+  ];
 
   return {
     calculationType: 'deflection',
@@ -124,11 +132,13 @@ export function calculateShaftDeflection(
       maxDeflectionM,
       maxDeflectionMm,
       allowableDeflectionMm,
-      slopeAtSupportsRad: slopeRad
+      slopeAtSupportsRad: slopeRad,
+      deflectionLimitRatio: limitRatio,
+      deflectionCriterionDescription
     },
     displayValue: maxDeflectionMm.toFixed(4),
     displayUnit: 'mm',
-    assumptions: DEFLECTION_ASSUMPTIONS,
+    assumptions: updatedAssumptions,
     warnings,
     disclaimer: DEFLECTION_DISCLAIMER,
     status

@@ -20,28 +20,6 @@ import {
   deleteProjectVersion,
 } from '../services/projectApi';
 
-export const DEFAULT_FALLBACK_PROJECT: Project = {
-  id: 'proj-gearbox',
-  name: 'Gearbox Assembly',
-  description: 'Two-stage spur gearbox for industrial conveyor drive system. Includes input shaft, intermediate shaft, output shaft, and housing design.',
-  type: 'Power Transmission',
-  status: 'In Progress',
-  progress: 72,
-  lastModified: '2026-09-17T06:30:00Z',
-  created: '2026-08-15T09:00:00Z',
-  parameters: {
-    materialId: 'aisi-4140',
-    diameter: 45,
-    length: 320,
-    torque: 500,
-    force: 12000,
-    rpm: 1450,
-    safetyFactor: 2.0,
-    temperature: 60,
-  },
-  tags: ['gearbox', 'power-transmission', 'industrial'],
-};
-
 interface ProjectMemory {
   parameters: DesignParameters;
   materialId: string;
@@ -50,17 +28,27 @@ interface ProjectMemory {
   activeThreadId: string;
 }
 
+export type ProjectSaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
+
 interface AppContextType {
   activePage: PageId; setActivePage: (page: PageId) => void;
-  activeProject: Project; setActiveProject: (project: Project) => void;
+  activeProject: Project | null; setActiveProject: (project: Project | null) => void;
   allProjects: Project[];
   designParams: DesignParameters;
   updateDesignParam: <K extends keyof DesignParameters>(key: K, value: DesignParameters[K]) => void;
   setDesignParams: (params: DesignParameters) => void;
+  resetParamsToStandard: () => void;
+  saveStatus: ProjectSaveStatus;
+  lastSavedAt: number | null;
+  saveError: string | null;
+  saveProjectNow: () => Promise<void>;
+  selectedFit: string;
+  setSelectedFit: (fit: string) => void;
   selectedMaterial: Material; selectMaterial: (materialId: string) => void;
   allMaterials: Material[];
   analysisResults: AnalysisResult | null;
-  isAnalysisRunning: boolean; runAnalysis: () => Promise<void>;
+  isAnalysisRunning: boolean; runAnalysis: (options?: { navigateToAnalysis?: boolean }) => Promise<void>;
+  lastAnalysisRunAt: number | null;
   selectedComponent: ComponentSelection | null; setSelectedComponent: (comp: ComponentSelection | null) => void;
   copilotMessages: CopilotMessage[]; sendCopilotMessage: (content: string) => void;
   applyRecommendation: (payload?: any) => void; explainCalculation: () => void;
@@ -88,16 +76,24 @@ interface AppContextType {
   calculationsTab: 'equations' | 'standards';
   setCalculationsTab: (tab: 'equations' | 'standards') => void;
   navigateToStandards: () => void;
+  canvasMode: '3d' | '2d' | 'split';
+  setCanvasMode: (mode: '3d' | '2d' | 'split') => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [activePage, setActivePage] = useState<PageId>('dashboard');
+  const [canvasMode, setCanvasMode] = useState<'3d' | '2d' | 'split'>('3d');
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [activeProject, setActiveProjectState] = useState<Project | null>(null);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [projectMemory, setProjectMemory] = useState<Record<string, ProjectMemory>>({});
+  const [saveStatus, setSaveStatus] = useState<ProjectSaveStatus>('saved');
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [selectedFit, setSelectedFit] = useState<string>('H7/h6');
+  const [lastAnalysisRunAt, setLastAnalysisRunAt] = useState<number | null>(null);
   const debounceRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -106,15 +102,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         let projects: Project[] = [];
         try {
           projects = await fetchProjects();
-          if (projects.length === 0) {
-            projects = await initSampleProject();
-          }
         } catch (fetchErr) {
-          console.warn("Backend unavailable or failed to fetch projects, using fallback", fetchErr);
-        }
-
-        if (projects.length === 0) {
-          projects = [DEFAULT_FALLBACK_PROJECT];
+          console.warn("Backend unavailable or failed to fetch projects", fetchErr);
         }
 
         setAllProjects(projects);
@@ -143,7 +132,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           };
         }
         setProjectMemory(map);
-        setActiveProjectState(projects[0]);
+        if (projects.length > 0) {
+          setActiveProjectState(projects[0]);
+        } else {
+          setActiveProjectState(null);
+        }
       } catch (err) {
         console.error("Failed to load projects", err);
       } finally {
@@ -153,20 +146,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     loadData();
   }, []);
 
-  const setActiveProject = useCallback((project: Project) => {
+  const setActiveProject = useCallback((project: Project | null) => {
     setActiveProjectState(project);
+    setSaveStatus('saved');
+    setSaveError(null);
+  }, []);
+
+  const persistProjectParameters = useCallback(async (projectId: string, params: DesignParameters) => {
+    setSaveStatus('saving');
+    setSaveError(null);
+    try {
+      const updated = await updateProjectParameters(projectId, params);
+      setAllProjects((prev) => prev.map((p) => (p.id === projectId ? { ...p, ...updated, parameters: updated.parameters } : p)));
+      setActiveProjectState((prev) => (prev && prev.id === projectId ? { ...prev, ...updated, parameters: updated.parameters } : prev));
+      setSaveStatus('saved');
+      setLastSavedAt(Date.now());
+    } catch (err: any) {
+      console.error(err);
+      setSaveStatus('error');
+      setSaveError(err?.message || 'Failed to save changes');
+    }
   }, []);
 
   const updateDesignParam = useCallback(<K extends keyof DesignParameters>(key: K, value: DesignParameters[K]) => {
     if (!activeProject) return;
+    setSaveStatus('unsaved');
+    setSaveError(null);
     setProjectMemory((prev) => {
       const mem = prev[activeProject.id];
       if (!mem) return prev;
       const newParams = { ...mem.parameters, [key]: value };
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = window.setTimeout(() => {
-        updateProjectParameters(activeProject.id, newParams).catch(err => console.error(err));
-      }, 1000);
+        persistProjectParameters(activeProject.id, newParams);
+      }, 650);
       return {
         ...prev,
         [activeProject.id]: {
@@ -174,17 +187,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
       };
     });
-  }, [activeProject]);
+  }, [activeProject, persistProjectParameters]);
 
   const setDesignParams = useCallback((params: DesignParameters) => {
     if (!activeProject) return;
+    setSaveStatus('unsaved');
+    setSaveError(null);
     setProjectMemory((prev) => {
       const mem = prev[activeProject.id];
       if (!mem) return prev;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = window.setTimeout(() => {
-        updateProjectParameters(activeProject.id, params).catch(err => console.error(err));
-      }, 1000);
+        persistProjectParameters(activeProject.id, params);
+      }, 650);
       return {
         ...prev,
         [activeProject.id]: {
@@ -192,7 +207,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         },
       };
     });
-  }, [activeProject]);
+  }, [activeProject, persistProjectParameters]);
+
+  const resetParamsToStandard = useCallback(() => {
+    const standardParams: DesignParameters = {
+      materialId: 'aisi-4140',
+      diameter: 45,
+      length: 320,
+      torque: 500,
+      force: 12000,
+      rpm: 1450,
+      safetyFactor: 2.0,
+      temperature: 60,
+      criterion: 'Von Mises',
+      deflectionLimitRatio: 1000,
+    };
+    setDesignParams(standardParams);
+    setSelectedFit('H7/h6');
+  }, [setDesignParams]);
 
   const selectMaterial = useCallback((materialId: string) => {
     updateDesignParam('materialId', materialId);
@@ -224,12 +256,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, [activeProject]);
 
+  const [welcomeThread, setWelcomeThread] = useState<ConversationThread>({
+    id: 'thread-welcome',
+    title: 'Engineering Copilot Agent',
+    createdAt: new Date().toISOString(),
+    messages: [
+      {
+        id: 'msg-welcome',
+        role: 'assistant',
+        content: `**Mechanical Engineering Copilot Ready**\n\n` +
+          `Connected to the deterministic solid mechanics engine.\n\n` +
+          `To start a verified design, specify requirements such as:\n` +
+          `*"Create a new project for a solid drive shaft: 500 N·m torque at 1450 RPM, 320 mm span, 12 kN radial force, AISI 4140, target FoS 2.0, Von Mises criterion."*`,
+        timestamp: new Date().toISOString(),
+        type: 'general',
+      }
+    ]
+  });
+
   const currentMem = activeProject && projectMemory[activeProject.id] ? projectMemory[activeProject.id] : null;
-  const designParams = currentMem ? currentMem.parameters : { materialId: 'aisi-4140', diameter: 45, length: 320, torque: 500, force: 12000, rpm: 1450, safetyFactor: 2.0, temperature: 60 };
+  const designParams = currentMem ? currentMem.parameters : { materialId: 'aisi-4140', diameter: 45, length: 320, torque: 500, force: 12000, rpm: 1450, safetyFactor: 2.0, temperature: 60, criterion: 'Von Mises' as const };
   const selectedMaterial = getMaterialById(currentMem ? currentMem.materialId : 'aisi-4140') || materials[0];
   const analysisResults = useMemo(() => computeAnalysis(designParams), [designParams]);
-  const conversationThreads = currentMem ? currentMem.threads : [];
-  const activeThreadId = currentMem ? currentMem.activeThreadId : '';
+  const conversationThreads = currentMem ? currentMem.threads : [welcomeThread];
+  const activeThreadId = currentMem ? currentMem.activeThreadId : welcomeThread.id;
   const currentThread = conversationThreads.find((t) => t.id === activeThreadId) || conversationThreads[0];
   const copilotMessages = currentThread ? currentThread.messages : [];
 
@@ -238,8 +288,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [savedMessageIds, setSavedMessageIds] = useState<Set<string>>(new Set());
 
-  const [copilotOpen, setCopilotOpen] = useState(() => 
-    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  const [copilotOpen, setCopilotOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1360 : true
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProblemModalOpen, setIsProblemModalOpen] = useState(false);
@@ -290,9 +340,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [activeProject?.id]);
 
-  const runAnalysis = useCallback(async () => {
+  const saveProjectNow = useCallback(async () => {
+    if (!activeProject) return;
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    await persistProjectParameters(activeProject.id, designParams);
+  }, [activeProject, designParams, persistProjectParameters]);
+
+  const runAnalysis = useCallback(async (options?: { navigateToAnalysis?: boolean }) => {
     setIsAnalysisRunning(true);
-    // Deterministic, immediate physics calculation
     const results = computeAnalysis(designParams);
     if (activeProject) {
       setProjectMemory((prev) => {
@@ -307,71 +365,249 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         };
       });
     }
+    setLastAnalysisRunAt(Date.now());
     setIsAnalysisRunning(false);
-    setActivePage('analysis');
+    if (options?.navigateToAnalysis) {
+      setActivePage('analysis');
+    }
   }, [activeProject, designParams, setActivePage]);
 
   const sendCopilotMessage = useCallback(async (content: string) => {
-    if (isStreaming || !activeProject) return;
+    if (isStreaming) return;
     const userMsg: CopilotMessage = { id: `user-${Date.now()}`, role: 'user', content, timestamp: now() };
-    setProjectMemory((prev) => {
-      const mem = prev[activeProject.id];
-      if (!mem) return prev;
-      return {
+    
+    if (activeProject) {
+      setProjectMemory((prev) => {
+        const mem = prev[activeProject.id];
+        if (!mem) return prev;
+        return {
+          ...prev,
+          [activeProject.id]: {
+            ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, userMsg] } : t)
+          }
+        };
+      });
+    } else {
+      setWelcomeThread((prev) => ({
         ...prev,
-        [activeProject.id]: {
-          ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, userMsg] } : t)
-        }
-      };
-    });
+        messages: [...prev.messages, userMsg]
+      }));
+    }
+
     setIsStreaming(true);
     try {
       const threadToUse = conversationThreads.find((t) => t.id === activeThreadId) || conversationThreads[0];
       const contextMessages = threadToUse ? [...threadToUse.messages, userMsg] : [userMsg];
-      const aiReply = await sendChatMessage(contextMessages, activeProject.id, activeThreadId);
-      setProjectMemory((prev) => {
-        const mem = prev[activeProject.id];
-        if (!mem) return prev;
-        return {
-          ...prev,
-          [activeProject.id]: {
-            ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, aiReply] } : t)
+      const aiReply = await sendChatMessage(contextMessages, activeProject?.id, activeProject ? activeThreadId : undefined);
+
+      // Handle Autonomous Agent Actions (Single or Multi-Step)
+      const actionList = aiReply.actions && aiReply.actions.length > 0
+        ? aiReply.actions
+        : (aiReply.action ? [aiReply.action] : (aiReply.engineeringResult?.action ? [aiReply.engineeringResult.action] : []));
+
+      let effectiveProject = activeProject;
+
+      for (const action of actionList) {
+        if (!action) continue;
+
+        if (action.type === 'project_created' && action.project) {
+          const newProj: Project = action.project;
+          effectiveProject = newProj;
+          const defaultThreadId = `thread-${newProj.id}-default`;
+          const allMsgs = [...(threadToUse ? threadToUse.messages : []), userMsg, aiReply];
+
+          setProjectMemory((prev) => ({
+            ...prev,
+            [newProj.id]: {
+              parameters: { ...newProj.parameters },
+              materialId: newProj.parameters.materialId || 'aisi-4140',
+              analysisResults: null,
+              threads: [
+                {
+                  id: defaultThreadId,
+                  title: 'Shaft Sizing & Verification',
+                  createdAt: newProj.lastModified,
+                  messages: allMsgs
+                }
+              ],
+              activeThreadId: defaultThreadId
+            }
+          }));
+
+          setAllProjects((prev) => {
+            const exists = prev.some(p => p.id === newProj.id);
+            return exists ? prev : [newProj, ...prev];
+          });
+          setActiveProjectState(newProj);
+          setActivePage('workspace');
+        }
+
+        if ((action.type === 'parameters_updated' || action.type === 'geometry_updated') && action.parameters) {
+          const updatedParams = action.parameters;
+          const projId = effectiveProject?.id;
+          if (projId) {
+            setProjectMemory((prev) => {
+              const mem = prev[projId];
+              if (!mem) return prev;
+              return {
+                ...prev,
+                [projId]: {
+                  ...mem,
+                  parameters: { ...mem.parameters, ...updatedParams },
+                  materialId: updatedParams.materialId || mem.materialId
+                }
+              };
+            });
+            setSaveStatus('saved');
+            setLastSavedAt(Date.now());
           }
-        };
-      });
+        }
+
+        if (action.type === 'component_selected' && action.componentName) {
+          setSelectedComponent({
+            name: action.componentName,
+            type: 'component'
+          } as any);
+        }
+
+        if (action.type === 'version_saved' && action.version) {
+          setDesignVersions((prev) => [action.version, ...prev]);
+        }
+
+        if (action.type === 'print_dialog_requested') {
+          if (typeof window !== 'undefined' && typeof window.print === 'function') {
+            setTimeout(() => {
+              window.print();
+            }, 300);
+          }
+        }
+
+        if (action.type === 'pdf_exported' && action.pdfDownloadUrl) {
+          if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+            const a = document.createElement('a');
+            a.href = action.pdfDownloadUrl;
+            a.download = `Engineering-Report-${action.projectId || 'document'}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+        }
+      }
+
+      if (actionList.some(a => a?.type === 'project_created')) {
+        return;
+      }
+
+      if (activeProject) {
+        setProjectMemory((prev) => {
+          const mem = prev[activeProject.id];
+          if (!mem) return prev;
+          return {
+            ...prev,
+            [activeProject.id]: {
+              ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, aiReply] } : t)
+            }
+          };
+        });
+      } else {
+        setWelcomeThread((prev) => ({
+          ...prev,
+          messages: [...prev.messages, aiReply]
+        }));
+      }
     } catch (error: any) {
       const errorMsg: CopilotMessage = { id: `error-${Date.now()}`, role: 'assistant', type: 'warning', content: `**Error:** ${error.message}`, timestamp: now() };
-      setProjectMemory((prev) => {
-        const mem = prev[activeProject.id];
-        if (!mem) return prev;
-        return {
+      if (activeProject) {
+        setProjectMemory((prev) => {
+          const mem = prev[activeProject.id];
+          if (!mem) return prev;
+          return {
+            ...prev,
+            [activeProject.id]: {
+              ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, errorMsg] } : t)
+            }
+          };
+        });
+      } else {
+        setWelcomeThread((prev) => ({
           ...prev,
-          [activeProject.id]: {
-            ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, errorMsg] } : t)
-          }
-        };
-      });
+          messages: [...prev.messages, errorMsg]
+        }));
+      }
     } finally {
       setIsStreaming(false);
     }
-  }, [activeProject, isStreaming, conversationThreads, activeThreadId]);
+  }, [activeProject, isStreaming, conversationThreads, activeThreadId, setActivePage]);
 
   const applyRecommendation = useCallback((payload?: any) => {
     if (!activeProject) return;
-    const newDiameter = payload?.diameter || 45;
-    updateDesignParam('diameter', newDiameter);
-    const confirmMsg: CopilotMessage = { id: nextId(), role: 'assistant', type: 'recommendation', content: `Applied ${newDiameter} mm.`, timestamp: now(), actions: [{ label: 'Run Analysis', type: 'analyze' }] };
+
+    const updates: Partial<DesignParameters> = {};
+    if (payload?.diameter !== undefined) updates.diameter = Number(payload.diameter);
+    else if (payload?.recommendedDiameter !== undefined) updates.diameter = Number(payload.recommendedDiameter);
+    else if (payload?.minimumRequiredDiameterMm !== undefined) updates.diameter = Number(payload.minimumRequiredDiameterMm);
+
+    if (payload?.torque !== undefined) updates.torque = Number(payload.torque);
+    else if (payload?.appliedTorqueNm !== undefined) updates.torque = Number(payload.appliedTorqueNm);
+    else if (payload?.torqueNm !== undefined) updates.torque = Number(payload.torqueNm);
+
+    if (payload?.force !== undefined) updates.force = Number(payload.force);
+    else if (payload?.radialForceN !== undefined) updates.force = Number(payload.radialForceN);
+
+    if (payload?.length !== undefined) updates.length = Number(payload.length);
+    else if (payload?.shaftSpanMm !== undefined) updates.length = Number(payload.shaftSpanMm);
+    else if (payload?.lengthMm !== undefined) updates.length = Number(payload.lengthMm);
+
+    if (payload?.rpm !== undefined) updates.rpm = Number(payload.rpm);
+    else if (payload?.rotationalSpeedRpm !== undefined) updates.rpm = Number(payload.rotationalSpeedRpm);
+
+    if (payload?.safetyFactor !== undefined) updates.safetyFactor = Number(payload.safetyFactor);
+    else if (payload?.requiredFactorOfSafety !== undefined) updates.safetyFactor = Number(payload.requiredFactorOfSafety);
+
+    if (payload?.criterion !== undefined) updates.criterion = payload.criterion;
+    else if (payload?.failureCriterion !== undefined) updates.criterion = payload.failureCriterion;
+
+    if (payload?.materialId !== undefined) updates.materialId = payload.materialId;
+
+    if (Object.keys(updates).length === 0) {
+      updates.diameter = 45;
+    }
+
+    setSaveStatus('unsaved');
     setProjectMemory((prev) => {
       const mem = prev[activeProject.id];
       if (!mem) return prev;
+      const newParams = { ...mem.parameters, ...updates };
+
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = window.setTimeout(() => {
+        persistProjectParameters(activeProject.id, newParams);
+      }, 450);
+
+      const summaryText = Object.entries(updates)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
+
+      const confirmMsg: CopilotMessage = {
+        id: nextId(),
+        role: 'assistant',
+        type: 'recommendation',
+        content: `Applied parameter updates to workstation: **${summaryText}**. Workstation CAD and calculations synchronized.`,
+        timestamp: now(),
+        actions: [{ label: 'Run Analysis', type: 'analyze' }]
+      };
+
       return {
         ...prev,
         [activeProject.id]: {
-          ...mem, threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, confirmMsg] } : t)
+          ...mem,
+          parameters: newParams,
+          materialId: updates.materialId || mem.materialId,
+          threads: mem.threads.map(t => t.id === mem.activeThreadId ? { ...t, messages: [...t.messages, confirmMsg] } : t)
         }
       };
     });
-  }, [activeProject, updateDesignParam]);
+  }, [activeProject]);
 
   const explainCalculation = useCallback(() => {
     if (!activeProject) return;
@@ -471,55 +707,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return <div className="flex h-screen w-screen items-center justify-center bg-navy-950 text-white">Loading Engineering Environment...</div>;
   }
 
-  if (!activeProject) {
-    return (
-      <div className="flex flex-col h-screen w-screen items-center justify-center bg-navy-950 text-white p-8">
-        <div className="max-w-md w-full bg-navy-900 border border-navy-700 rounded-xl p-6 text-center space-y-4 shadow-2xl">
-          <div className="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400 text-xl font-bold font-mono">
-            Q
-          </div>
-          <h1 className="text-xl font-semibold tracking-tight text-white">Quantum Workspace Ready</h1>
-          <p className="text-sm text-slate-400">
-            No active project is currently loaded. Initialize the standard mechanical shaft engineering workspace now.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
-            <button
-              onClick={async () => {
-                setIsLoadingProjects(true);
-                try {
-                  const seeded = await initSampleProject();
-                  if (seeded && seeded.length > 0) {
-                    setAllProjects(seeded);
-                    setActiveProjectState(seeded[0]);
-                  } else {
-                    setAllProjects([DEFAULT_FALLBACK_PROJECT]);
-                    setActiveProjectState(DEFAULT_FALLBACK_PROJECT);
-                  }
-                } catch {
-                  setAllProjects([DEFAULT_FALLBACK_PROJECT]);
-                  setActiveProjectState(DEFAULT_FALLBACK_PROJECT);
-                } finally {
-                  setIsLoadingProjects(false);
-                }
-              }}
-              className="px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-accent text-navy-950 hover:bg-accent/90 rounded-md transition-colors"
-            >
-              Initialize Sample Workspace
-            </button>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-navy-800 hover:bg-navy-700 text-slate-200 border border-navy-700 rounded-md transition-colors"
-            >
-              Reload
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <AppContext.Provider value={{ activePage, setActivePage, activeProject, setActiveProject, allProjects, designParams, updateDesignParam, setDesignParams, selectedMaterial, selectMaterial, allMaterials: materials, analysisResults, isAnalysisRunning, runAnalysis, selectedComponent, setSelectedComponent, copilotMessages, sendCopilotMessage, applyRecommendation, explainCalculation, isStreaming, conversationThreads, activeThreadId, createNewConversation, switchConversation, savedMessageIds, toggleSaveMessage, engineeringWarnings, applyWarningFix, isProblemModalOpen, setIsProblemModalOpen, isOptimizationModalOpen, setIsOptimizationModalOpen, isFileUploadModalOpen, setIsFileUploadModalOpen, isWarningsDrawerOpen, setIsWarningsDrawerOpen, isCommandPaletteOpen, setIsCommandPaletteOpen, isVersionHistoryOpen, setIsVersionHistoryOpen, isCompareModalOpen, setIsCompareModalOpen, isOnboardingModalOpen, setIsOnboardingModalOpen, designVersions, isLoadingVersions, versionError, saveDesignVersion, restoreDesignVersion, deleteDesignVersion, copilotOpen, setCopilotOpen, isMobileMenuOpen, setIsMobileMenuOpen, calculationsTab, setCalculationsTab, navigateToStandards }}>
+    <AppContext.Provider value={{ activePage, setActivePage, activeProject, setActiveProject, allProjects, designParams, updateDesignParam, setDesignParams, resetParamsToStandard, saveStatus, lastSavedAt, saveError, saveProjectNow, selectedFit, setSelectedFit, selectedMaterial, selectMaterial, allMaterials: materials, analysisResults, isAnalysisRunning, runAnalysis, lastAnalysisRunAt, selectedComponent, setSelectedComponent, copilotMessages, sendCopilotMessage, applyRecommendation, explainCalculation, isStreaming, conversationThreads, activeThreadId, createNewConversation, switchConversation, savedMessageIds, toggleSaveMessage, engineeringWarnings, applyWarningFix, isProblemModalOpen, setIsProblemModalOpen, isOptimizationModalOpen, setIsOptimizationModalOpen, isFileUploadModalOpen, setIsFileUploadModalOpen, isWarningsDrawerOpen, setIsWarningsDrawerOpen, isCommandPaletteOpen, setIsCommandPaletteOpen, isVersionHistoryOpen, setIsVersionHistoryOpen, isCompareModalOpen, setIsCompareModalOpen, isOnboardingModalOpen, setIsOnboardingModalOpen, designVersions, isLoadingVersions, versionError, saveDesignVersion, restoreDesignVersion, deleteDesignVersion, copilotOpen, setCopilotOpen, isMobileMenuOpen, setIsMobileMenuOpen, calculationsTab, setCalculationsTab, navigateToStandards, canvasMode, setCanvasMode }}>
       {children}
     </AppContext.Provider>
   );

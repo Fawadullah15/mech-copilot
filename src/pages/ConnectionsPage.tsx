@@ -261,13 +261,13 @@ export default function ConnectionsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `connections-analysis-${activeProject.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
+    a.download = `connections-analysis-${(activeProject?.name || 'shaft').toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="bg-navy-950 p-6 text-gray-100">
+    <div className="bg-navy-950 p-4 sm:p-6 lg:p-8 text-gray-100">
       {/* ─── Header ─── */}
       <div className="mb-6 flex flex-col justify-between gap-4 border-b border-navy-800 pb-5 md:flex-row md:items-center">
         <div>

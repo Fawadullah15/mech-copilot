@@ -26,6 +26,8 @@ import {
   Link2,
   Cog,
   Waves,
+  Package,
+  GitFork,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../design-system/ThemeContext';
@@ -313,6 +315,30 @@ export default function CommandPalette() {
       },
     },
     {
+      id: 'nav-products',
+      category: 'Navigation',
+      title: 'Go to Product Master & Revisions',
+      subtitle: 'Finished products, subassemblies, raw materials catalog, and lifecycle control',
+      icon: <Package size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G P',
+      perform: () => {
+        close();
+        setActivePage('products');
+      },
+    },
+    {
+      id: 'nav-boms',
+      category: 'Navigation',
+      title: 'Go to Bill of Materials Workstation',
+      subtitle: 'Hierarchical BOMs, multi-level explosion engine, and release validation',
+      icon: <GitFork size={16} className="text-[#64D6C5]" />,
+      shortcut: 'G B',
+      perform: () => {
+        close();
+        setActivePage('boms');
+      },
+    },
+    {
       id: 'nav-standards',
       category: 'Navigation',
       title: 'Standards Registry & Verification',
@@ -463,21 +489,21 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/80 backdrop-blur-xs animate-fade-in font-sans"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-[#18211F]/50 backdrop-blur-xs animate-fade-in font-sans"
       onClick={close}
     >
       <div
-        className="w-full max-w-2xl bg-[#191C1F] border border-[#34393F] rounded-[4px] shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#1E2D45] rounded-[8px] shadow-modal overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Search Header */}
-        <div className="flex items-center px-4 py-3 border-b border-[#34393F] bg-[#22262A] gap-3">
-          <Search className="w-4 h-4 text-[#64D6C5] shrink-0" />
+        <div className="flex items-center px-4 py-3 border-b border-[#E2E8F0] dark:border-[#1E2D45] bg-[#F8FAFC] dark:bg-[#162236] gap-3">
+          <Search className="w-4 h-4 text-[#2563EB] shrink-0" />
           <input
             ref={inputRef}
             type="text"
-            className="w-full bg-transparent border-none text-xs text-[#F0F1F2] placeholder-[#6C737D] focus:outline-none focus:ring-0 font-mono"
+            className="w-full bg-transparent border-none text-xs text-[#172033] dark:text-white placeholder-[#94A3B8] focus:outline-none focus:ring-0 font-mono"
             placeholder="Search actions, projects, calculations, or ask Copilot (e.g. 'run analysis', '45 mm')..."
             value={query}
             onChange={(e) => {
@@ -486,14 +512,14 @@ export default function CommandPalette() {
             }}
           />
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[2px] bg-[#14171A] text-[#969DA5] border border-[#34393F]">Esc</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[4px] bg-white dark:bg-[#101A2B] text-[#64748B] border border-[#E2E8F0] dark:border-[#334155]">Esc</span>
           </div>
         </div>
 
         {/* Results List */}
-        <div className="max-h-[380px] overflow-y-auto p-1.5 divide-y divide-[#2A2E35]">
+        <div className="max-h-[380px] overflow-y-auto p-1.5 divide-y divide-[#E2E8F0]/60 dark:divide-[#1E2D45]">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-[#969DA5] font-mono text-xs">
+            <div className="p-8 text-center text-[#64748B] font-mono text-xs">
               No matching commands or actions found for "{query}".
             </div>
           ) : (
@@ -504,34 +530,34 @@ export default function CommandPalette() {
                   key={item.id}
                   onClick={() => item.perform()}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex items-center justify-between px-3 py-2 rounded-[3px] cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-[6px] cursor-pointer transition-colors ${
                     isSelected
-                      ? 'bg-[#22262A] text-white border border-[#34393F]'
-                      : 'text-[#C2C8D0] hover:bg-[#22262A] border border-transparent'
+                      ? 'bg-[#EFF6FF] dark:bg-[#1B2942] text-[#172033] dark:text-white border border-[#BFDBFE] dark:border-[#2563EB]/40'
+                      : 'text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-[#162236] border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1.5 rounded-[3px] bg-[#14171A] border border-[#34393F] shrink-0">
+                    <div className="p-1.5 rounded-[5px] bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] shrink-0">
                       {item.icon}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold truncate text-[#F0F1F2]">{item.title}</span>
-                        <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded-[2px] bg-[#14171A] text-[#969DA5] border border-[#2A2E35] shrink-0">
+                        <span className="text-xs font-semibold truncate text-[#172033] dark:text-white">{item.title}</span>
+                        <span className="text-[9px] uppercase font-mono px-1 py-0.5 rounded-[4px] bg-[#F8FAFC] dark:bg-[#101A2B] text-[#64748B] border border-[#E2E8F0] dark:border-[#334155] shrink-0 font-bold">
                           {item.category}
                         </span>
                       </div>
                       {item.subtitle && (
-                        <p className="text-[11px] text-[#969DA5] truncate mt-0.5 font-mono">{item.subtitle}</p>
+                        <p className="text-[11px] text-[#64748B] truncate mt-0.5 font-mono">{item.subtitle}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 ml-3 font-mono">
                     {item.shortcut && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-[2px] bg-[#14171A] text-[#969DA5] border border-[#34393F]">{item.shortcut}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-[4px] bg-[#F8FAFC] dark:bg-[#101A2B] text-[#64748B] border border-[#E2E8F0] dark:border-[#334155]">{item.shortcut}</span>
                     )}
-                    {isSelected && <ArrowRight size={13} className="text-[#64D6C5]" />}
+                    {isSelected && <ArrowRight size={13} className="text-[#2563EB]" />}
                   </div>
                 </div>
               );
@@ -540,13 +566,13 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-[#34393F] bg-[#22262A] text-[10px] font-mono text-[#969DA5] flex items-center justify-between">
+        <div className="px-4 py-2 border-t border-[#E2E8F0] dark:border-[#1E2D45] bg-[#F8FAFC] dark:bg-[#162236] text-[10px] font-mono text-[#64748B] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span>Use ↑ ↓ to navigate</span>
             <span>↵ to select</span>
             <span>Esc to close</span>
           </div>
-          <span className="text-[#64D6C5]">QUANTUM Command Center</span>
+          <span className="text-[#2563EB] font-bold">Quantum MechAI Command Center</span>
         </div>
       </div>
     </div>

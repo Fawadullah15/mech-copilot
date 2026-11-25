@@ -97,22 +97,22 @@ export default function MaterialsPage() {
   const comparedMaterials = allMaterials.filter((m) => compareIds.includes(m.id));
 
   return (
-    <div className="p-4 lg:p-6 space-y-4 animate-fade-in text-[#F0F1F2] max-w-7xl mx-auto flex flex-col bg-[#111315] font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in text-[#172033] dark:text-[#FFFFFF] max-w-7xl mx-auto flex flex-col bg-[#F2F4FA] dark:bg-[#111827] font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#34393F]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#D9DFED] dark:border-[#28344E]">
         <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#64D6C5]">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#315EDE] font-bold">
               Materials Intelligence & Decision Support
             </span>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-[2px] text-[9px] font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              <ShieldCheck size={10} /> Verified ASM / MMPDS
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10px] font-mono bg-[#39866B]/15 text-[#39866B] border border-[#39866B]/30 font-bold">
+              <ShieldCheck size={12} /> Verified ASM / MMPDS
             </span>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-[#F0F1F2]">
+          <h1 className="text-2xl font-bold tracking-tight text-[#172033] dark:text-[#FFFFFF] font-display">
             Engineering Alloys & Design Constraints Engine
           </h1>
-          <p className="text-xs text-[#969DA5] font-mono mt-0.5">
+          <p className="text-xs text-[#64708A] font-medium mt-1">
             Verified isotropic constants, temperature envelopes, shear modulus (G), and load-driven multi-material CAD ranking.
           </p>
         </div>
@@ -121,33 +121,33 @@ export default function MaterialsPage() {
           {compareIds.length > 0 && (
             <button
               onClick={() => setIsCompareDrawerOpen(true)}
-              className="bg-[#22262A] hover:bg-[#2E3339] text-[#64D6C5] border border-[#34393F] text-xs font-mono font-semibold flex items-center gap-1.5 py-1.5 px-3 rounded-[3px] transition-colors"
+              className="btn-secondary text-xs font-semibold flex items-center gap-1.5 py-2 px-3 rounded-[8px]"
             >
-              <GitCompare size={13} />
+              <GitCompare size={14} className="text-[#315EDE]" />
               <span>Compare ({compareIds.length}/3)</span>
             </button>
           )}
 
-          <div className="flex rounded-[3px] bg-[#191C1F] p-0.5 border border-[#34393F]">
+          <div className="flex rounded-[8px] bg-[#E9EDF7] dark:bg-[#1E2436] p-1 border border-[#D9DFED] dark:border-[#28344E]">
             <button
               onClick={() => setActiveTab('catalog')}
-              className={`px-3 py-1 rounded-[2px] text-xs font-mono transition-colors ${
+              className={`px-3 py-1.5 rounded-[6px] text-xs font-semibold transition-colors ${
                 activeTab === 'catalog'
-                  ? 'bg-[#22262A] text-[#64D6C5] font-bold border border-[#34393F]'
-                  : 'text-[#969DA5] hover:text-[#F0F1F2]'
+                  ? 'bg-[#315EDE] text-[#FFFFFF] shadow-blueGlow'
+                  : 'text-[#64708A] hover:text-[#172033] dark:hover:text-[#FFFFFF]'
               }`}
             >
               Alloy Catalog
             </button>
             <button
               onClick={() => setActiveTab('suitability')}
-              className={`px-3 py-1 rounded-[2px] text-xs font-mono transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-[6px] text-xs font-semibold transition-colors flex items-center gap-1.5 ${
                 activeTab === 'suitability'
-                  ? 'bg-[#22262A] text-[#64D6C5] font-bold border border-[#34393F]'
-                  : 'text-[#969DA5] hover:text-[#F0F1F2]'
+                  ? 'bg-[#315EDE] text-[#FFFFFF] shadow-blueGlow'
+                  : 'text-[#64708A] hover:text-[#172033] dark:hover:text-[#FFFFFF]'
               }`}
             >
-              <Scale size={12} />
+              <Scale size={13} />
               Active CAD Suitability Matrix
             </button>
           </div>
@@ -155,23 +155,23 @@ export default function MaterialsPage() {
       </div>
 
       {/* Engineering Decision Support Callout: Stiffness vs Strength Law */}
-      <div className="p-3 rounded-[4px] bg-[#191C1F] border border-[#34393F] flex items-start gap-3">
-        <div className="p-1.5 rounded-[3px] bg-[#64D6C5]/10 text-[#64D6C5] border border-[#64D6C5]/30 shrink-0 mt-0.5">
-          <Info size={16} />
+      <div className="p-4 rounded-[10px] bg-[#FFFFFF] dark:bg-[#172033] border border-[#D9DFED] dark:border-[#28344E] flex items-start gap-3.5 shadow-panel">
+        <div className="p-2 rounded-[8px] bg-[#315EDE]/10 text-[#315EDE] border border-[#315EDE]/20 shrink-0 mt-0.5">
+          <Info size={18} />
         </div>
-        <div className="space-y-1 text-xs">
+        <div className="space-y-1.5 text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-[#F0F1F2] uppercase tracking-wide text-[11px]">
+            <span className="font-bold text-[#172033] dark:text-[#FFFFFF] uppercase tracking-wider text-xs">
               Mechanical Engineering Insight & Stiffness Constancy Rule
             </span>
-            <span className="text-[10px] font-mono text-[#64D6C5] bg-[#64D6C5]/10 px-1 rounded-[2px]">
+            <span className="text-[10px] font-mono text-[#315EDE] bg-[#315EDE]/10 px-2 py-0.5 rounded-[4px] font-bold">
               Active: {selectedMaterial.name} ({selectedMaterial.designation || 'UNS'})
             </span>
           </div>
-          <p className="text-[#969DA5] font-mono leading-relaxed text-[11px]">
+          <p className="text-[#64708A] leading-relaxed">
             {activeMaterialEvaluation.tradeoffInsight}
           </p>
-          <div className="text-[10px] font-mono text-[#6C737D] pt-0.5">
+          <div className="text-[11px] font-mono text-[#64708A] pt-1">
             Active Workspace Parameters: ⌀{designParams.diameter} mm × {designParams.length} mm span | Torque: {designParams.torque} N·m | Transverse Force: {designParams.force} N | Target FoS: {designParams.safetyFactor}
           </div>
         </div>
@@ -187,10 +187,10 @@ export default function MaterialsPage() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-2.5 py-1 rounded-[3px] text-xs font-mono transition-colors shrink-0 ${
+                  className={`px-2.5 py-1 rounded-[6px] text-xs font-mono transition-colors shrink-0 ${
                     selectedCategory === cat
-                      ? 'bg-[#22262A] text-[#64D6C5] font-bold border border-[#34393F]'
-                      : 'bg-[#191C1F] hover:bg-[#22262A] text-[#969DA5] hover:text-[#F0F1F2] border border-[#2A2E35]'
+                      ? 'bg-[#2563EB] text-white font-bold border border-[#2563EB] shadow-xs'
+                      : 'bg-white dark:bg-[#101A2B] hover:bg-[#F8FAFC] text-[#64748B] hover:text-[#172033] dark:hover:text-white border border-[#E2E8F0] dark:border-[#1E2D45]'
                   }`}
                 >
                   {cat}
@@ -199,19 +199,19 @@ export default function MaterialsPage() {
             </div>
 
             {/* Search & Min Yield Slider */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[#191C1F] p-2.5 rounded-[4px] border border-[#34393F]">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-[#101A2B] p-2.5 rounded-[8px] border border-[#E2E8F0] dark:border-[#1E2D45] shadow-xs">
               <div className="relative flex-1 w-full md:max-w-md">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#969DA5]" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
                 <input
                   type="text"
                   placeholder="Search by alloy, UNS designation, ASTM spec, or application..."
-                  className="w-full pl-8 pr-3 py-1 bg-[#14171A] border border-[#34393F] rounded-[3px] text-xs text-[#F0F1F2] placeholder-[#6C737D] font-mono focus:outline-none focus:border-[#64D6C5] transition-colors"
+                  className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] dark:bg-[#162236] border border-[#E2E8F0] dark:border-[#24344F] rounded-[6px] text-xs text-[#172033] dark:text-white placeholder-[#94A3B8] font-mono focus:outline-none focus:border-[#2563EB] transition-colors"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
-              <div className="flex items-center gap-3 w-full md:w-auto text-xs font-mono text-[#969DA5]">
+              <div className="flex items-center gap-3 w-full md:w-auto text-xs font-mono text-[#64748B]">
                 <span>Min Yield Strength:</span>
                 <input
                   type="range"
@@ -220,9 +220,9 @@ export default function MaterialsPage() {
                   step={50}
                   value={minYield}
                   onChange={(e) => setMinYield(Number(e.target.value))}
-                  className="w-28 accent-[#64D6C5] cursor-pointer"
+                  className="w-28 accent-[#2563EB] cursor-pointer"
                 />
-                <span className="w-16 text-right text-[#64D6C5] font-bold">
+                <span className="w-16 text-right text-[#2563EB] font-bold">
                   {minYield > 0 ? `${minYield} MPa` : 'Any'}
                 </span>
               </div>
@@ -230,10 +230,10 @@ export default function MaterialsPage() {
           </div>
 
           {/* Materials Catalog Table */}
-          <div className="bg-[#191C1F] rounded-[4px] border border-[#34393F] overflow-hidden">
+          <div className="bg-white rounded-[4px] border border-[#DDE4E0] shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse font-sans text-xs">
-                <thead className="bg-[#22262A] border-b border-[#34393F] text-[10px] font-mono text-[#969DA5] uppercase tracking-wider">
+                <thead className="bg-[#EEF2EF] border-b border-[#DDE4E0] text-[10px] font-mono text-[#64716C] uppercase tracking-wider">
                   <tr>
                     <th className="py-2 px-3 w-10 text-center">Cmp</th>
                     <th className="py-2 px-3">Alloy / UNS</th>
@@ -247,7 +247,7 @@ export default function MaterialsPage() {
                     <th className="py-2 px-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#2A2E35]">
+                <tbody className="divide-y divide-[#DDE4E0]">
                   {filteredMaterials.map((mat) => {
                     const isSelected = selectedMaterial.id === mat.id;
                     const isCompared = compareIds.includes(mat.id);
@@ -259,8 +259,8 @@ export default function MaterialsPage() {
                         onClick={() => selectMaterial(mat.id)}
                         className={`cursor-pointer transition-colors ${
                           isSelected
-                            ? 'bg-[#64D6C5]/10 hover:bg-[#64D6C5]/15'
-                            : 'hover:bg-[#22262A]'
+                            ? 'bg-[#147D70]/10 hover:bg-[#147D70]/15'
+                            : 'hover:bg-[#F5F7F5]'
                         }`}
                       >
                         <td className="py-2 px-3 text-center" onClick={(e) => toggleCompare(mat.id, e)}>
@@ -268,55 +268,55 @@ export default function MaterialsPage() {
                             type="checkbox"
                             checked={isCompared}
                             onChange={() => {}}
-                            className="rounded-[2px] accent-[#64D6C5] cursor-pointer"
+                            className="rounded-[2px] accent-[#147D70] cursor-pointer"
                           />
                         </td>
                         <td className="py-2 px-3">
                           <div className="flex items-center gap-2">
-                            <span className={`font-mono font-semibold ${isSelected ? 'text-[#64D6C5]' : 'text-[#F0F1F2]'}`}>
+                            <span className={`font-mono font-semibold ${isSelected ? 'text-[#147D70]' : 'text-[#18211F]'}`}>
                               {mat.name}
                             </span>
                             {mat.designation && (
-                              <span className="text-[10px] font-mono text-[#6C737D] bg-[#14171A] px-1 rounded-[2px] border border-[#2A2E35]">
+                              <span className="text-[10px] font-mono text-[#64716C] bg-[#F5F7F5] px-1 rounded-[2px] border border-[#DDE4E0]">
                                 {mat.designation}
                               </span>
                             )}
                             {isSelected && (
-                              <span className="px-1 py-0.2 rounded-[2px] text-[9px] font-mono bg-[#64D6C5]/20 text-[#64D6C5] border border-[#64D6C5]/40 font-bold uppercase">
+                              <span className="px-1 py-0.2 rounded-[2px] text-[9px] font-mono bg-[#147D70]/20 text-[#147D70] border border-[#147D70]/40 font-bold uppercase">
                                 Active
                               </span>
                             )}
                           </div>
                         </td>
                         <td className="py-2 px-3">
-                          <div className="text-[#969DA5] font-mono text-[11px]">{mat.category}</div>
-                          <div className="text-[10px] text-[#6C737D] truncate max-w-xs">{mat.condition || 'Standard'}</div>
+                          <div className="text-[#64716C] font-mono text-[11px]">{mat.category}</div>
+                          <div className="text-[10px] text-[#64716C] truncate max-w-xs">{mat.condition || 'Standard'}</div>
                         </td>
-                        <td className="py-2 px-3 font-mono font-bold text-[#F0F1F2]">
-                          {mat.yieldStrength} <span className="text-[10px] text-[#6C737D] font-normal">MPa</span>
+                        <td className="py-2 px-3 font-mono font-bold text-[#18211F]">
+                          {mat.yieldStrength} <span className="text-[10px] text-[#64716C] font-normal">MPa</span>
                         </td>
-                        <td className="py-2 px-3 font-mono text-[#C2C8D0]">
-                          <div>{mat.elasticModulus} <span className="text-[10px] text-[#6C737D]">GPa</span></div>
-                          <div className="text-[10px] text-[#6C737D]">G: {G.toFixed(1)} GPa</div>
+                        <td className="py-2 px-3 font-mono text-[#18211F]">
+                          <div>{mat.elasticModulus} <span className="text-[10px] text-[#64716C]">GPa</span></div>
+                          <div className="text-[10px] text-[#64716C]">G: {G.toFixed(1)} GPa</div>
                         </td>
-                        <td className="py-2 px-3 font-mono text-[#969DA5]">
-                          {mat.density} <span className="text-[10px] text-[#6C737D]">kg/m³</span>
+                        <td className="py-2 px-3 font-mono text-[#64716C]">
+                          {mat.density} <span className="text-[10px] text-[#64716C]">kg/m³</span>
                         </td>
-                        <td className="py-2 px-3 font-mono text-[#C2C8D0] text-[11px]">
+                        <td className="py-2 px-3 font-mono text-[#18211F] text-[11px]">
                           {mat.hardnessHRC ? `${mat.hardnessHRC} HRC` : mat.hardnessHB ? `${mat.hardnessHB} HB` : '—'}
                         </td>
-                        <td className="py-2 px-3 font-mono text-[11px] text-[#969DA5]">
+                        <td className="py-2 px-3 font-mono text-[11px] text-[#64716C]">
                           {mat.maxOperatingTempC ? `${mat.maxOperatingTempC}°C` : '—'}
                         </td>
                         <td className="py-2 px-3 font-mono text-[11px]">
                           <span className={`px-1.5 py-0.5 rounded-[2px] border ${
                             mat.costCategory === 'Low'
-                              ? 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/30'
+                              ? 'bg-[#39866B]/10 text-[#39866B] border-[#39866B]/30'
                               : mat.costCategory === 'Medium'
-                              ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+                              ? 'bg-[#2868D7]/10 text-[#2868D7] border-[#2868D7]/30'
                               : mat.costCategory === 'High'
-                              ? 'bg-[#E7B65C]/15 text-[#E7B65C] border-[#E7B65C]/30'
-                              : 'bg-[#E16D72]/15 text-[#E16D72] border-[#E16D72]/30'
+                              ? 'bg-[#D58A36]/10 text-[#D58A36] border-[#D58A36]/30'
+                              : 'bg-[#CB5750]/10 text-[#CB5750] border-[#CB5750]/30'
                           }`}>
                             {mat.costCategory}
                           </span>
@@ -328,7 +328,7 @@ export default function MaterialsPage() {
                               selectMaterial(mat.id);
                               setActivePage('workspace');
                             }}
-                            className="text-[11px] font-mono py-0.5 px-2 rounded-[2px] text-[#64D6C5] hover:underline"
+                            className="text-[11px] font-mono py-0.5 px-2 rounded-[2px] text-[#147D70] font-semibold hover:underline"
                           >
                             Apply →
                           </button>
@@ -344,21 +344,21 @@ export default function MaterialsPage() {
       ) : (
         /* Tab 2: Active CAD Design Suitability Matrix */
         <div className="space-y-3">
-          <div className="p-3 bg-[#191C1F] rounded-[4px] border border-[#34393F] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
+          <div className="p-3 bg-white rounded-[4px] border border-[#DDE4E0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono text-[#18211F]">
             <div>
-              <span className="text-[#64D6C5] font-bold">Dynamic CAD Constraint Evaluation:</span> Evaluated against active shaft parameters (⌀{designParams.diameter} mm × {designParams.length} mm, {designParams.torque} N·m, {designParams.force} N).
+              <span className="text-[#147D70] font-bold">Dynamic CAD Constraint Evaluation:</span> Evaluated against active shaft parameters (⌀{designParams.diameter} mm × {designParams.length} mm, {designParams.torque} N·m, {designParams.force} N).
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-[#969DA5]">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span> Pass</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Marginal Warning</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400"></span> Deficient (Fail)</span>
+            <div className="flex items-center gap-3 text-[11px] text-[#64716C]">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#39866B]"></span> Pass</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#D58A36]"></span> Marginal Warning</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#CB5750]"></span> Deficient (Fail)</span>
             </div>
           </div>
 
-          <div className="bg-[#191C1F] rounded-[4px] border border-[#34393F] overflow-hidden">
+          <div className="bg-white rounded-[4px] border border-[#DDE4E0] shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse font-sans text-xs">
-                <thead className="bg-[#22262A] border-b border-[#34393F] text-[10px] font-mono text-[#969DA5] uppercase tracking-wider">
+                <thead className="bg-[#EEF2EF] border-b border-[#DDE4E0] text-[10px] font-mono text-[#64716C] uppercase tracking-wider">
                   <tr>
                     <th className="py-2.5 px-3">Alloy / UNS</th>
                     <th className="py-2.5 px-3">Status & Score</th>
@@ -371,16 +371,16 @@ export default function MaterialsPage() {
                     <th className="py-2.5 px-3 text-right">CAD Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#2A2E35]">
+                <tbody className="divide-y divide-[#DDE4E0]">
                   {suitabilityRankings.map((evalItem) => {
                     const mat = evalItem.material;
                     const isSelected = selectedMaterial.id === mat.id;
                     const statusColor =
                       evalItem.overallStatus === 'pass'
-                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                        ? 'text-[#39866B] bg-[#39866B]/10 border-[#39866B]/30'
                         : evalItem.overallStatus === 'warning'
-                        ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
-                        : 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+                        ? 'text-[#D58A36] bg-[#D58A36]/10 border-[#D58A36]/30'
+                        : 'text-[#CB5750] bg-[#CB5750]/10 border-[#CB5750]/30';
 
                     return (
                       <tr
@@ -388,15 +388,15 @@ export default function MaterialsPage() {
                         onClick={() => selectMaterial(mat.id)}
                         className={`cursor-pointer transition-colors ${
                           isSelected
-                            ? 'bg-[#64D6C5]/10 hover:bg-[#64D6C5]/15'
-                            : 'hover:bg-[#22262A]'
+                            ? 'bg-[#147D70]/10 hover:bg-[#147D70]/15'
+                            : 'hover:bg-[#F5F7F5]'
                         }`}
                       >
                         <td className="py-2 px-3">
-                          <div className="font-mono font-semibold text-[#F0F1F2]">
+                          <div className="font-mono font-semibold text-[#18211F]">
                             {mat.name}
                           </div>
-                          <div className="text-[10px] font-mono text-[#6C737D]">
+                          <div className="text-[10px] font-mono text-[#64716C]">
                             {mat.designation || mat.category}
                           </div>
                         </td>
@@ -405,58 +405,58 @@ export default function MaterialsPage() {
                             <span className={`px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono uppercase font-bold border ${statusColor}`}>
                               {evalItem.overallStatus}
                             </span>
-                            <span className="text-[11px] font-mono text-[#969DA5]">
+                            <span className="text-[11px] font-mono text-[#64716C]">
                               {evalItem.suitabilityScore}/100
                             </span>
                           </div>
                         </td>
                         <td className="py-2 px-3 font-mono text-[11px]">
-                          <div className="text-[#F0F1F2] font-bold">
+                          <div className="text-[#18211F] font-bold">
                             {evalItem.vonMisesStressMPa.toFixed(1)} MPa
                           </div>
-                          <div className={`text-[10px] ${evalItem.factorOfSafety >= designParams.safetyFactor ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          <div className={`text-[10px] ${evalItem.factorOfSafety >= designParams.safetyFactor ? 'text-[#39866B]' : 'text-[#D58A36]'}`}>
                             FoS: {evalItem.factorOfSafety.toFixed(2)} (Req: {designParams.safetyFactor})
                           </div>
                         </td>
                         <td className="py-2 px-3 font-mono text-[11px]">
-                          <div className={`${evalItem.centerDeflectionMm > 0.2 ? 'text-amber-400' : 'text-[#F0F1F2]'}`}>
+                          <div className={`${evalItem.centerDeflectionMm > 0.2 ? 'text-[#D58A36]' : 'text-[#18211F]'}`}>
                             {evalItem.centerDeflectionMm.toFixed(4)} mm
                           </div>
-                          <div className="text-[10px] text-[#6C737D]">
+                          <div className="text-[10px] text-[#64716C]">
                             Slope: {(evalItem.bearingSlopeRad * 1000).toFixed(2)} mrad
                           </div>
                         </td>
-                        <td className="py-2 px-3 font-mono text-[11px] text-[#C2C8D0]">
-                          <div className={`${evalItem.torsionalTwistDegPerMeter > 1.0 ? 'text-amber-400' : 'text-[#F0F1F2]'}`}>
+                        <td className="py-2 px-3 font-mono text-[11px] text-[#18211F]">
+                          <div className={`${evalItem.torsionalTwistDegPerMeter > 1.0 ? 'text-[#D58A36]' : 'text-[#18211F]'}`}>
                             {evalItem.torsionalTwistDegPerMeter.toFixed(3)}°/m
                           </div>
-                          <div className="text-[10px] text-[#6C737D]">
+                          <div className="text-[10px] text-[#64716C]">
                             Limit: {DESIGN_LIMITS.MAX_TORSIONAL_TWIST_DEG_PER_M.toFixed(1)}°/m
                           </div>
                         </td>
                         <td className="py-2 px-3 font-mono text-[11px]">
-                          <div className="text-[#F0F1F2] font-semibold">{evalItem.massKg.toFixed(2)} kg</div>
+                          <div className="text-[#18211F] font-semibold">{evalItem.massKg.toFixed(2)} kg</div>
                           {evalItem.relativeWeightVsBaselinePercent !== 0 && (
-                            <div className={`text-[10px] ${evalItem.relativeWeightVsBaselinePercent < 0 ? 'text-emerald-400' : 'text-[#969DA5]'}`}>
+                            <div className={`text-[10px] ${evalItem.relativeWeightVsBaselinePercent < 0 ? 'text-[#39866B]' : 'text-[#64716C]'}`}>
                               {evalItem.relativeWeightVsBaselinePercent > 0 ? '+' : ''}
                               {evalItem.relativeWeightVsBaselinePercent.toFixed(0)}% vs active
                             </div>
                           )}
                         </td>
-                        <td className="py-2 px-3 font-mono text-[11px] text-[#64D6C5]">
-                          {evalItem.specificStrength.toFixed(0)} <span className="text-[10px] text-[#6C737D]">kN·m/kg</span>
+                        <td className="py-2 px-3 font-mono text-[11px] text-[#147D70] font-bold">
+                          {evalItem.specificStrength.toFixed(0)} <span className="text-[10px] text-[#64716C]">kN·m/kg</span>
                         </td>
                         <td className="py-2 px-3 text-[11px] max-w-xs">
                           <span className={`font-mono text-[10px] block truncate ${
                             evalItem.governingConstraint.status === 'fail'
-                              ? 'text-rose-400'
+                              ? 'text-[#CB5750]'
                               : evalItem.governingConstraint.status === 'warning'
-                              ? 'text-amber-400'
-                              : 'text-[#969DA5]'
+                              ? 'text-[#D58A36]'
+                              : 'text-[#64716C]'
                           }`}>
                             {evalItem.governingConstraint.name}
                           </span>
-                          <span className="text-[10px] text-[#6C737D] truncate block">
+                          <span className="text-[10px] text-[#64716C] truncate block">
                             {evalItem.governingConstraint.remedy || evalItem.governingConstraint.message}
                           </span>
                         </td>
@@ -467,10 +467,10 @@ export default function MaterialsPage() {
                               selectMaterial(mat.id);
                               setActivePage('workspace');
                             }}
-                            className={`text-[11px] font-mono py-1 px-2.5 rounded-[2px] transition-colors ${
+                            className={`text-[11px] font-mono py-1 px-2.5 rounded-[2px] transition-colors shadow-xs ${
                               isSelected
-                                ? 'bg-[#64D6C5]/20 text-[#64D6C5] border border-[#64D6C5]/30'
-                                : 'bg-[#22262A] hover:bg-[#64D6C5] text-[#F0F1F2] hover:text-[#111315] border border-[#34393F]'
+                                ? 'bg-[#147D70]/20 text-[#147D70] border border-[#147D70]/30 font-bold'
+                                : 'bg-[#147D70] hover:bg-[#0E6257] text-white'
                             }`}
                           >
                             {isSelected ? 'Active Alloy' : 'Select →'}
@@ -488,31 +488,31 @@ export default function MaterialsPage() {
 
       {/* Selected Material Detail Card with Comprehensive Traceability */}
       {selectedMaterial && (
-        <div className="p-4 rounded-[4px] bg-[#191C1F] border border-[#34393F] space-y-4">
+        <div className="p-4 rounded-[4px] bg-white border border-[#DDE4E0] space-y-4 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-[#14171A] text-[#64D6C5] border border-[#2A2E35]">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] bg-[#EEF2EF] text-[#147D70] border border-[#DDE4E0]">
                   Active CAD Model Alloy
                 </span>
                 {selectedMaterial.designation && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[2px] bg-[#22262A] text-[#F0F1F2] border border-[#34393F]">
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-[2px] bg-[#F5F7F5] text-[#18211F] border border-[#DDE4E0]">
                     {selectedMaterial.designation}
                   </span>
                 )}
-                <span className="text-xs text-[#969DA5] font-mono">{selectedMaterial.category}</span>
-                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-[2px] border border-emerald-500/20">
+                <span className="text-xs text-[#64716C] font-mono">{selectedMaterial.category}</span>
+                <span className="text-[10px] font-mono text-[#39866B] bg-[#39866B]/10 px-1.5 py-0.2 rounded-[2px] border border-[#39866B]/30 font-semibold">
                   {selectedMaterial.verificationStatus === 'verified' ? '✓ Verified Source' : 'Draft'}
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-[#F0F1F2] font-mono mt-1">{selectedMaterial.name}</h2>
-              <p className="text-xs text-[#969DA5] max-w-4xl leading-relaxed mt-0.5">
+              <h2 className="text-lg font-bold text-[#18211F] font-mono mt-1">{selectedMaterial.name}</h2>
+              <p className="text-xs text-[#64716C] max-w-4xl leading-relaxed mt-0.5">
                 {selectedMaterial.description}
               </p>
               {selectedMaterial.specification && (
-                <div className="text-[10px] font-mono text-[#64D6C5] mt-1">
-                  Standard Specification: <span className="text-[#C2C8D0]">{selectedMaterial.specification}</span>
-                  {selectedMaterial.condition && <span> | Condition: <span className="text-[#C2C8D0]">{selectedMaterial.condition}</span></span>}
+                <div className="text-[10px] font-mono text-[#147D70] mt-1">
+                  Standard Specification: <span className="text-[#18211F]">{selectedMaterial.specification}</span>
+                  {selectedMaterial.condition && <span> | Condition: <span className="text-[#18211F]">{selectedMaterial.condition}</span></span>}
                 </div>
               )}
             </div>
@@ -524,14 +524,14 @@ export default function MaterialsPage() {
                     `Analyze mechanical suitability of ${selectedMaterial.name} (${selectedMaterial.designation || ''}) under torque ${designParams.torque} N·m, force ${designParams.force} N, diameter ${designParams.diameter} mm.`
                   )
                 }
-                className="bg-[#22262A] hover:bg-[#2E3339] text-[#F0F1F2] border border-[#34393F] font-mono text-xs py-1.5 px-3 rounded-[3px] flex items-center gap-1.5 transition-colors"
+                className="bg-white hover:bg-[#EEF2EF] text-[#18211F] border border-[#DDE4E0] font-mono text-xs py-1.5 px-3 rounded-[3px] flex items-center gap-1.5 transition-colors shadow-xs"
               >
-                <Sparkles size={13} className="text-[#64D6C5]" />
+                <Sparkles size={13} className="text-[#147D70]" />
                 <span>Ask Copilot</span>
               </button>
               <button
                 onClick={() => setActivePage('workspace')}
-                className="bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono text-xs font-semibold py-1.5 px-3.5 rounded-[3px] transition-colors shadow-sm"
+                className="bg-[#147D70] hover:bg-[#0E6257] text-white font-mono text-xs font-semibold py-1.5 px-3.5 rounded-[3px] transition-colors shadow-xs"
               >
                 Open in Workspace
               </button>
@@ -540,33 +540,33 @@ export default function MaterialsPage() {
 
           {/* Metallurgical Property Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 pt-1 font-mono text-xs">
-            <div className="bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
-              <span className="text-[#6C737D] block text-[9px] uppercase">Yield Strength (S_y)</span>
-              <span className="text-[#34D399] font-bold text-xs">{selectedMaterial.yieldStrength} MPa</span>
+            <div className="bg-[#F5F7F5] p-2 rounded-[3px] border border-[#DDE4E0]">
+              <span className="text-[#64716C] block text-[9px] uppercase">Yield Strength (S_y)</span>
+              <span className="text-[#39866B] font-bold text-xs">{selectedMaterial.yieldStrength} MPa</span>
             </div>
-            <div className="bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
-              <span className="text-[#6C737D] block text-[9px] uppercase">Tensile (S_u)</span>
-              <span className="text-[#F0F1F2] font-bold text-xs">{selectedMaterial.tensileStrength} MPa</span>
+            <div className="bg-[#F5F7F5] p-2 rounded-[3px] border border-[#DDE4E0]">
+              <span className="text-[#64716C] block text-[9px] uppercase">Tensile (S_u)</span>
+              <span className="text-[#18211F] font-bold text-xs">{selectedMaterial.tensileStrength} MPa</span>
             </div>
-            <div className="bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
-              <span className="text-[#6C737D] block text-[9px] uppercase">Modulus (E)</span>
-              <span className="text-[#F0F1F2] font-bold text-xs">{selectedMaterial.elasticModulus} GPa</span>
+            <div className="bg-[#F5F7F5] p-2 rounded-[3px] border border-[#DDE4E0]">
+              <span className="text-[#64716C] block text-[9px] uppercase">Modulus (E)</span>
+              <span className="text-[#18211F] font-bold text-xs">{selectedMaterial.elasticModulus} GPa</span>
             </div>
-            <div className="bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
-              <span className="text-[#6C737D] block text-[9px] uppercase">Shear Modulus (G)</span>
-              <span className="text-[#64D6C5] font-bold text-xs">
+            <div className="bg-[#F5F7F5] p-2 rounded-[3px] border border-[#DDE4E0]">
+              <span className="text-[#64716C] block text-[9px] uppercase">Shear Modulus (G)</span>
+              <span className="text-[#147D70] font-bold text-xs">
                 {getShearModulusGPa(selectedMaterial).toFixed(1)} GPa
               </span>
             </div>
-            <div className="bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
-              <span className="text-[#6C737D] block text-[9px] uppercase">Hardness</span>
-              <span className="text-[#F0F1F2] font-bold text-xs">
+            <div className="bg-[#F5F7F5] p-2 rounded-[3px] border border-[#DDE4E0]">
+              <span className="text-[#64716C] block text-[9px] uppercase">Hardness</span>
+              <span className="text-[#18211F] font-bold text-xs">
                 {selectedMaterial.hardnessHRC ? `${selectedMaterial.hardnessHRC} HRC` : selectedMaterial.hardnessHB ? `${selectedMaterial.hardnessHB} HB` : '—'}
               </span>
             </div>
-            <div className="bg-[#14171A] p-2 rounded-[3px] border border-[#2A2E35]">
-              <span className="text-[#6C737D] block text-[9px] uppercase">Max Service Temp</span>
-              <span className="text-[#F0F1F2] font-bold text-xs">
+            <div className="bg-[#F5F7F5] p-2 rounded-[3px] border border-[#DDE4E0]">
+              <span className="text-[#64716C] block text-[9px] uppercase">Max Service Temp</span>
+              <span className="text-[#18211F] font-bold text-xs">
                 {selectedMaterial.maxOperatingTempC ? `${selectedMaterial.maxOperatingTempC}°C` : '—'}
               </span>
             </div>
@@ -574,11 +574,11 @@ export default function MaterialsPage() {
 
           {/* Assumptions & Limitations Box */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            <div className="bg-[#14171A] p-2.5 rounded-[3px] border border-[#2A2E35] text-[11px]">
-              <div className="text-[10px] font-mono uppercase text-[#64D6C5] font-bold mb-1 flex items-center gap-1">
+            <div className="bg-[#F5F7F5] p-2.5 rounded-[3px] border border-[#DDE4E0] text-[11px]">
+              <div className="text-[10px] font-mono uppercase text-[#147D70] font-bold mb-1 flex items-center gap-1">
                 <CheckCircle2 size={11} /> Baseline Engineering Assumptions
               </div>
-              <ul className="list-disc list-inside space-y-0.5 text-[#969DA5] font-mono text-[10px]">
+              <ul className="list-disc list-inside space-y-0.5 text-[#64716C] font-mono text-[10px]">
                 {selectedMaterial.assumptions && selectedMaterial.assumptions.length > 0 ? (
                   selectedMaterial.assumptions.map((a, i) => <li key={i}>{a}</li>)
                 ) : (
@@ -587,11 +587,11 @@ export default function MaterialsPage() {
               </ul>
             </div>
 
-            <div className="bg-[#14171A] p-2.5 rounded-[3px] border border-[#2A2E35] text-[11px]">
-              <div className="text-[10px] font-mono uppercase text-amber-400 font-bold mb-1 flex items-center gap-1">
+            <div className="bg-[#F5F7F5] p-2.5 rounded-[3px] border border-[#DDE4E0] text-[11px]">
+              <div className="text-[10px] font-mono uppercase text-[#D58A36] font-bold mb-1 flex items-center gap-1">
                 <AlertTriangle size={11} /> Metallurgical Limitations & De-rating
               </div>
-              <ul className="list-disc list-inside space-y-0.5 text-[#969DA5] font-mono text-[10px]">
+              <ul className="list-disc list-inside space-y-0.5 text-[#64716C] font-mono text-[10px]">
                 {selectedMaterial.limitations && selectedMaterial.limitations.length > 0 ? (
                   selectedMaterial.limitations.map((l, i) => <li key={i}>{l}</li>)
                 ) : (
@@ -602,8 +602,8 @@ export default function MaterialsPage() {
           </div>
 
           {selectedMaterial.sourceCitation && (
-            <div className="text-[10px] font-mono text-[#6C737D] border-t border-[#2A2E35] pt-2">
-              <span className="text-[#969DA5]">Citation:</span> {selectedMaterial.sourceCitation}
+            <div className="text-[10px] font-mono text-[#64716C] border-t border-[#DDE4E0] pt-2">
+              <span className="text-[#64716C] font-semibold">Citation:</span> {selectedMaterial.sourceCitation}
             </div>
           )}
         </div>
@@ -611,18 +611,18 @@ export default function MaterialsPage() {
 
       {/* Compare Modal with Engineering Decision Support */}
       {isCompareDrawerOpen && comparedMaterials.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-fade-in font-sans">
-          <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[90vh]">
-            <div className="px-4 py-3 border-b border-[#34393F] flex items-center justify-between bg-[#22262A]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fade-in font-sans">
+          <div className="bg-white border border-[#DDE4E0] rounded-[4px] shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden max-h-[90vh]">
+            <div className="px-4 py-3 border-b border-[#DDE4E0] flex items-center justify-between bg-[#EEF2EF]">
               <div className="flex items-center gap-2">
-                <GitCompare size={15} className="text-[#64D6C5]" />
-                <h3 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider">
+                <GitCompare size={15} className="text-[#147D70]" />
+                <h3 className="text-xs font-mono font-bold text-[#18211F] uppercase tracking-wider">
                   Alloy Metallurgical & CAD Performance Comparison ({comparedMaterials.length}/3)
                 </h3>
               </div>
               <button
                 onClick={() => setIsCompareDrawerOpen(false)}
-                className="text-[#969DA5] hover:text-white p-1 rounded-[3px] hover:bg-[#2E3339]"
+                className="text-[#64716C] hover:text-[#18211F] p-1 rounded-[3px] hover:bg-[#E8EFED]"
               >
                 <X size={15} />
               </button>
@@ -641,79 +641,79 @@ export default function MaterialsPage() {
                   return (
                     <div
                       key={m.id}
-                      className={`p-3 rounded-[3px] bg-[#14171A] border space-y-2.5 ${
-                        isCurrent ? 'border-[#64D6C5]' : 'border-[#2A2E35]'
+                      className={`p-3 rounded-[3px] bg-[#F5F7F5] border space-y-2.5 ${
+                        isCurrent ? 'border-[#147D70] shadow-xs' : 'border-[#DDE4E0]'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <h4 className="font-mono font-bold text-[#F0F1F2] text-xs truncate">{m.name}</h4>
+                        <h4 className="font-mono font-bold text-[#18211F] text-xs truncate">{m.name}</h4>
                         {isCurrent && (
-                          <span className="text-[9px] font-mono text-[#64D6C5] bg-[#64D6C5]/10 px-1 rounded-[2px] uppercase">
+                          <span className="text-[9px] font-mono text-[#147D70] bg-[#147D70]/10 px-1 rounded-[2px] uppercase font-bold">
                             Active
                           </span>
                         )}
                       </div>
-                      <div className="text-[10px] font-mono text-[#969DA5]">
+                      <div className="text-[10px] font-mono text-[#64716C]">
                         {m.designation || m.category} | {m.specification || 'Standard Spec'}
                       </div>
 
                       {/* Active CAD performance under current loads */}
-                      <div className="bg-[#191C1F] p-2 rounded-[2px] border border-[#2A2E35] space-y-1 font-mono text-[11px]">
+                      <div className="bg-white p-2 rounded-[2px] border border-[#DDE4E0] space-y-1 font-mono text-[11px]">
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Status:</span>
+                          <span className="text-[#64716C]">Status:</span>
                           <span className={`font-bold uppercase ${
                             evalRes.overallStatus === 'pass'
-                              ? 'text-emerald-400'
+                              ? 'text-[#39866B]'
                               : evalRes.overallStatus === 'warning'
-                              ? 'text-amber-400'
-                              : 'text-rose-400'
+                              ? 'text-[#D58A36]'
+                              : 'text-[#CB5750]'
                           }`}>
                             {evalRes.overallStatus} ({evalRes.suitabilityScore}/100)
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Factor of Safety:</span>
-                          <span className="text-[#F0F1F2] font-bold">{evalRes.factorOfSafety.toFixed(2)}</span>
+                          <span className="text-[#64716C]">Factor of Safety:</span>
+                          <span className="text-[#18211F] font-bold">{evalRes.factorOfSafety.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Center Deflection:</span>
-                          <span className="text-[#F0F1F2]">{evalRes.centerDeflectionMm.toFixed(4)} mm</span>
+                          <span className="text-[#64716C]">Center Deflection:</span>
+                          <span className="text-[#18211F]">{evalRes.centerDeflectionMm.toFixed(4)} mm</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Torsional Twist:</span>
-                          <span className="text-[#F0F1F2]">{evalRes.torsionalTwistDegPerMeter.toFixed(3)}°/m</span>
+                          <span className="text-[#64716C]">Torsional Twist:</span>
+                          <span className="text-[#18211F]">{evalRes.torsionalTwistDegPerMeter.toFixed(3)}°/m</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Shaft Mass:</span>
-                          <span className="text-[#64D6C5]">{evalRes.massKg.toFixed(2)} kg</span>
+                          <span className="text-[#64716C]">Shaft Mass:</span>
+                          <span className="text-[#147D70] font-bold">{evalRes.massKg.toFixed(2)} kg</span>
                         </div>
                       </div>
 
                       {/* Material Properties */}
                       <div className="space-y-1 text-xs font-mono">
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Yield (S_y):</span>
-                          <span className="text-[#34D399] font-bold">{m.yieldStrength} MPa</span>
+                          <span className="text-[#64716C]">Yield (S_y):</span>
+                          <span className="text-[#39866B] font-bold">{m.yieldStrength} MPa</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Modulus (E):</span>
-                          <span className="text-[#F0F1F2]">{m.elasticModulus} GPa</span>
+                          <span className="text-[#64716C]">Modulus (E):</span>
+                          <span className="text-[#18211F]">{m.elasticModulus} GPa</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Shear Modulus (G):</span>
-                          <span className="text-[#F0F1F2]">{getShearModulusGPa(m).toFixed(1)} GPa</span>
+                          <span className="text-[#64716C]">Shear Modulus (G):</span>
+                          <span className="text-[#18211F]">{getShearModulusGPa(m).toFixed(1)} GPa</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Density (ρ):</span>
-                          <span className="text-[#F0F1F2]">{m.density} kg/m³</span>
+                          <span className="text-[#64716C]">Density (ρ):</span>
+                          <span className="text-[#18211F]">{m.density} kg/m³</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Max Service Temp:</span>
-                          <span className="text-[#F0F1F2]">{m.maxOperatingTempC || '—'}°C</span>
+                          <span className="text-[#64716C]">Max Service Temp:</span>
+                          <span className="text-[#18211F]">{m.maxOperatingTempC || '—'}°C</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#969DA5]">Machinability:</span>
-                          <span className="text-[#C2C8D0]">{m.machinabilityPercent || '—'}%</span>
+                          <span className="text-[#64716C]">Machinability:</span>
+                          <span className="text-[#18211F]">{m.machinabilityPercent || '—'}%</span>
                         </div>
                       </div>
 
@@ -722,10 +722,10 @@ export default function MaterialsPage() {
                           selectMaterial(m.id);
                           setIsCompareDrawerOpen(false);
                         }}
-                        className={`w-full font-mono text-xs font-semibold py-1 rounded-[3px] transition-colors ${
+                        className={`w-full font-mono text-xs font-semibold py-1 rounded-[3px] transition-colors shadow-xs ${
                           isCurrent
-                            ? 'bg-[#22262A] text-[#64D6C5] border border-[#34393F]'
-                            : 'bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315]'
+                            ? 'bg-[#EEF2EF] text-[#147D70] border border-[#DDE4E0]'
+                            : 'bg-[#147D70] hover:bg-[#0E6257] text-white'
                         }`}
                       >
                         {isCurrent ? 'Currently Active' : 'Apply Alloy to CAD'}
@@ -737,21 +737,21 @@ export default function MaterialsPage() {
 
               {/* Tradeoff Analysis between compared alloys */}
               {comparedMaterials.length >= 2 && (
-                <div className="p-3 bg-[#14171A] rounded-[3px] border border-[#2A2E35] font-mono text-xs space-y-1.5">
-                  <div className="text-[10px] uppercase text-[#64D6C5] font-bold">
+                <div className="p-3 bg-[#F5F7F5] rounded-[3px] border border-[#DDE4E0] font-mono text-xs space-y-1.5">
+                  <div className="text-[10px] uppercase text-[#147D70] font-bold">
                     Direct Engineering Trade-off Analysis
                   </div>
-                  <p className="text-[#969DA5] leading-relaxed text-[11px]">
+                  <p className="text-[#64716C] leading-relaxed text-[11px]">
                     {generateStiffnessStrengthInsight(comparedMaterials[0], comparedMaterials[1])}
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="px-4 py-2.5 border-t border-[#34393F] bg-[#22262A] flex justify-end">
+            <div className="px-4 py-2.5 border-t border-[#DDE4E0] bg-[#EEF2EF] flex justify-end">
               <button
                 onClick={() => setIsCompareDrawerOpen(false)}
-                className="bg-[#14171A] hover:bg-[#2A2E35] text-[#F0F1F2] border border-[#34393F] font-mono text-xs py-1 px-3 rounded-[3px]"
+                className="bg-white hover:bg-[#EEF2EF] text-[#18211F] border border-[#DDE4E0] font-mono text-xs py-1 px-3 rounded-[3px] shadow-xs"
               >
                 Close Comparison
               </button>

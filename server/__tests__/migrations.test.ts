@@ -16,16 +16,22 @@ describe('SQLite Migration System', () => {
     assert.strictEqual(getCurrentSchemaVersion(memDb), 0);
 
     const result = runMigrations(memDb);
-    assert.strictEqual(result.appliedCount, 2);
-    assert.strictEqual(result.currentVersion, 2);
-    assert.strictEqual(getCurrentSchemaVersion(memDb), 2);
+    assert.strictEqual(result.appliedCount, 5);
+    assert.strictEqual(result.currentVersion, 5);
+    assert.strictEqual(getCurrentSchemaVersion(memDb), 5);
 
     const applied = getAppliedMigrations(memDb);
-    assert.strictEqual(applied.length, 2);
+    assert.strictEqual(applied.length, 5);
     assert.strictEqual(applied[0].version, 1);
     assert.strictEqual(applied[0].name, '001_initial_schema');
     assert.strictEqual(applied[1].version, 2);
     assert.strictEqual(applied[1].name, '002_design_versions');
+    assert.strictEqual(applied[2].version, 3);
+    assert.strictEqual(applied[2].name, '003_manufacturing_bom');
+    assert.strictEqual(applied[3].version, 4);
+    assert.strictEqual(applied[3].name, '004_drawing_and_delta_tracking');
+    assert.strictEqual(applied[4].version, 5);
+    assert.strictEqual(applied[4].name, '005_engineering_workflows_and_documents');
 
     // Confirm tables exist
     const tables = memDb
@@ -37,7 +43,20 @@ describe('SQLite Migration System', () => {
     assert.ok(tableNames.includes('conversations'), 'conversations table exists');
     assert.ok(tableNames.includes('messages'), 'messages table exists');
     assert.ok(tableNames.includes('design_versions'), 'design_versions table exists');
+    assert.ok(tableNames.includes('products'), 'products table exists');
+    assert.ok(tableNames.includes('product_revisions'), 'product_revisions table exists');
+    assert.ok(tableNames.includes('bom_headers'), 'bom_headers table exists');
+    assert.ok(tableNames.includes('bom_lines'), 'bom_lines table exists');
+    assert.ok(tableNames.includes('engineering_workflows'), 'engineering_workflows table exists');
+    assert.ok(tableNames.includes('engineering_documents'), 'engineering_documents table exists');
     assert.ok(tableNames.includes('schema_migrations'), 'schema_migrations table exists');
+
+    // Confirm new columns on design_versions exist
+    const versionCols = memDb.prepare("PRAGMA table_info(design_versions);").all() as { name: string }[];
+    const versionColNames = versionCols.map((c) => c.name);
+    assert.ok(versionColNames.includes('drawingStatus'), 'drawingStatus column exists');
+    assert.ok(versionColNames.includes('changedParameters'), 'changedParameters column exists');
+    assert.ok(versionColNames.includes('restoredFromVersion'), 'restoredFromVersion column exists');
   });
 
   it('re-running migrations is idempotent and does not fail or duplicate entries', () => {
@@ -47,10 +66,10 @@ describe('SQLite Migration System', () => {
     // Second run
     const secondRun = runMigrations(memDb);
     assert.strictEqual(secondRun.appliedCount, 0, 'No migrations should run on second pass');
-    assert.strictEqual(secondRun.currentVersion, 2);
+    assert.strictEqual(secondRun.currentVersion, 5);
 
     const applied = getAppliedMigrations(memDb);
-    assert.strictEqual(applied.length, 2, 'Applied migrations list length stays 2');
+    assert.strictEqual(applied.length, 5, 'Applied migrations list length stays 5');
   });
 
   it('preserves existing project and conversation records when migrating an existing database', () => {
@@ -87,7 +106,7 @@ describe('SQLite Migration System', () => {
 
     // Step 2: Run migrations
     const result = runMigrations(memDb);
-    assert.strictEqual(result.currentVersion, 2);
+    assert.strictEqual(result.currentVersion, 5);
 
     // Step 3: Verify legacy data is 100% intact
     const proj = memDb.prepare('SELECT * FROM projects WHERE id = ?;').get('proj-test-legacy') as any;
@@ -98,9 +117,11 @@ describe('SQLite Migration System', () => {
     assert.ok(conv, 'Legacy conversation is preserved');
     assert.strictEqual(conv.title, 'Legacy Discussion');
 
-    // Verify new table design_versions is available
+    // Verify new tables design_versions and products are available
     const versions = memDb.prepare('SELECT * FROM design_versions;').all();
     assert.deepStrictEqual(versions, []);
+    const prods = memDb.prepare('SELECT * FROM products;').all();
+    assert.deepStrictEqual(prods, []);
   });
 
   it('rolls back transaction cleanly if a migration fails', () => {

@@ -284,7 +284,7 @@ ${excitationOrders?.orders.map(o => `- ${o.orderName}: ${o.frequencyHz} Hz ${o.n
   };
 
   return (
-    <div className="p-6 space-y-6 bg-[#0E1012] text-[#E1E4E8]">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 bg-[#0E1012] text-[#E1E4E8]">
       {/* Workstation Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2B3036] pb-4">
         <div>

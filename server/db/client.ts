@@ -61,6 +61,10 @@ export function resetDatabase() {
     throw new Error(`CRITICAL SAFETY ERROR: Attempted to call resetDatabase() on development database: ${activeDbPath}`);
   }
   db.exec(`
+    DROP TABLE IF EXISTS bom_lines;
+    DROP TABLE IF EXISTS bom_headers;
+    DROP TABLE IF EXISTS product_revisions;
+    DROP TABLE IF EXISTS products;
     DROP TABLE IF EXISTS design_versions;
     DROP TABLE IF EXISTS messages;
     DROP TABLE IF EXISTS conversations;

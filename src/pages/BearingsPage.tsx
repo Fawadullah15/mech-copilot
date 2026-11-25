@@ -174,13 +174,13 @@ export default function BearingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bearing-analysis-${activeProject.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
+    a.download = `bearing-analysis-${(activeProject?.name || 'shaft').toLowerCase().replace(/[^a-z0-9]/g, '-')}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="bg-navy-950 p-6 text-gray-100">
+    <div className="bg-navy-950 p-4 sm:p-6 lg:p-8 text-gray-100">
       {/* ─── Header ─── */}
       <div className="mb-6 flex flex-col justify-between gap-4 border-b border-navy-800 pb-5 md:flex-row md:items-center">
         <div>
@@ -1039,7 +1039,7 @@ function ShaftSupportSvg({
               strokeWidth="2"
               markerEnd={RyA > 0 ? 'url(#arrow-up)' : 'url(#arrow-down)'}
             />
-            <text x="0" y="-shaftH / 2 - 46" textAnchor="middle" fill="#34D399" fontSize="10" fontFamily="monospace">
+            <text x="0" y={-shaftH / 2 - 46} textAnchor="middle" fill="#34D399" fontSize="10" fontFamily="monospace">
               FrA={FrA}N
             </text>
           </g>
@@ -1096,7 +1096,7 @@ function ShaftSupportSvg({
               strokeWidth="2"
               markerEnd={RyB > 0 ? 'url(#arrow-up)' : 'url(#arrow-down)'}
             />
-            <text x="0" y="-shaftH / 2 - 46" textAnchor="middle" fill="#34D399" fontSize="10" fontFamily="monospace">
+            <text x="0" y={-shaftH / 2 - 46} textAnchor="middle" fill="#34D399" fontSize="10" fontFamily="monospace">
               FrB={FrB}N
             </text>
           </g>

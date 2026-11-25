@@ -9,7 +9,9 @@ import {
   calculateFactorOfSafety,
   generateCalculationExplanation,
   getNearestStandardDiameter,
-  calculateFullShaftAnalysis
+  calculateFullShaftAnalysis,
+  solveMinimumShaftDiameterCombined,
+  validateShaftInputs
 } from '../index';
 import type { DesignParameters, Material } from '../../types';
 
@@ -200,5 +202,314 @@ describe('Stage 03 Independent Formula Verification & Benchmark Cases', () => {
     // Ensure recommendations reflect standard metric sizes
     assert.strictEqual(getNearestStandardDiameter(42.3), 45);
     assert.strictEqual(getNearestStandardDiameter(48.1), 50);
+  });
+
+  test('Benchmark H: Bounded Bisection Combined Minimum Diameter Sizing (Von Mises vs Tresca)', () => {
+    // Inputs: T = 500 N*m, F = 12000 N, L = 320 mm -> M = 960 N*m
+    // Sy = 655 MPa, n_target = 2.0
+    // Analytical Von Mises:
+    // d_vm = [ (32 * n / (pi * Sy)) * sqrt(M^2 + 0.75 * T^2) ]^(1/3)
+    // sqrt(960^2 + 0.75 * 500^2) = sqrt(921600 + 187500) = 1053.138 N*m
+    // d_vm = [ (64 / (pi * 655e6)) * 1053.138 ]^(1/3) = [ 3.27547e-5 ]^(1/3) = 0.031995 m = 32.00 mm
+    const solVM = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 655,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises'
+    });
+
+    assert.ok(
+      Math.abs(solVM.combinedStressDiameterMm - 32.00) < 0.05,
+      `Expected Von Mises d_min ~32.00 mm, got ${solVM.combinedStressDiameterMm}`
+    );
+    assert.ok(solVM.bisectionIterations < 50, 'Bisection should converge in under 50 iterations');
+
+    // Analytical Tresca:
+    // d_tr = [ (32 * n / (pi * Sy)) * sqrt(M^2 + T^2) ]^(1/3)
+    // sqrt(960^2 + 500^2) = sqrt(921600 + 250000) = 1082.4047 N*m
+    // d_tr = [ (64 / (pi * 655e6)) * 1082.4047 ]^(1/3) = [ 3.36649e-5 ]^(1/3) = 0.032289 m = 32.29 mm
+    const solTresca = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 655,
+      targetSafetyFactor: 2.0,
+      criterion: 'Tresca'
+    });
+
+    assert.ok(
+      Math.abs(solTresca.combinedStressDiameterMm - 32.29) < 0.05,
+      `Expected Tresca d_min ~32.29 mm, got ${solTresca.combinedStressDiameterMm}`
+    );
+
+    // Tresca diameter must be greater than or equal to Von Mises diameter:
+    assert.ok(
+      solTresca.combinedStressDiameterMm >= solVM.combinedStressDiameterMm,
+      'Tresca sizing must be more conservative than Von Mises'
+    );
+  });
+
+  test('Benchmark I: Numerical Sensitivity & Target FoS Threshold at Calculated Root', () => {
+    // Solved Von Mises root for T=500 Nm, M=960 Nm, Sy=655 MPa, n=2.0 is d ~ 32.00 mm
+    const solVM = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 655,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises'
+    });
+    const dMin = solVM.combinedStressDiameterMm;
+
+    // Evaluate at dMin:
+    const atRoot = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      diameterMm: dMin,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises'
+    });
+    // FoS at root should equal 2.00 within 0.005:
+    assert.ok(
+      Math.abs(atRoot.combinedStress.result.factorOfSafety - 2.00) < 0.005,
+      `FoS at exact root must be ~2.00, got ${atRoot.combinedStress.result.factorOfSafety}`
+    );
+
+    // Evaluate slightly below dMin (-0.2 mm): must fail target safety factor
+    const belowRoot = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      diameterMm: dMin - 0.2,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises'
+    });
+    assert.ok(
+      belowRoot.combinedStress.result.factorOfSafety < 2.00,
+      `Diameter ${dMin - 0.2} mm must produce FoS < 2.00 (got ${belowRoot.combinedStress.result.factorOfSafety})`
+    );
+
+    // Evaluate slightly above dMin (+0.2 mm): must pass target safety factor
+    const aboveRoot = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      diameterMm: dMin + 0.2,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises'
+    });
+    assert.ok(
+      aboveRoot.combinedStress.result.factorOfSafety > 2.00,
+      `Diameter ${dMin + 0.2} mm must produce FoS > 2.00 (got ${aboveRoot.combinedStress.result.factorOfSafety})`
+    );
+  });
+
+  test('Benchmark J: Critical Defect Prevention: Pure Torsion Sizing under Combined Load Fails', () => {
+    // Pure torsion requires d_min = 24.96 mm for T=500 Nm, Sy=655 MPa, n=2.0
+    // If an engineer mistakenly uses pure torsion diameter under combined loading (M = 960 Nm):
+    const combinedWithTorsionDiameter = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      diameterMm: 24.96,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises'
+    });
+
+    // Bending stress on 24.96 mm shaft: 32 * 960 / (pi * 0.02496^3) = 627.9 MPa!
+    // Equivalent stress: ~633 MPa -> FoS = 655 / 633 = 1.03x (far below required 2.0x, nearly yields!)
+    assert.ok(
+      combinedWithTorsionDiameter.combinedStress.result.factorOfSafety < 2.0,
+      'Pure torsion diameter must NOT satisfy combined loading safety factor'
+    );
+    assert.strictEqual(combinedWithTorsionDiameter.overallStatus, 'fail');
+    assert.ok(
+      (combinedWithTorsionDiameter.minRequiredDiameterMm || 0) > 24.96,
+      `Combined required diameter (${combinedWithTorsionDiameter.minRequiredDiameterMm} mm) must be larger than pure torsion (24.96 mm)`
+    );
+  });
+
+  test('Benchmark K: Flexural Deflection Stiffness Constraint & Screening Ratios', () => {
+    // For F = 12000 N, L = 320 mm, E = 205 GPa:
+    // Stiffness-limited diameter for L/1000 (0.32 mm max deflection):
+    // d_defl = [ (4000 * F * L^2) / (3 * pi * E) ]^(1/4)
+    // 4000 * 12000 * 0.32^2 = 4,915,200
+    // 3 * pi * 205e9 = 1.93208e12
+    // d_defl = [ 4915200 / 1.93208e12 ]^(1/4) = [ 2.544e-6 ]^(1/4) = 0.03994 m = 39.94 mm
+    const solStiffness = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 655,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises',
+      elasticModulusGPa: 205,
+      deflectionLimitRatio: 1000
+    });
+
+    assert.ok(
+      Math.abs(solStiffness.deflectionGovernedDiameterMm! - 39.94) < 0.1,
+      `Expected deflection governed diameter ~39.94 mm, got ${solStiffness.deflectionGovernedDiameterMm}`
+    );
+    // Since 39.94 mm > 32.00 mm (combined stress), stiffness governs overall required diameter!
+    assert.strictEqual(solStiffness.governingConstraint, 'deflection_stiffness');
+    assert.ok(
+      Math.abs(solStiffness.requiredDiameterMm - 39.94) < 0.1,
+      `Overall required diameter must be ~39.94 mm, got ${solStiffness.requiredDiameterMm}`
+    );
+
+    // If deflection limit ratio is relaxed to L/500 (allowable 0.64 mm):
+    // d_defl = [ (2000 * 12000 * 0.32^2) / (3 * pi * 205e9) ]^(1/4) = 33.59 mm
+    const solRelaxed = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 655,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises',
+      elasticModulusGPa: 205,
+      deflectionLimitRatio: 500
+    });
+    assert.ok(
+      Math.abs(solRelaxed.deflectionGovernedDiameterMm! - 33.59) < 0.1,
+      `Expected relaxed deflection diameter ~33.59 mm, got ${solRelaxed.deflectionGovernedDiameterMm}`
+    );
+  });
+
+  test('Benchmark L: Material Inversion & Parametric Responsiveness', () => {
+    // Sizing under identical loads (T=500, F=12000, L=320, n=2.0) across 3 materials:
+    // 1. AISI 4140: Sy = 655 MPa -> d_vm ~ 32.00 mm
+    // 2. AISI 1045: Sy = 310 MPa -> d_vm = 32.00 * (655 / 310)^(1/3) = 41.04 mm
+    // 3. Structural Steel A36: Sy = 250 MPa -> d_vm = 32.00 * (655 / 250)^(1/3) = 44.13 mm
+    const sol4140 = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 655,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises'
+    });
+
+    const sol1045 = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 310,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises'
+    });
+
+    const solA36 = solveMinimumShaftDiameterCombined({
+      torqueNm: 500,
+      radialForceN: 12000,
+      lengthMm: 320,
+      yieldStrengthMPa: 250,
+      targetSafetyFactor: 2.0,
+      criterion: 'Von Mises'
+    });
+
+    assert.ok(Math.abs(sol4140.combinedStressDiameterMm - 32.00) < 0.05);
+    assert.ok(Math.abs(sol1045.combinedStressDiameterMm - 41.04) < 0.1);
+    assert.ok(Math.abs(solA36.combinedStressDiameterMm - 44.13) < 0.1);
+
+    // Monotonicity law: As yield strength decreases, required diameter must strictly increase
+    assert.ok(
+      solA36.combinedStressDiameterMm > sol1045.combinedStressDiameterMm &&
+      sol1045.combinedStressDiameterMm > sol4140.combinedStressDiameterMm,
+      'Lower yield strength must demand larger diameter'
+    );
+  });
+
+  test('Benchmark M: Strict Input Validation & Out-of-Bounds Rejection', () => {
+    // 1. Negative diameter
+    const negDiameter = validateShaftInputs({ diameterMm: -25 });
+    assert.strictEqual(negDiameter.isValid, false);
+    assert.ok(negDiameter.errors.some(e => e.includes('Diameter must be greater than 0')));
+
+    // 2. Zero length
+    const zeroLength = validateShaftInputs({ lengthMm: 0 });
+    assert.strictEqual(zeroLength.isValid, false);
+    assert.ok(zeroLength.errors.some(e => e.includes('Shaft length must be greater than 0')));
+
+    // 3. Negative torque
+    const negTorque = validateShaftInputs({ torqueNm: -100 });
+    assert.strictEqual(negTorque.isValid, false);
+    assert.ok(negTorque.errors.some(e => e.includes('torque must be a non-negative value')));
+
+    // 4. Zero safety factor
+    const zeroFoS = validateShaftInputs({ safetyFactor: 0 });
+    assert.strictEqual(zeroFoS.isValid, false);
+    assert.ok(zeroFoS.errors.some(e => e.includes('safety factor must be strictly greater than 0')));
+
+    // 5. Valid inputs pass cleanly
+    const valid = validateShaftInputs({
+      diameterMm: 45,
+      lengthMm: 320,
+      torqueNm: 500,
+      forceN: 12000,
+      rpm: 1450,
+      safetyFactor: 2.0,
+      yieldStrengthMPa: 655,
+      elasticModulusGPa: 205
+    });
+    assert.strictEqual(valid.isValid, true);
+    assert.strictEqual(valid.errors.length, 0);
+  });
+
+  test('Benchmark N: Composite Shaft Analysis Full Integration and Dynamic Derivation Consistency', () => {
+    const full = calculateFullShaftAnalysis({
+      torqueNm: 500,
+      radialForceN: 12000,
+      diameterMm: 45,
+      lengthMm: 320,
+      rpm: 1450,
+      yieldStrengthMPa: 655,
+      tensileStrengthMPa: 1020,
+      elasticModulusGPa: 205,
+      targetSafetyFactor: 2.0,
+      operatingTempC: 60,
+      criterion: 'Von Mises',
+      deflectionLimitRatio: 1000
+    });
+
+    // Check overall pass status
+    assert.strictEqual(full.overallStatus, 'pass');
+    // Check all sub-results populated with verified values
+    assert.ok(Math.abs(full.torsion.result.shearStressMPa - 27.94) < 0.05);
+    assert.ok(Math.abs(full.bending.result.bendingStressMPa - 107.31) < 0.05);
+    assert.ok(Math.abs(full.combinedStress.result.equivalentStressMPa - 117.72) < 0.05);
+    assert.ok(Math.abs(full.combinedStress.result.factorOfSafety - 5.56) < 0.05);
+    assert.ok(Math.abs(full.deflection.result.maxDeflectionMm - 0.1985) < 0.005);
+    assert.ok(Math.abs(full.power.result.powerKW - 75.92) < 0.05);
+    assert.ok(Math.abs(full.power.result.powerHp - 101.8) < 0.1);
+
+    // Check minimum required diameter metrics
+    assert.ok(full.minRequiredDiameterMm! <= 45, '45 mm shaft must exceed required diameter');
+    assert.strictEqual(full.governingConstraint, 'deflection_stiffness');
+    assert.ok(full.summary.includes('Von Mises'));
+    assert.ok(full.summary.includes('Minimum required diameter: 39.9 mm'));
   });
 });

@@ -7,12 +7,11 @@ interface BrandIconProps {
 }
 
 /**
- * Precision mechanical brand icon.
- * Geometric construction: Concentric bearing race circle, precision hex-shaft hub,
- * and 45-degree torque load vectors symbolizing mechanical design & intelligence.
+ * Mechanical Copilot Faceted 'M' Mechanical CAD Emblem.
+ * Geometric precision faceted 'M' with electric blue (#315EDE) and royal purple (#7653C9) gradients.
  */
 export const BrandIcon: React.FC<BrandIconProps> = ({
-  size = 24,
+  size = 28,
   className = '',
   variant = 'filled',
 }) => {
@@ -26,54 +25,55 @@ export const BrandIcon: React.FC<BrandIconProps> = ({
       className={`shrink-0 ${className}`}
     >
       <defs>
-        <linearGradient id="axis-grad-primary" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#38bdf8" />
-          <stop offset="100%" stopColor="#2563eb" />
+        <linearGradient id="mc-blue-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#315EDE" />
+          <stop offset="100%" stopColor="#2446B8" />
         </linearGradient>
-        <linearGradient id="axis-grad-accent" x1="6" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#06b6d4" />
-          <stop offset="100%" stopColor="#3b82f6" />
+        <linearGradient id="mc-purple-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#7653C9" />
+          <stop offset="100%" stopColor="#512DA8" />
+        </linearGradient>
+        <linearGradient id="mc-facet-mid" x1="8" y1="8" x2="24" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#4F75E8" />
+          <stop offset="100%" stopColor="#6C4AB6" />
         </linearGradient>
       </defs>
 
-      {/* Outer Precision Outer Ring / Chamfer */}
-      <rect
-        x="2.5"
-        y="2.5"
-        width="27"
-        height="27"
-        rx="7"
-        stroke={variant === 'monochrome' ? 'currentColor' : 'url(#axis-grad-primary)'}
-        strokeWidth="1.75"
-        strokeOpacity="0.85"
-        fill={variant === 'filled' ? 'rgba(37, 99, 235, 0.08)' : 'none'}
-      />
-
-      {/* Hexagonal Shaft Core */}
+      {/* Left Column of 'M' */}
       <path
-        d="M16 6.5L24.2272 11.25V20.75L16 25.5L7.77275 20.75V11.25L16 6.5Z"
-        stroke={variant === 'monochrome' ? 'currentColor' : '#38bdf8'}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        fill={variant === 'filled' ? 'rgba(56, 189, 248, 0.12)' : 'none'}
+        d="M5 26V8L12 16L9 26H5Z"
+        fill="url(#mc-blue-grad)"
       />
 
-      {/* Precision Bearing Bore Circle */}
-      <circle
-        cx="16"
-        cy="16"
-        r="4.75"
-        stroke={variant === 'monochrome' ? 'currentColor' : '#ffffff'}
-        strokeWidth="1.5"
+      {/* Center Left Incline */}
+      <path
+        d="M12 16L16 22L9 26L12 16Z"
+        fill="url(#mc-facet-mid)"
       />
 
-      {/* Center Centerline Crosshair Points */}
-      <line x1="16" y1="13.5" x2="16" y2="18.5" stroke={variant === 'monochrome' ? 'currentColor' : '#38bdf8'} strokeWidth="1.25" strokeLinecap="round" />
-      <line x1="13.5" y1="16" x2="18.5" y2="16" stroke={variant === 'monochrome' ? 'currentColor' : '#38bdf8'} strokeWidth="1.25" strokeLinecap="round" />
+      {/* Center Top Facet */}
+      <path
+        d="M5 8L16 6L12 16L5 8Z"
+        fill="#315EDE"
+      />
 
-      {/* 45° Coordinate Torsional Vector Tick */}
-      <circle cx="21.5" cy="10.5" r="1.25" fill={variant === 'monochrome' ? 'currentColor' : '#22d3ee'} />
-      <circle cx="10.5" cy="21.5" r="1.25" fill={variant === 'monochrome' ? 'currentColor' : '#38bdf8'} />
+      {/* Center Right Incline */}
+      <path
+        d="M16 22L20 16L23 26L16 22Z"
+        fill="url(#mc-purple-grad)"
+      />
+
+      {/* Center Right Top Facet */}
+      <path
+        d="M16 6L27 8L20 16L16 6Z"
+        fill="#7653C9"
+      />
+
+      {/* Right Column of 'M' */}
+      <path
+        d="M27 8V26H23L20 16L27 8Z"
+        fill="#5D35B0"
+      />
     </svg>
   );
 };

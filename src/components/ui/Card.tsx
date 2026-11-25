@@ -18,15 +18,15 @@ export const Card: React.FC<CardProps> = ({
     none: 'p-0',
     sm: 'p-3',
     md: 'p-4',
-    lg: 'p-6',
+    lg: 'p-5',
   }[padding];
 
   const variantClasses = {
-    default: 'bg-navy-900 border border-navy-750 shadow-elevation-1 rounded-xl',
-    elevated: 'bg-navy-850 border border-navy-700 shadow-elevation-2 rounded-xl',
-    glass: 'bg-navy-900/80 backdrop-blur-md border border-navy-700/60 shadow-elevation-2 rounded-xl',
+    default: 'bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#1E2D45] shadow-xs rounded-[8px]',
+    elevated: 'bg-white dark:bg-[#162236] border border-[#E2E8F0] dark:border-[#24344F] shadow-panel rounded-[8px]',
+    glass: 'bg-white/95 dark:bg-[#101A2B]/95 backdrop-blur-md border border-[#E2E8F0] dark:border-[#1E2D45] shadow-panel rounded-[8px]',
     interactive:
-      'bg-navy-900 hover:bg-navy-850 border border-navy-750 hover:border-navy-600 shadow-elevation-1 hover:shadow-elevation-2 rounded-xl cursor-pointer transition-all duration-150',
+      'bg-white dark:bg-[#101A2B] hover:border-[#2563EB]/50 hover:shadow-panel border border-[#E2E8F0] dark:border-[#1E2D45] rounded-[8px] cursor-pointer transition-all duration-150',
   }[variant];
 
   return (

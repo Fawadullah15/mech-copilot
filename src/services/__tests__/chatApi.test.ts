@@ -76,4 +76,41 @@ describe('Frontend chatApi tests', () => {
       /Server exploded/
     );
   });
+
+  it('Test 5 - Prompt 05 Agent fields (operationState, toolExecutionLogs, requirements, proposedChange)', async () => {
+    // @ts-ignore
+    global.fetch = async () => {
+      return new Response(JSON.stringify({
+        message: { role: 'assistant', content: 'Proposed shaft diameter update to 50 mm.' },
+        toolsUsed: ['update_shaft_dimensions'],
+        operationState: 'Waiting for Approval',
+        toolExecutionLogs: [
+          { tool: 'update_shaft_dimensions', permission: 'REVERSIBLE', status: 'success', timestamp: '2026-11-24T00:00:00Z', durationMs: 4 }
+        ],
+        requirements: {
+          identified: { torqueNm: 500 },
+          missing: []
+        },
+        proposedChange: {
+          type: 'proposed_dimension_change',
+          title: 'Modify Shaft Baseline Diameter',
+          permission: 'REVERSIBLE',
+          requiresApproval: true,
+          parameter: 'diameter',
+          proposedValue: 50,
+          unit: 'mm'
+        }
+      }));
+    };
+
+    const result = await sendChatMessage([{ id: '1', role: 'user', content: 'Increase diameter to 50 mm', timestamp: '' }], 'proj-1', 'conv-1');
+    assert.strictEqual(result.operationState, 'Waiting for Approval');
+    assert.ok(Array.isArray(result.toolExecutionLogs));
+    assert.strictEqual(result.toolExecutionLogs?.length, 1);
+    assert.strictEqual(result.toolExecutionLogs?.[0].permission, 'REVERSIBLE');
+    assert.ok(result.requirements);
+    assert.strictEqual(result.requirements?.identified.torqueNm, 500);
+    assert.ok(result.proposedChange);
+    assert.strictEqual(result.proposedChange?.proposedValue, 50);
+  });
 });

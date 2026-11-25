@@ -47,22 +47,22 @@ export default function AnalysisPage() {
 
   if (!analysisResults) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#111315] font-sans">
-        <div className="w-12 h-12 bg-[#191C1F] border border-[#34393F] rounded-[4px] flex items-center justify-center mb-4">
-          <Activity className="w-6 h-6 text-[#64D6C5]" />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#F2F4FA] dark:bg-[#111827] font-sans">
+        <div className="w-14 h-14 bg-[#FFFFFF] dark:bg-[#172033] border border-[#D9DFED] dark:border-[#28344E] rounded-[10px] flex items-center justify-center mb-4 shadow-panel">
+          <Activity className="w-7 h-7 text-[#315EDE]" />
         </div>
-        <h2 className="text-base font-mono font-bold text-[#F0F1F2] uppercase tracking-wider mb-1">
+        <h2 className="text-base font-bold text-[#172033] dark:text-[#FFFFFF] uppercase tracking-wider mb-1">
           No Simulation Telemetry Generated
         </h2>
-        <p className="text-xs text-[#969DA5] max-w-sm mb-6 font-mono">
+        <p className="text-xs text-[#64708A] max-w-sm mb-6 font-medium">
           Configure geometric dimensions and external loads, then run simulation.
         </p>
         <button
           onClick={() => setActivePage('workspace')}
-          className="bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono text-xs font-semibold py-1.5 px-4 rounded-[3px] flex items-center gap-2 transition-colors"
+          className="btn-primary text-xs font-semibold py-2 px-4 rounded-[8px] flex items-center gap-2 shadow-blueGlow"
         >
           <span>Open Design Workspace</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     );
@@ -88,24 +88,24 @@ export default function AnalysisPage() {
   };
 
   return (
-    <div className="p-5 lg:p-6 space-y-5 bg-[#111315] font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 bg-[#F2F4FA] dark:bg-[#111827] font-sans text-[#172033] dark:text-[#FFFFFF] max-w-7xl mx-auto">
       {/* CAD Station Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#34393F]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#D9DFED] dark:border-[#28344E]">
         <div>
-          <div className="text-[10px] font-mono uppercase tracking-widest text-[#64D6C5] mb-0.5">
+          <div className="text-xs font-mono uppercase tracking-wider text-[#315EDE] mb-1 font-bold">
             Finite Analytical Telemetry
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-[#F0F1F2]">
+          <h1 className="text-2xl font-bold tracking-tight text-[#172033] dark:text-[#FFFFFF] font-display">
             Engineering Stress & Fatigue Analysis
           </h1>
-          <p className="text-xs text-[#969DA5] font-mono mt-0.5">
+          <p className="text-xs text-[#64708A] font-medium mt-1">
             Multiaxial stress tensor evaluation • S-N fatigue endurance • Beam deflection
           </p>
         </div>
         <button
-          onClick={runAnalysis}
+          onClick={() => runAnalysis()}
           disabled={isAnalysisRunning}
-          className="bg-[#64D6C5] hover:bg-[#52c4b3] disabled:opacity-50 text-[#111315] font-mono text-xs font-semibold py-1.5 px-3.5 rounded-[3px] flex items-center gap-2 transition-colors self-start sm:self-auto shrink-0 shadow-sm"
+          className="btn-primary text-xs font-semibold py-2 px-4 rounded-[8px] flex items-center gap-2 shadow-blueGlow self-start sm:self-auto shrink-0"
         >
           {isAnalysisRunning ? (
             <span className="animate-pulse">Computing Matrix...</span>
@@ -120,29 +120,29 @@ export default function AnalysisPage() {
 
       {/* Status Banner */}
       <div
-        className={`px-3.5 py-2.5 rounded-[4px] flex items-center justify-between border text-xs font-mono ${
+        className={`px-4 py-3 rounded-[10px] flex items-center justify-between border text-xs font-mono ${
           isPass
-            ? 'bg-[#34D399]/10 border-[#34D399]/30 text-[#34D399]'
+            ? 'bg-[#39866B]/10 border-[#39866B]/30 text-[#39866B]'
             : isWarning
-            ? 'bg-[#E7B65C]/10 border-[#E7B65C]/30 text-[#E7B65C]'
-            : 'bg-[#E16D72]/10 border-[#E16D72]/30 text-[#E16D72]'
+            ? 'bg-[#C78B3B]/10 border-[#C78B3B]/30 text-[#C78B3B]'
+            : 'bg-[#C4515C]/10 border-[#C4515C]/30 text-[#C4515C]'
         }`}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {isPass && <CheckCircle className="w-4 h-4 shrink-0" />}
           {isWarning && <AlertTriangle className="w-4 h-4 shrink-0" />}
           {isFail && <XCircle className="w-4 h-4 shrink-0" />}
-          <span className="font-semibold uppercase tracking-wider text-[11px]">
+          <span className="font-semibold uppercase tracking-wider text-xs">
             {isPass ? 'Design Approved — All Parameters Within Allowable Design Limits' : analysisResults.statusMessage}
           </span>
         </div>
-        <span className="text-[10px] opacity-80 uppercase tracking-widest hidden sm:inline">
+        <span className="text-[11px] opacity-80 uppercase tracking-widest hidden sm:inline">
           Model: {designParams.diameter}mm / {designParams.length}mm / {designParams.torque}N·m
         </span>
       </div>
 
       {/* Results Telemetry Matrix */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-6 gap-3.5">
         <ResultCard
           label="Von Mises Stress"
           value={analysisResults.vonMisesStress}
@@ -210,69 +210,71 @@ export default function AnalysisPage() {
       </div>
 
       {/* Engineering Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Stress Distribution */}
-        <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] overflow-hidden">
-          <div className="bg-[#22262A] px-3.5 py-2 border-b border-[#34393F] flex items-center justify-between">
+        <div className="bg-[#FFFFFF] dark:bg-[#172033] border border-[#D9DFED] dark:border-[#28344E] rounded-[10px] shadow-panel overflow-hidden">
+          <div className="bg-[#F8FAFC] dark:bg-[#1E2436] px-4 py-2.5 border-b border-[#D9DFED] dark:border-[#28344E] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Layers size={13} className="text-[#64D6C5]" />
-              <h3 className="text-xs font-mono font-semibold text-[#F0F1F2] uppercase tracking-wider">
+              <Layers size={14} className="text-[#315EDE]" />
+              <h3 className="text-xs font-bold text-[#172033] dark:text-[#FFFFFF] uppercase tracking-wider">
                 Stress Distribution Along Shaft Axis
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-[#969DA5]">Span: 0 to {designParams.length} mm</span>
+            <span className="text-[11px] font-mono text-[#64708A]">Span: 0 to {designParams.length} mm</span>
           </div>
 
           <div className="p-4 h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stressData} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
-                <CartesianGrid stroke="#262A30" strokeDasharray="3 3" />
+                <CartesianGrid stroke="#E9EDF7" className="dark:stroke-[#28344E]" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="position"
-                  stroke="#4B535D"
-                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
+                  stroke="#D9DFED"
+                  tick={{ fill: '#64708A', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace' }}
                   tickFormatter={(val) => `${val}mm`}
                 />
                 <YAxis
-                  stroke="#4B535D"
-                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
+                  stroke="#D9DFED"
+                  tick={{ fill: '#64708A', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace' }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#22262A',
-                    border: '1px solid #34393F',
-                    borderRadius: 4,
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #D9DFED',
+                    borderRadius: 8,
                     fontSize: 11,
-                    fontFamily: 'monospace',
+                    fontFamily: 'IBM Plex Mono, monospace',
+                    color: '#172033',
+                    boxShadow: '0 4px 12px rgba(23,32,51,0.08)',
                   }}
-                  labelStyle={{ color: '#969DA5' }}
+                  labelStyle={{ color: '#64708A' }}
                   itemStyle={{ fontSize: 11 }}
                 />
-                <Legend wrapperStyle={{ color: '#969DA5', fontSize: 11, fontFamily: 'monospace', paddingTop: 6 }} />
+                <Legend wrapperStyle={{ color: '#64708A', fontSize: 11, fontFamily: 'IBM Plex Mono, monospace', paddingTop: 6 }} />
                 <Area
                   type="monotone"
                   dataKey="vonMises"
                   name="Von Mises (MPa)"
-                  stroke="#64D6C5"
-                  fill="#64D6C5"
-                  fillOpacity={0.15}
-                  strokeWidth={1.5}
+                  stroke="#315EDE"
+                  fill="#315EDE"
+                  fillOpacity={0.18}
+                  strokeWidth={2}
                 />
                 <Area
                   type="monotone"
                   dataKey="shear"
                   name="Torsional Shear (MPa)"
-                  stroke="#38BDF8"
-                  fill="#38BDF8"
-                  fillOpacity={0.08}
-                  strokeWidth={1.2}
+                  stroke="#7653C9"
+                  fill="#7653C9"
+                  fillOpacity={0.12}
+                  strokeWidth={1.5}
                 />
                 <Area
                   type="monotone"
                   dataKey="bending"
                   name="Bending Normal (MPa)"
-                  stroke="#A78BFA"
-                  fill="#A78BFA"
+                  stroke="#2446B8"
+                  fill="#2446B8"
                   fillOpacity={0.08}
                   strokeWidth={1.2}
                 />
@@ -282,62 +284,64 @@ export default function AnalysisPage() {
         </div>
 
         {/* Fatigue Life S-N Curve */}
-        <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] overflow-hidden">
-          <div className="bg-[#22262A] px-3.5 py-2 border-b border-[#34393F] flex items-center justify-between">
+        <div className="bg-[#FFFFFF] dark:bg-[#172033] border border-[#D9DFED] dark:border-[#28344E] rounded-[10px] shadow-panel overflow-hidden">
+          <div className="bg-[#F8FAFC] dark:bg-[#1E2436] px-4 py-2.5 border-b border-[#D9DFED] dark:border-[#28344E] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Activity size={13} className="text-[#64D6C5]" />
-              <h3 className="text-xs font-mono font-semibold text-[#F0F1F2] uppercase tracking-wider">
+              <Activity size={14} className="text-[#7653C9]" />
+              <h3 className="text-xs font-bold text-[#172033] dark:text-[#FFFFFF] uppercase tracking-wider">
                 High-Cycle Fatigue (S-N Wöhler Curve)
               </h3>
             </div>
-            <span className="text-[10px] font-mono text-[#969DA5]">Logarithmic Cycles</span>
+            <span className="text-[11px] font-mono text-[#64708A]">Logarithmic Cycles</span>
           </div>
 
           <div className="p-4 h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={fatigueData} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
-                <CartesianGrid stroke="#262A30" strokeDasharray="3 3" />
+                <CartesianGrid stroke="#E9EDF7" className="dark:stroke-[#28344E]" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="cycles"
                   scale="log"
                   domain={['dataMin', 'dataMax']}
                   type="number"
-                  stroke="#4B535D"
-                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
+                  stroke="#D9DFED"
+                  tick={{ fill: '#64708A', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace' }}
                   tickFormatter={(val) => val.toExponential(0)}
                 />
                 <YAxis
-                  stroke="#4B535D"
-                  tick={{ fill: '#969DA5', fontSize: 10, fontFamily: 'monospace' }}
+                  stroke="#D9DFED"
+                  tick={{ fill: '#64708A', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace' }}
                   domain={['auto', 'auto']}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#22262A',
-                    border: '1px solid #34393F',
-                    borderRadius: 4,
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #D9DFED',
+                    borderRadius: 8,
                     fontSize: 11,
-                    fontFamily: 'monospace',
+                    fontFamily: 'IBM Plex Mono, monospace',
+                    color: '#172033',
+                    boxShadow: '0 4px 12px rgba(23,32,51,0.08)',
                   }}
-                  labelStyle={{ color: '#969DA5' }}
+                  labelStyle={{ color: '#64708A' }}
                   itemStyle={{ fontSize: 11 }}
                   labelFormatter={(val) => `${val.toExponential(2)} cycles`}
                 />
-                <Legend wrapperStyle={{ color: '#969DA5', fontSize: 11, fontFamily: 'monospace', paddingTop: 6 }} />
+                <Legend wrapperStyle={{ color: '#64708A', fontSize: 11, fontFamily: 'IBM Plex Mono, monospace', paddingTop: 6 }} />
                 <ReferenceLine
                   y={fatigueData[fatigueData.length - 1]?.stress || 0}
-                  stroke="#E7B65C"
+                  stroke="#C78B3B"
                   strokeDasharray="3 3"
-                  label={{ value: 'Endurance Limit', fill: '#E7B65C', fontSize: 10, fontFamily: 'monospace', position: 'top' }}
+                  label={{ value: 'Endurance Limit', fill: '#C78B3B', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace', position: 'top' }}
                 />
                 <Line
                   type="monotone"
                   dataKey="stress"
                   name="Stress Amplitude (MPa)"
-                  stroke="#64D6C5"
+                  stroke="#315EDE"
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, fill: '#64D6C5', stroke: '#191C1F' }}
+                  activeDot={{ r: 5, fill: '#315EDE', stroke: '#FFFFFF', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -346,34 +350,34 @@ export default function AnalysisPage() {
       </div>
 
       {/* AI Synthesis Callout */}
-      <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] overflow-hidden">
+      <div className="bg-[#FFFFFF] dark:bg-[#172033] border border-[#D9DFED] dark:border-[#28344E] rounded-[10px] shadow-panel overflow-hidden">
         <button
           onClick={() => setIsAiExpanded(!isAiExpanded)}
-          className="w-full px-3.5 py-2.5 bg-[#22262A] flex items-center justify-between hover:bg-[#2A2E35] transition-colors text-left"
+          className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#1E2436] flex items-center justify-between hover:bg-[#E9EDF7] transition-colors text-left"
         >
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#64D6C5]" />
-            <span className="text-xs font-mono font-semibold text-[#F0F1F2] uppercase tracking-wider">
+            <span className="w-2 h-2 rounded-full bg-[#315EDE]" />
+            <span className="text-xs font-bold text-[#172033] dark:text-[#FFFFFF] uppercase tracking-wider">
               Engineering Interpretation & Recommendations
             </span>
           </div>
           {isAiExpanded ? (
-            <ChevronUp className="w-4 h-4 text-[#969DA5]" />
+            <ChevronUp className="w-4 h-4 text-[#64708A]" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-[#969DA5]" />
+            <ChevronDown className="w-4 h-4 text-[#64708A]" />
           )}
         </button>
         {isAiExpanded && (
-          <div className="p-3.5 text-xs text-[#C2C8D0] leading-relaxed font-sans border-t border-[#34393F] bg-[#14171A]">
+          <div className="p-4 text-xs text-[#172033] dark:text-[#E9EDF7] leading-relaxed font-sans border-t border-[#D9DFED] dark:border-[#28344E] bg-[#FFFFFF] dark:bg-[#172033]">
             {generateAiSummary()}
           </div>
         )}
       </div>
 
       {/* Engineering Standards Disclaimer */}
-      <div className="px-3 py-2 bg-[#14171A] rounded-[3px] border border-[#2A2E35] flex items-center justify-between text-[10px] text-[#969DA5] font-mono">
+      <div className="px-4 py-2.5 bg-[#FFFFFF] dark:bg-[#172033] rounded-[8px] border border-[#D9DFED] dark:border-[#28344E] flex items-center justify-between text-xs text-[#64708A] font-mono shadow-xs">
         <div className="flex items-center gap-2">
-          <ShieldAlert className="w-3.5 h-3.5 text-[#64D6C5] shrink-0" />
+          <ShieldAlert className="w-4 h-4 text-[#315EDE] shrink-0" />
           <span>Analytical Formulation: Distortion Energy (Von Mises-Hencky) • AGMA / Shigley Shaft Standards</span>
         </div>
         <span>ASME B106.1M Benchmark</span>
@@ -396,27 +400,27 @@ function ResultCard({
   subtext?: string;
 }) {
   const statusPills = {
-    pass: 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/30',
-    warning: 'bg-[#E7B65C]/15 text-[#E7B65C] border-[#E7B65C]/30',
-    fail: 'bg-[#E16D72]/15 text-[#E16D72] border-[#E16D72]/30',
-    info: 'bg-[#64D6C5]/10 text-[#64D6C5] border-[#64D6C5]/20',
+    pass: 'bg-[#39866B]/15 text-[#39866B] border-[#39866B]/30',
+    warning: 'bg-[#C78B3B]/15 text-[#C78B3B] border-[#C78B3B]/30',
+    fail: 'bg-[#C4515C]/15 text-[#C4515C] border-[#C4515C]/30',
+    info: 'bg-[#315EDE]/15 text-[#315EDE] border-[#315EDE]/20',
   };
 
   return (
-    <div className="bg-[#191C1F] p-3 rounded-[4px] border border-[#34393F] flex flex-col justify-between">
+    <div className="bg-[#FFFFFF] dark:bg-[#172033] p-3.5 rounded-[10px] border border-[#D9DFED] dark:border-[#28344E] shadow-panel flex flex-col justify-between">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-[10px] font-mono text-[#969DA5] uppercase tracking-wider truncate">
+        <span className="text-[10px] font-mono text-[#64708A] uppercase tracking-wider truncate font-bold">
           {label}
         </span>
-        <span className={`text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded-[2px] border ${statusPills[status]}`}>
+        <span className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded-[4px] border ${statusPills[status]}`}>
           {status}
         </span>
       </div>
       <div className="flex items-baseline gap-1 my-1">
-        <span className="text-xl font-mono font-bold text-[#F0F1F2] tracking-tight">{value}</span>
-        {unit && <span className="text-xs font-mono text-[#969DA5]">{unit}</span>}
+        <span className="text-xl font-mono font-bold text-[#172033] dark:text-[#FFFFFF] tracking-tight">{value}</span>
+        {unit && <span className="text-xs font-mono text-[#64708A]">{unit}</span>}
       </div>
-      {subtext && <div className="text-[10px] font-mono text-[#6C737D] truncate">{subtext}</div>}
+      {subtext && <div className="text-[10px] font-mono text-[#64708A] truncate">{subtext}</div>}
     </div>
   );
 }

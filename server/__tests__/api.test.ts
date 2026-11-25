@@ -46,9 +46,14 @@ describe('Backend API Tests', () => {
   });
 
   it('POST /api/chat with missing API key should gracefully fall back to deterministic engineering calculation (HTTP 200)', async () => {
-    // Ensure OPENAI_API_KEY is undefined for this test
-    const originalKey = env.OPENAI_API_KEY;
+    // Ensure API keys are undefined for this test
+    const originalOpenai = env.OPENAI_API_KEY;
+    const originalGemini = env.GEMINI_API_KEY;
+    const originalProvider = env.LLM_PROVIDER;
+
     env.OPENAI_API_KEY = undefined;
+    env.GEMINI_API_KEY = undefined;
+    env.LLM_PROVIDER = 'offline';
 
     const res = await fetch(`${BASE_URL}/api/chat`, {
       method: 'POST',
@@ -58,7 +63,9 @@ describe('Backend API Tests', () => {
       })
     });
     
-    env.OPENAI_API_KEY = originalKey;
+    env.OPENAI_API_KEY = originalOpenai;
+    env.GEMINI_API_KEY = originalGemini;
+    env.LLM_PROVIDER = originalProvider;
 
     assert.strictEqual(res.status, 200);
     const data = await res.json();
@@ -80,14 +87,20 @@ describe('Backend API Tests', () => {
   });
 
   describe('Offline Chat 7 Prompt Suite', () => {
-    const originalKey = env.OPENAI_API_KEY;
+    const originalOpenai = env.OPENAI_API_KEY;
+    const originalGemini = env.GEMINI_API_KEY;
+    const originalProvider = env.LLM_PROVIDER;
 
     before(() => {
       env.OPENAI_API_KEY = undefined;
+      env.GEMINI_API_KEY = undefined;
+      env.LLM_PROVIDER = 'offline';
     });
 
     after(() => {
-      env.OPENAI_API_KEY = originalKey;
+      env.OPENAI_API_KEY = originalOpenai;
+      env.GEMINI_API_KEY = originalGemini;
+      env.LLM_PROVIDER = originalProvider;
     });
 
     it('Prompt 1: "Check this shaft design."', async () => {
