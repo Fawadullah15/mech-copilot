@@ -16,7 +16,7 @@ const EXAMPLE_PROBLEMS = [
 ];
 
 export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModalProps) {
-  const { updateDesignParam, runAnalysis, sendCopilotMessage, setActivePage, setCopilotOpen } = useApp();
+  const { updateDesignParam, applyRecommendation, runAnalysis, sendCopilotMessage, setActivePage, setCopilotOpen } = useApp();
   const [inputProblem, setInputProblem] = useState(
     'Design a shaft for 500 Nm torque at 1500 RPM with a safety factor of 2.'
   );
@@ -27,11 +27,17 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
   const parsed = parseEngineeringProblem(inputProblem);
 
   const handleApplyAndAnalyze = () => {
-    if (parsed.torque) updateDesignParam('torque', parsed.torque);
-    if (parsed.rpm) updateDesignParam('rpm', parsed.rpm);
-    if (parsed.safetyFactor) updateDesignParam('safetyFactor', parsed.safetyFactor);
-    if (parsed.diameter) updateDesignParam('diameter', parsed.diameter);
-    if (parsed.length) updateDesignParam('length', parsed.length);
+    const patch: Record<string, any> = {};
+    if (parsed.torque) patch.torque = parsed.torque;
+    if (parsed.rpm) patch.rpm = parsed.rpm;
+    if (parsed.safetyFactor) patch.safetyFactor = parsed.safetyFactor;
+    if (parsed.diameter) patch.diameter = parsed.diameter;
+    if (parsed.length) patch.length = parsed.length;
+    if (parsed.material) patch.material = parsed.material;
+
+    if (Object.keys(patch).length > 0) {
+      applyRecommendation(patch);
+    }
 
     setActivePage('workspace');
     setCopilotOpen(true);
@@ -41,26 +47,27 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs animate-fade-in p-4 font-sans">
-      <div className="bg-[#191C1F] border border-[#34393F] rounded-[4px] w-full max-w-2xl shadow-2xl overflow-hidden font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F172A]/50 backdrop-blur-xs animate-fade-in p-4 font-sans">
+      <div className="bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#1E2D45] rounded-[8px] w-full max-w-2xl shadow-modal overflow-hidden font-sans">
         {/* Header */}
-        <div className="p-4 border-b border-[#34393F] flex items-center justify-between bg-[#22262A]">
+        <div className="px-4 py-3 border-b border-[#E2E8F0] dark:border-[#1E2D45] flex items-center justify-between bg-[#F8FAFC] dark:bg-[#162236]">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-[#14171A] text-[#64D6C5] rounded-[3px] border border-[#34393F]">
+            <div className="p-1.5 bg-white dark:bg-[#101A2B] text-[#2563EB] rounded-[6px] border border-[#E2E8F0] dark:border-[#334155]">
               <Sparkles size={16} />
             </div>
             <div>
-              <h2 className="text-xs font-mono font-bold text-[#F0F1F2] uppercase tracking-wider">
+              <h2 className="text-xs font-mono font-bold text-[#172033] dark:text-white uppercase tracking-wider">
                 Specify Design Problem
               </h2>
-              <p className="text-[11px] text-[#969DA5] font-mono">
+              <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
                 Describe operational loads and target safety factors in natural language
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-[#969DA5] hover:text-white p-1 rounded-[3px] hover:bg-[#2E3339] transition-colors"
+            className="text-[#64748B] hover:text-[#172033] dark:hover:text-white p-1 rounded-[5px] hover:bg-[#E2E8F0] dark:hover:bg-[#1B2942] transition-colors"
           >
             <X size={16} />
           </button>
@@ -71,30 +78,33 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
           {/* Textarea */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-mono font-semibold text-[#969DA5] uppercase tracking-wider flex items-center gap-1.5">
-                <Terminal size={12} className="text-[#64D6C5]" />
+              <label className="text-[10px] font-mono font-semibold text-[#64748B] dark:text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
+                <Terminal size={12} className="text-[#2563EB]" />
                 Engineering Problem Statement
               </label>
-              <span className="text-[10px] font-mono text-[#6C737D]">Natural language parser</span>
+              <span className="text-[10px] font-mono text-[#64748B]">Natural language parser</span>
             </div>
             <textarea
               rows={3}
               value={inputProblem}
               onChange={(e) => setInputProblem(e.target.value)}
               placeholder="e.g. Design a shaft for 500 Nm torque at 1500 RPM with a safety factor of 2..."
-              className="w-full p-2.5 bg-[#14171A] border border-[#34393F] rounded-[3px] text-xs text-[#F0F1F2] placeholder-[#6C737D] font-mono focus:outline-none focus:border-[#64D6C5] transition-colors"
+              className="w-full p-2.5 bg-[#F8FAFC] dark:bg-[#162236] border border-[#E2E8F0] dark:border-[#334155] rounded-[6px] text-xs text-[#172033] dark:text-white placeholder-[#94A3B8] font-mono focus:outline-none focus:border-[#2563EB] transition-colors"
             />
           </div>
 
           {/* Quick Examples */}
           <div className="space-y-1.5">
-            <span className="text-[10px] font-mono text-[#969DA5] uppercase">Standard Scenarios:</span>
+            <span className="text-[10px] font-mono text-[#64748B] dark:text-[#94A3B8] uppercase font-bold">
+              Standard Scenarios:
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {EXAMPLE_PROBLEMS.map((prob, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => setInputProblem(prob)}
-                  className="text-[11px] px-2 py-0.5 bg-[#14171A] hover:bg-[#22262A] border border-[#2A2E35] rounded-[2px] text-[#C2C8D0] hover:text-[#F0F1F2] font-mono transition-colors text-left truncate max-w-full"
+                  className="text-[11px] px-2.5 py-1 bg-[#F8FAFC] dark:bg-[#162236] hover:bg-[#EFF6FF] dark:hover:bg-[#1B2942] border border-[#E2E8F0] dark:border-[#24344F] rounded-[6px] text-[#475569] dark:text-[#CBD5E1] hover:text-[#2563EB] dark:hover:text-white font-mono transition-colors text-left truncate max-w-full"
                 >
                   {prob}
                 </button>
@@ -103,53 +113,53 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
           </div>
 
           {/* Visually Parsed Requirements Card */}
-          <div className="bg-[#14171A] border border-[#2A2E35] rounded-[3px] p-3 space-y-2.5">
+          <div className="bg-[#F8FAFC] dark:bg-[#162236] border border-[#E2E8F0] dark:border-[#24344F] rounded-[8px] p-3 space-y-2.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-[#F0F1F2]">
-                <CheckCircle2 size={14} className="text-[#34D399]" />
+              <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-[#172033] dark:text-white">
+                <CheckCircle2 size={14} className="text-[#16A34A]" />
                 Extracted Load Parameters
               </div>
-              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-[2px] bg-[#34D399]/15 text-[#34D399] border border-[#34D399]/30 font-bold uppercase">
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded-[4px] bg-[#F0FDF4] dark:bg-[#052E16]/40 text-[#16A34A] border border-[#BBF7D0] dark:border-[#16A34A]/40 font-bold uppercase">
                 Analysis Ready
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-2 bg-[#191C1F] rounded-[3px] border border-[#2A2E35]">
-                <span className="text-[10px] font-mono text-[#969DA5] block">Torque (T)</span>
-                <span className="text-sm font-mono font-bold text-[#64D6C5]">
+            <div className="grid grid-cols-3 gap-2 tabular-nums">
+              <div className="p-2.5 bg-white dark:bg-[#101A2B] rounded-[6px] border border-[#E2E8F0] dark:border-[#24344F]">
+                <span className="text-[10px] font-mono text-[#64748B] block">Torque (T)</span>
+                <span className="text-sm font-mono font-bold text-[#2563EB]">
                   {parsed.torque ? `${parsed.torque} N·m` : '500 N·m (Default)'}
                 </span>
               </div>
-              <div className="p-2 bg-[#191C1F] rounded-[3px] border border-[#2A2E35]">
-                <span className="text-[10px] font-mono text-[#969DA5] block">Speed (n)</span>
-                <span className="text-sm font-mono font-bold text-[#F0F1F2]">
+              <div className="p-2.5 bg-white dark:bg-[#101A2B] rounded-[6px] border border-[#E2E8F0] dark:border-[#24344F]">
+                <span className="text-[10px] font-mono text-[#64748B] block">Speed (n)</span>
+                <span className="text-sm font-mono font-bold text-[#172033] dark:text-white">
                   {parsed.rpm ? `${parsed.rpm} RPM` : '1500 RPM (Default)'}
                 </span>
               </div>
-              <div className="p-2 bg-[#191C1F] rounded-[3px] border border-[#2A2E35]">
-                <span className="text-[10px] font-mono text-[#969DA5] block">Safety Factor</span>
-                <span className="text-sm font-mono font-bold text-[#34D399]">
+              <div className="p-2.5 bg-white dark:bg-[#101A2B] rounded-[6px] border border-[#E2E8F0] dark:border-[#24344F]">
+                <span className="text-[10px] font-mono text-[#64748B] block">Safety Factor</span>
+                <span className="text-sm font-mono font-bold text-[#16A34A]">
                   {parsed.safetyFactor ? `${parsed.safetyFactor.toFixed(1)}x` : '2.0x (Target)'}
                 </span>
               </div>
             </div>
 
             {(parsed.diameter || parsed.length || parsed.material) && (
-              <div className="pt-2 border-t border-[#2A2E35] flex flex-wrap gap-3 text-[11px] font-mono text-[#969DA5]">
+              <div className="pt-2 border-t border-[#E2E8F0] dark:border-[#24344F] flex flex-wrap gap-3 text-[11px] font-mono text-[#64748B]">
                 {parsed.diameter && (
                   <span>
-                    Diameter: <strong className="text-[#F0F1F2]">{parsed.diameter} mm</strong>
+                    Diameter: <strong className="text-[#172033] dark:text-white">{parsed.diameter} mm</strong>
                   </span>
                 )}
                 {parsed.length && (
                   <span>
-                    Length: <strong className="text-[#F0F1F2]">{parsed.length} mm</strong>
+                    Length: <strong className="text-[#172033] dark:text-white">{parsed.length} mm</strong>
                   </span>
                 )}
                 {parsed.material && (
                   <span>
-                    Material: <strong className="text-[#64D6C5]">{parsed.material}</strong>
+                    Material: <strong className="text-[#2563EB]">{parsed.material}</strong>
                   </span>
                 )}
               </div>
@@ -158,37 +168,37 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
 
           {/* Quick manual tweak drawer */}
           {isEditing && (
-            <div className="p-3 bg-[#14171A] rounded-[3px] border border-[#2A2E35] space-y-2">
-              <h4 className="text-[10px] font-mono uppercase tracking-wider text-[#969DA5]">
+            <div className="p-3 bg-[#F8FAFC] dark:bg-[#162236] rounded-[8px] border border-[#E2E8F0] dark:border-[#24344F] space-y-2">
+              <h4 className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] font-bold">
                 Manual Parameter Override:
               </h4>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] font-mono text-[#969DA5] block mb-0.5">Torque (N·m)</label>
+                  <label className="text-[10px] font-mono text-[#64748B] block mb-0.5">Torque (N·m)</label>
                   <input
                     type="number"
                     defaultValue={parsed.torque || 500}
                     onChange={(e) => updateDesignParam('torque', Number(e.target.value))}
-                    className="w-full bg-[#191C1F] border border-[#34393F] rounded-[2px] px-2 py-1 text-xs text-[#F0F1F2] font-mono"
+                    className="w-full bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] rounded-[6px] px-2 py-1 text-xs text-[#172033] dark:text-white font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono text-[#969DA5] block mb-0.5">RPM</label>
+                  <label className="text-[10px] font-mono text-[#64748B] block mb-0.5">RPM</label>
                   <input
                     type="number"
                     defaultValue={parsed.rpm || 1500}
                     onChange={(e) => updateDesignParam('rpm', Number(e.target.value))}
-                    className="w-full bg-[#191C1F] border border-[#34393F] rounded-[2px] px-2 py-1 text-xs text-[#F0F1F2] font-mono"
+                    className="w-full bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] rounded-[6px] px-2 py-1 text-xs text-[#172033] dark:text-white font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-mono text-[#969DA5] block mb-0.5">Safety Factor</label>
+                  <label className="text-[10px] font-mono text-[#64748B] block mb-0.5">Safety Factor</label>
                   <input
                     type="number"
                     step={0.1}
                     defaultValue={parsed.safetyFactor || 2.0}
                     onChange={(e) => updateDesignParam('safetyFactor', Number(e.target.value))}
-                    className="w-full bg-[#191C1F] border border-[#34393F] rounded-[2px] px-2 py-1 text-xs text-[#F0F1F2] font-mono"
+                    className="w-full bg-white dark:bg-[#101A2B] border border-[#E2E8F0] dark:border-[#334155] rounded-[6px] px-2 py-1 text-xs text-[#172033] dark:text-white font-mono"
                   />
                 </div>
               </div>
@@ -197,10 +207,11 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
         </div>
 
         {/* Footer actions */}
-        <div className="px-4 py-2.5 border-t border-[#34393F] bg-[#22262A] flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-[#E2E8F0] dark:border-[#1E2D45] bg-[#F8FAFC] dark:bg-[#162236] flex items-center justify-between">
           <button
+            type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className="bg-[#14171A] hover:bg-[#2A2E35] text-[#969DA5] hover:text-[#F0F1F2] border border-[#34393F] text-xs font-mono py-1 px-2.5 rounded-[3px] flex items-center gap-1 transition-colors"
+            className="bg-white dark:bg-[#101A2B] hover:border-[#2563EB] text-[#475569] dark:text-[#94A3B8] hover:text-[#172033] dark:hover:text-white border border-[#E2E8F0] dark:border-[#334155] text-xs font-mono py-1.5 px-3 rounded-[6px] flex items-center gap-1.5 transition-colors"
           >
             <Sliders size={12} />
             <span>{isEditing ? 'Hide Overrides' : 'Adjust Manually'}</span>
@@ -208,14 +219,16 @@ export default function ProblemInputModal({ isOpen, onClose }: ProblemInputModal
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={onClose}
-              className="text-[#969DA5] hover:text-white text-xs font-mono py-1 px-3"
+              className="text-[#64748B] hover:text-[#172033] dark:hover:text-white text-xs font-mono py-1.5 px-3"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleApplyAndAnalyze}
-              className="bg-[#64D6C5] hover:bg-[#52c4b3] text-[#111315] font-mono text-xs font-semibold flex items-center gap-1.5 py-1 px-3 rounded-[3px] shadow-sm transition-colors"
+              className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-mono text-xs font-semibold flex items-center gap-1.5 py-1.5 px-3.5 rounded-[6px] shadow-xs transition-colors"
             >
               <span>Apply & Analyze</span>
               <ArrowRight size={13} />
